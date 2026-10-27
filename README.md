@@ -1,35 +1,47 @@
 # IronStoa PASS — Public Application Software Suite
 
-**IronStoa PASS** (`mr-pass`) is the public-facing companion component to
-[IronStone BOSS](https://github.com/moqui/mr-boss), built for
-[Modern Rust Moqui](https://github.com/moqui/mr-moqui).
+PASS is the public-facing component for Modern Rust Moqui. Its Forum uses Mantle MAILBOX lists and
+CommunicationEvent posts, with a dedicated public shell, explicit publication, public accounts,
+moderation, read markers, protected attachments, and outbound notifications.
 
-PASS brings community, publishing and commerce applications into one suite, with shared sites,
-accounts, navigation, branding and integrations. Its separate repository and component support
-public-facing deployments on different servers with their own access controls.
+The component has a framework-only static dependency. Local deployments load Mantle. Remote
+frontends need only framework, webroot, and PASS; they use one operator-configured Mantle authority
+without loading its entity catalog or copying its Party records. BOSS is not a runtime dependency.
 
-## Applications and status
+The [Forum design](plan/design-forum.md) defines the stages. See the
+[implementation status and verified checks](plan/implementation-forum.md) and
+[deployment instructions](docs/Deployment.md). S2 participation features and S3 integrations,
+imports, retention/export, and advanced reports remain deferred.
 
-This repository is in the design stage. The
-[Forum and shared PASS foundation design](plan/design-forum.md) is the starting point.
+## Starting a community
 
-| Application | Purpose | Status |
-| --- | --- | --- |
-| Forum | Community discussion, mailing lists, private communities and customer/member support | Full design with staged implementation |
-| Blog/Publishing | Articles, publications, editorial workflows and subscriber delivery | Future app; shared contracts defined in the Forum design |
-| Commerce | Public storefronts, customer accounts and paid-access flows | Future app; shared contracts defined in the Forum design |
+Install the matching framework and Mantle changes alongside PASS. Provision a disabled site as
+an operator, configure its registered hosts and mounts, configure verification mail and media
+scanning, then explicitly publish the site and selected categories. Registration starts closed.
+An existing mailbox's `isPublic=Y` does not publish it to the internet. Adopted mailboxes must
+finish metadata conversion and reconcile failures before publication.
 
-## Shared foundation
+Backend URLs, credentials, sender/template allowlists, SSO flows, callback URLs, storage, and
+scanner bindings belong in operator configuration. They are never accepted from public requests.
+See [Deployment](docs/Deployment.md) for configuration examples and recovery procedures.
 
-The design supports multiple branded sites and local or remote
-[Mantle](https://github.com/moqui/mr-mantle) backends. Forum shares Mailbox and CommunicationEvent
-records with BOSS Comms; Publishing builds on versioned wiki content; Commerce uses shared store,
-order and subscription services. PASS and BOSS have no runtime dependency on each other.
+## Development checks
 
-Integration examples include support discussions on a storefront, forum-backed article comments,
-and subscription access to private forums or publications. The shared framework and Mantle
-services keep identity, permissions and business records consistent across applications.
+Run from the mr-moqui workspace root with the existing compiler and incremental development build:
+
+```sh
+./moq build -- --features moqui-host/image
+./moq test mr-pass mr-mantle mr-boss --nobuild --spec Forum,ForumAccess,Media,PublicIdentity,SsoHandoff,Outbox,Mailboxes,InboxMailboxes --db snapshot
+./moq test-client mr-pass --nobuild --serve --spec ForumHttp
+./moq test mr-pass --nobuild --spec Scale --db snapshot -D pass_scale_test=true
+./moq run --nobuild lint --screens
+```
+
+JavaScript service and browser specs run through Moqui, without Node as a test dependency.
+`RemoteHttp` and `RemoteFixtures` use two independent runtimes; see the deployment guide.
+Test-only configuration, scanner, and captured email fixtures must not be used as production
+provider configuration.
 
 ## License
 
-[CC0 1.0 Universal with an additional Grant of Patent License](LICENSE.md), matching IronStone BOSS.
+[CC0 1.0 Universal with an additional Grant of Patent License](LICENSE.md).

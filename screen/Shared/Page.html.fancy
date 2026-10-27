@@ -1,0 +1,18 @@
+<h1>${view.title}</h1>
+<#if view.avatarHref><img src="${view.avatarHref}" alt="Profile image" width="128" height="128"></#if>
+<#if ec.web.parameters.saved><p role="status">Your change was saved.</p></#if>
+<#if screenName == 'Search'><form method="get"><label>Search topics <input name="query" value="${ec.web.parameters.query || ''}" maxlength="200"></label><button>Search</button></form></#if>
+<#if view.needsLogin><p><a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath)}">Sign in to continue</a></p></#if>
+<#if view.notes><#list view.notes as note><article><p>Staff note · ${note.createdAt}</p><p>${note.noteText}</p></article></#list></#if>
+<#if view.category?.capabilities.canModerate><p><a href="${passBases.forum}/Moderation/ReviewQueue?contactListId=${view.category.contactListId}">Review category submissions</a> · <a href="${passBases.forum}/Settings/Members?contactListId=${view.category.contactListId}">Manage category members</a></p></#if>
+<#if view.body><article>${raw(view.body)}</article></#if>
+<#if view.details.length><dl class="card"><#list view.details as item><dt>${item[0]}</dt><dd>${item[1]}</dd></#list></dl></#if>
+<#if screenName == 'Topics'><nav aria-label="Topic views"><a href="${passBases.forum}?view=latest">Latest</a><#if siteInfo.authenticated><a href="${passBases.forum}?view=new">New</a><a href="${passBases.forum}?view=unread">Unread</a></#if><a href="${passBases.forum}?view=top">Top</a></nav></#if>
+<#if view.stream><div id="public-root" style="display:none"></div><div id="pass-ssr-posts"></#if>
+<#list view.rows as row><article>
+<#if row.href><h2><a href="${row.href}">${row.label}</a></h2><#elseif row.label><h2>${row.label}</h2></#if>
+<#if view.stream><p>${row.author.displayName || row.author.handle || 'Community member'} · ${row.dateText || row.entryDate}</p><p><a href="${passBases.forum}/p/${row.postId}">Link to this post</a><#if row.capabilities.canEdit> · <a href="${passBases.forum}/Compose?postId=${row.postId}">Edit post</a></#if></p><div id="post-${row.postId}">${raw(row.body)}</div><#list row.attachments as attachment><a href="${publicPath}/download?attachmentId=${attachment.attachmentId}">${attachment.filename}</a></#list><#else><#if row.sanctionId><p>${row.kind} · revision ${row.revision} · ${row.reason}</p></#if><#if row.unreadCount><p>${row.unreadCount} unread</p></#if><#if row.partyId><p>Member: ${row.partyId} · ${row.role || row.roleTypeId || 'member'} · revision ${row.revision}</p></#if><#if row.state><p>${row.state}</p></#if><#if row.snippet><p>${row.snippet}</p></#if><#if row.visiblePostCount><p>${row.visiblePostCount} ${Number(row.visiblePostCount) == 1 ? 'post' : 'posts'}</p></#if></#if>
+</article></#list><#if view.stream></div></#if>
+<#if view.read && !view.rows.length && !view.details.length && !view.body><p>No items to display.</p></#if>
+<#if view.next><a href="${publicPath}${view.nextHref}">Next page</a></#if>
+<#if view.stream && siteInfo.authenticated && view.canReply><a href="${passBases.forum}/Compose?rootCommEventId=${ec.web.parameters.rootCommEventId}">Reply</a></#if>

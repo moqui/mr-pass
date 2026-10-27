@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Compose">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Compose',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="publish">
+    <actions>
+      <script><![CDATA[
+        const helper=ec.resource.script('component://mr-pass/screen/Shared/View.js')
+        const op=ec.web.parameters.mode==='draft'?'storeDraft':ec.web.parameters.postId?'updatePost':'publishPost'
+        const input=helper.inputFor(op,resolvedSiteId,ec.web.parameters)
+        if(op==='storeDraft')input.mode=input.postId?'edit':input.rootCommEventId?'reply':'new'
+        ec.web.sendJsonResponse(ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:op,input}).call().result)
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="state" method="get" read-only="true">
+    <actions>
+      <script><![CDATA[
+        const call=(op,input)=>ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:op,input:Object.assign({siteId:resolvedSiteId},input || {})}).call().result
+        const info=call('getSiteInfo',{})
+        let draft=ec.web.parameters.draftId?call('getDraft',{draftId:ec.web.parameters.draftId}).draft:null
+        if(ec.web.parameters.postId)draft=call('getEditablePost',{postId:ec.web.parameters.postId}).draft
+        let categoryId=ec.web.parameters.contactListId || draft?.contactListId || '',replyAllowed=true
+        const root=ec.web.parameters.rootCommEventId || draft?.rootCommEventId;if(root){const topic=call('getTopic',{rootCommEventId:root}).topic;categoryId=topic.category.contactListId;replyAllowed=topic.capabilities.canReply}
+        ec.web.sendJsonResponse({recoveryKey:info.recoveryKey,authenticated:info.authenticated,categoryId,draft,replyAllowed,categories:call('findCategories',{}).categoryList.filter(category=>category.capabilities.canStartTopic || category.contactListId===categoryId)})
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="preview">
+    <actions>
+      <script><![CDATA[
+        ec.web.sendJsonResponse(ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'previewPost',input:{siteId:resolvedSiteId,body:ec.web.parameters.body || ''}}).call().result)
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="removeAttachment">
+    <actions>
+      <script><![CDATA[
+        ec.web.sendJsonResponse(ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'removeStagedAttachment',input:{siteId:resolvedSiteId,attachmentId:ec.web.parameters.attachmentId}}).call().result)
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="upload">
+    <actions>
+      <script><![CDATA[
+        const input={siteId:resolvedSiteId,contactListId:ec.web.parameters.contactListId,file:ec.web.multiPartParameters.file,draftId:ec.web.parameters.draftId || null}
+        ec.web.sendJsonResponse(ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'stageAttachment',input}).call().result)
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='Compose'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Compose.html.fancy"/>
+      <text type="qvue" location="component://mr-pass/screen/Forum/Compose.qvue" template="false"/>
+    </render-mode>
+  </widgets>
+</screen>

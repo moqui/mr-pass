@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Forum">
+  <transition name="feed" method="get" read-only="true">
+    <actions>
+      <script><![CDATA[
+        const result=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getFeed',input:{siteId:resolvedSiteId,format:ec.web.parameters.format || 'rss'}}).call().result
+        ec.web.response.setContentType(result.contentType);ec.web.response.write(result.body)
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <subscreens default-item="Topics"/>
+  <widgets>
+    <subscreens-active/>
+  </widgets>
+</screen>

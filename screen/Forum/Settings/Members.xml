@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Members">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Members',resolvedSiteId,ec.web.parameters)
+        if(saved.invitationId){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').invitationResult(saved,passBases.account));return}
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='Members'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassMembersSetMembershipSection" condition="view.forms.some(form =&gt; form.op === 'setMembership')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersSetMembership" action="${publicPath}/save"><h2>Change membership</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassMembersSetMembership" transition="save" map="Object.assign({},view.formValues['setMembership'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setMembership"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="targetPartyId">
+            <default-field title="Member">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="state">
+            <default-field title="Membership">
+              <drop-down allow-empty="false">
+                <option key="active" text="active"/>
+                <option key="pending" text="pending"/>
+                <option key="suspended" text="suspended"/>
+                <option key="ended" text="ended"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Decision reason">
+              <text-line/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Change membership">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassMembersCreateInvitationSection" condition="view.forms.some(form =&gt; form.op === 'createInvitation')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersCreateInvitation" action="${publicPath}/save"><h2>Create invitation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassMembersCreateInvitation" transition="save" map="Object.assign({},view.formValues['createInvitation'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="createInvitation"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="emailAddress">
+            <default-field title="Verified recipient email">
+              <text-line input-type="email"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Create invitation">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassMembersSetCategoryMemberSection" condition="view.forms.some(form =&gt; form.op === 'setCategoryMember')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersSetCategoryMember" action="${publicPath}/save"><h2>Change category membership or role</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassMembersSetCategoryMember" transition="save" map="Object.assign({},view.formValues['setCategoryMember'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setCategoryMember"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Category">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="targetPartyId">
+            <default-field title="Member">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="state">
+            <default-field title="Membership">
+              <drop-down allow-empty="false">
+                <option key="active" text="active"/>
+                <option key="ended" text="ended"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="roleTypeId">
+            <default-field title="Category role">
+              <drop-down allow-empty="false">
+                <option key="" text=""/>
+                <option key="ListModerator" text="ListModerator"/>
+                <option key="ListOwner" text="ListOwner"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Membership revision (zero for a new member)">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Decision reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="password" from="''">
+            <default-field title="Reauthenticate for role changes">
+              <password/>
+            </default-field>
+          </field>
+          <field name="code">
+            <default-field title="Second-factor code if required">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Change category membership or role">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>

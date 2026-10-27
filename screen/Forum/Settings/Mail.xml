@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Mail">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Mail',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='Mail'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassMailResolveDeliverySection" condition="view.forms.some(form =&gt; form.op === 'resolveDelivery')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassMailResolveDelivery" action="${publicPath}/save"><h2>Reconcile a failed or uncertain delivery</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassMailResolveDelivery" transition="save" map="Object.assign({},view.formValues['resolveDelivery'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="resolveDelivery"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="deliveryId">
+            <default-field title="Delivery">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Delivery revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="decision">
+            <default-field title="Confirmed provider outcome">
+              <drop-down allow-empty="false">
+                <option key="retry" text="retry"/>
+                <option key="confirmed-sent" text="confirmed-sent"/>
+                <option key="confirmed-not-sent" text="confirmed-not-sent"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Evidence and reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Reconcile a failed or uncertain delivery">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassMailStoreMailSettingsSection" condition="view.forms.some(form =&gt; form.op === 'storeMailSettings')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassMailStoreMailSettings" action="${publicPath}/save"><h2>Save outbound mail</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassMailStoreMailSettings" transition="save" map="Object.assign({},view.formValues['storeMailSettings'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeMailSettings"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="senderAddress">
+            <default-field title="Registered sender">
+              <text-line input-type="email"/>
+            </default-field>
+          </field>
+          <field name="senderName">
+            <default-field title="Sender name">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="templateId">
+            <default-field title="Registered template">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save outbound mail">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>

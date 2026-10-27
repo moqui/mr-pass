@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+  <service verb="resolve" noun="Route" authenticate="anonymous-all" allow-remote="false">
+    <in-parameters>
+      <parameter name="siteId" required="true"/>
+      <parameter name="hostname" required="true"/>
+      <parameter name="path" required="true"/>
+    </in-parameters>
+    <out-parameters>
+      <parameter name="screenPath"/>
+      <parameter name="topicId"/>
+      <parameter name="topicSlug"/>
+      <parameter name="postId"/>
+    </out-parameters>
+    <actions>
+      <script><![CDATA[
+            const info=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getSiteInfo',input:{siteId,hostname}}).call().result
+            const mounted=info.mounts.filter(m=>path===m.pathPrefix || path.startsWith((m.pathPrefix==='/'?'':m.pathPrefix)+'/')).sort((a,b)=>b.pathPrefix.length-a.pathPrefix.length)[0]
+            const fail=()=>{const error=new Error('Page not found');error.moquiErrorKind='NotFound';throw error}
+            if(!mounted || path.includes('..'))fail()
+            const root={forum:'Forum',account:'Account',members:'Members',sites:'Sites'}[mounted.app];if(!root)fail()
+            const suffix=path.slice(mounted.pathPrefix==='/'?0:mounted.pathPrefix.length)
+            const parts=suffix.split('/').filter(Boolean)
+            if(mounted.app==='forum' && parts[0]==='t'){
+                if(!/^[A-Za-z0-9_-]{1,40}$/.test(parts[1] || ''))fail()
+                topicId=parts[1];const mode=(parts[2] || '').match(/\.(qvue|qvt|qjs)$/);topicSlug=(parts[2] || '').replace(/\.(qvue|qvt|qjs)$/,'');screenPath='/Forum/Topics/TopicDetail'+(mode?'.'+mode[1]:'')+(parts.length>3?'/'+parts.slice(3).join('/'):'')
+            }else if(mounted.app==='forum' && parts[0]==='p'){
+                if(!/^[A-Za-z0-9_-]{1,40}$/.test(parts[1] || ''))fail()
+                postId=parts[1];screenPath='/Forum/Post'
+            }else screenPath='/'+root+suffix
+        ]]></script>
+    </actions>
+  </service>
+</services>

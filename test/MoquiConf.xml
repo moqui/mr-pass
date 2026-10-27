@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-3.xsd">
+  <default-property name="pass_verification_template" value="PASS_TEST_VERIFY"/>
+  <default-property name="pass_client_test_secret" value="test-deployment-secret"/>
+  <default-property name="pass_client_test_sites" value="PASS_AUTH,PASS_HTTP"/>
+  <default-property name="pass_sender_addresses" value="community@example.test"/>
+  <default-property name="pass_mail_template_ids" value="PASS_TEST_NOTICE"/>
+  <default-property name="pass_sso_flows" value="PASS_TEST_SSO"/>
+  <default-property name="pass_client_test_callback" value="https://frontend.example.test/account/Sso"/>
+  <default-property name="pass_scanner_service" value="pass.test.MediaServices.scan#File"/>
+  <default-property name="pass_media_root" value="runtime://tmp/pass-media"/>
+  <default-property name="pass_test_scanner" value="true"/>
+  <webapp-list>
+    <webapp name="webroot">
+      <public-site host="127.0.0.1" site-id="PASS_HTTP" screen-location="component://mr-pass/screen/Pass.xml" resolver-service="pass.RouteServices.resolve#Route">
+        <mount path="/forum" screen="Forum"/>
+        <mount path="/account" screen="Account"/>
+        <mount path="/members" screen="Members"/>
+        <mount path="/sites" screen="Sites"/>
+      </public-site>
+    </webapp>
+  </webapp-list>
+</moqui-conf>

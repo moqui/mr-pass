@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-include="false">
+  <pre-actions>
+    <script><![CDATA[
+    const result=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getPostLocation',input:{siteId:resolvedSiteId,postId}}).call().result
+    sri.sendRedirectAndStopRender((passBases.forum || '')+'/t/'+encodeURIComponent(result.rootCommEventId)+'/'+encodeURIComponent(result.slug)+'?around='+encodeURIComponent(result.postId)+'#post-'+encodeURIComponent(result.postId))
+]]></script>
+  </pre-actions>
+  <widgets>
+    <label text="Opening the post…"/>
+  </widgets>
+</screen>

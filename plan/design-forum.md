@@ -1,6 +1,6 @@
 # IronStoa PASS — Forum design
 
-Oct 27, 2026 — draft; complete design with staged implementation. Documentation only.
+Oct 27, 2026 — design specification with staged implementation. See [implementation status](implementation-forum.md) for S1 code and verified checks.
 
 **IronStoa PASS — Public Application Software Suite** is the public-facing companion to
 **IronStone BOSS**. Its repository and component name are **`mr-pass`**. Forum serves community
@@ -1518,7 +1518,7 @@ this documentation pass.
 | Decision | Notes |
 | --- | --- |
 | Suite/component name | IronStoa PASS (Public Application Software Suite), repository/component mr-pass; companion to IronStone BOSS. |
-| Document ownership | Full Forum design plus PASS foundation in mr-pass/plan/design-forum.md; BOSS integration documents link here. No app implementation in this pass. |
+| Document ownership | Full Forum design plus PASS foundation in mr-pass/plan/design-forum.md; BOSS integration documents link here. S1 implementation and verified checks are tracked in implementation-forum.md. |
 | App family | Forum first; Commerce and Blog/Publishing future apps with concrete shared contracts and separate future detailed designs. |
 | Reference priorities | Existing Mailboxes/Mantle first, Discourse primary UI, phpBB functional breadth, Odoo Forum/Blog/Commerce shared-site and feature evidence. |
 | Deployment | One component, several sites/apps, one local or remote authority per deployment; no BOSS dependency or duplicated business store. |

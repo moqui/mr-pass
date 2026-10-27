@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Settings">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Settings',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="avatar" method="post">
+    <actions>
+      <script><![CDATA[
+        const invoke=(operation,input)=>ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation,input:Object.assign({siteId:resolvedSiteId},input)}).call().result
+        const handle=invoke('getSiteInfo',{}).profile?.handle
+        if(!handle)throw new Error('Save your profile before uploading an avatar')
+        const profile=invoke('getProfile',{handle}).profile
+        const attachment=invoke('stageAttachment',{purpose:'avatar',file:ec.web.multiPartParameters.file}).attachment
+        if(attachment.scanState !== 'clean')throw new Error('Avatar was held in quarantine; choose another image')
+        invoke('storeProfile',{handle:profile.handle,displayName:profile.displayName,bio:profile.bio,locale:profile.locale,timeZone:profile.timeZone,discoverability:profile.discoverability,avatarId:attachment.attachmentId,expectedRevision:profile.revision})
+        ec.web.response.sendRedirect(publicPath.replace(/\/avatar$/, '')+'?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='Settings'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassSettingsManageAccountSection" condition="view.forms.some(form =&gt; form.op === 'manageAccount')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsManageAccount" action="${publicPath}/save"><h2>Change password</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsManageAccount" transition="save" map="Object.assign({},view.formValues['manageAccount'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="manageAccount"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="action">
+            <default-field title="Security action">
+              <drop-down allow-empty="false">
+                <option key="password" text="password"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="oldPassword" from="''">
+            <default-field title="Current password">
+              <password/>
+            </default-field>
+          </field>
+          <field name="newPassword" from="''">
+            <default-field title="New password">
+              <password/>
+            </default-field>
+          </field>
+          <field name="newPasswordVerify" from="''">
+            <default-field title="Confirm new password">
+              <password/>
+            </default-field>
+          </field>
+          <field name="code">
+            <default-field title="Authentication code (when required)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Change password">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSettingsEndSessionSection" condition="view.forms.some(form =&gt; form.op === 'endSession')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsEndSession" action="${publicPath}/save"><h2>Sign out</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsEndSession" transition="save" map="Object.assign({},view.formValues['endSession'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="endSession"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Sign out">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSettingsStoreProfileSection" condition="view.forms.some(form =&gt; form.op === 'storeProfile')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsStoreProfile" action="${publicPath}/save"><h2>Save profile</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsStoreProfile" transition="save" map="Object.assign({},view.formValues['storeProfile'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeProfile"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="handle">
+            <default-field title="Handle">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="displayName">
+            <default-field title="Display name">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="bio">
+            <default-field title="Biography">
+              <text-area cols="60" rows="6"/>
+            </default-field>
+          </field>
+          <field name="discoverability">
+            <default-field title="Profile visibility">
+              <drop-down allow-empty="false">
+                <option key="members" text="members"/>
+                <option key="public" text="public"/>
+                <option key="hidden" text="hidden"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="locale">
+            <default-field title="Locale">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="timeZone">
+            <default-field title="Time zone">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Profile revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save profile">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSettingsSetPreferencesSection" condition="view.forms.some(form =&gt; form.op === 'setPreferences')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsSetPreferences" action="${publicPath}/save"><h2>Save delivery preferences</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsSetPreferences" transition="save" map="Object.assign({},view.formValues['setPreferences'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setPreferences"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="watchLevel">
+            <default-field title="Notifications">
+              <drop-down allow-empty="false">
+                <option key="Normal" text="Normal"/>
+                <option key="Muted" text="Muted"/>
+                <option key="Tracking" text="Tracking"/>
+                <option key="Watching" text="Watching"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="emailMode">
+            <default-field title="Email">
+              <drop-down allow-empty="false">
+                <option key="Notifications" text="Notifications"/>
+                <option key="None" text="None"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Preference revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save delivery preferences">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSettingsLeaveSiteSection" condition="view.forms.some(form =&gt; form.op === 'leaveSite')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsLeaveSite" action="${publicPath}/save"><h2>Leave this site</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsLeaveSite" transition="save" map="Object.assign({},view.formValues['leaveSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="leaveSite"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Membership revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Leave this site">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSettingsJoinSiteSection" condition="view.forms.some(form =&gt; form.op === 'joinSite')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsJoinSite" action="${publicPath}/save"><h2>Join this community</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsJoinSite" transition="save" map="Object.assign({},view.formValues['joinSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="joinSite"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Join this community">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="AvatarUpload" condition="siteInfo.profile?.handle &amp;&amp; siteInfo.membershipState === 'active'">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" enctype="multipart/form-data" action="${publicPath}/avatar"><h2>Profile image</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><label>Choose a raster image <input type="file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" required></label><button>Upload and scan avatar</button></form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>

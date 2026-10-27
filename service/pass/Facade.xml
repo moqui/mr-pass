@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+  <service verb="call" noun="Operation" authenticate="anonymous-all" allow-remote="false">
+    <in-parameters>
+      <parameter name="operation" required="true"/>
+      <parameter name="input" type="Map"/>
+    </in-parameters>
+    <out-parameters>
+      <parameter name="result" type="Map"/>
+    </out-parameters>
+    <actions>
+      <script>result = ec.resource.script('component://mr-pass/service/pass/Facade.js').call(operation,input || {})</script>
+    </actions>
+  </service>
+</services>

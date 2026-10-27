@@ -1,0 +1,447 @@
+<template>
+    <section
+        aria-labelledby="compose-heading"
+        style="max-width: 900px; margin: auto"
+    >
+        <h1
+            id="compose-heading"
+            style="font: 600 2rem/1.3 system-ui; margin: 1rem 0"
+        >
+            Write a topic or reply
+        </h1>
+        <p v-if="loading" role="status">Loading composer…</p>
+        <div v-else-if="loadError">
+            <p role="alert">
+                The authority is unavailable. Saved browser drafts remain on
+                this device.
+            </p>
+            <button type="button" @click="reload">Retry</button>
+        </div>
+        <p v-else-if="!authenticated">Sign in to contribute.</p>
+        <form v-else @submit.prevent="save(false)">
+            <section v-if="recoveryCandidate" role="alert">
+                <h2>Compare saved drafts</h2>
+                <p>
+                    A newer authority version exists. Choose which text to
+                    continue editing.
+                </p>
+                <label
+                    >Authority text<textarea
+                        readonly
+                        :value="draft.body"
+                    ></textarea></label
+                ><label
+                    >Browser recovery text<textarea
+                        readonly
+                        :value="recoveryCandidate.draft.body"
+                    ></textarea></label
+                ><button type="button" @click="chooseRecovery(true)">
+                    Continue with browser text</button
+                ><button type="button" @click="chooseRecovery(false)">
+                    Keep authority text
+                </button>
+            </section>
+            <label
+                >Category<select
+                    v-model="draft.contactListId"
+                    :disabled="!!draft.rootCommEventId"
+                    required
+                >
+                    <option value="">Choose a category</option>
+                    <option
+                        v-for="category in categories"
+                        :key="category.contactListId"
+                        :value="category.contactListId"
+                    >
+                        {{ category.name }} ({{
+                            audience(category.visibility)
+                        }})
+                    </option>
+                </select></label
+            >
+            <label v-if="!draft.rootCommEventId"
+                >Title<input v-model="draft.title" maxlength="250" required
+            /></label>
+            <p v-if="selectedCategory">
+                Audience: {{ audience(selectedCategory.visibility) }}.
+            </p>
+            <p v-if="!canPublish">
+                Posting is currently unavailable here. Your draft can still be
+                saved.
+            </p>
+            <m-rich-text
+                v-model="draft.body"
+                name="body"
+                :rows="14"
+                placeholder="Write your message"
+            ></m-rich-text>
+            <label v-if="draft.postId"
+                >Edit reason<input v-model="draft.reason" required
+            /></label>
+            <label>Attach a file<input type="file" @change="upload" /></label>
+            <ul>
+                <li
+                    v-for="attachment in attachments"
+                    :key="attachment.attachmentId"
+                >
+                    {{ attachment.filename }}: {{ attachment.scanState }}
+                    <button type="button" @click="removeAttachment(attachment)">
+                        Remove
+                    </button>
+                </li>
+            </ul>
+            <q-btn
+                type="submit"
+                color="primary"
+                :loading="busy"
+                :disable="!canPublish"
+                label="Publish"
+            ></q-btn>
+            <q-btn
+                flat
+                label="Save draft"
+                :disable="busy"
+                @click="save(true)"
+            ></q-btn>
+            <q-btn
+                flat
+                label="Preview"
+                :disable="busy"
+                @click="preview"
+            ></q-btn>
+            <q-btn flat label="Discard recovery copy" @click="discard"></q-btn>
+            <p role="status" aria-live="polite">{{ status }}</p>
+            <m-html-view
+                v-if="previewBody"
+                :html="previewBody"
+                title="Preview"
+            ></m-html-view>
+        </form>
+    </section>
+</template>
+<script>
+module.exports = {
+    name: 'PassCompose',
+    data() {
+        return {
+            loading: true,
+            loadError: false,
+            recoveryCandidate: null,
+            authenticated: false,
+            replyAllowed: true,
+            categories: [],
+            attachments: [],
+            draft: {
+                contactListId: '',
+                title: '',
+                body: '',
+                rootCommEventId: '',
+            },
+            operationId: '',
+            draftId: null,
+            draftRevision: 0,
+            recoveryKey: null,
+            indexKey: null,
+            busy: false,
+            dirty: false,
+            status: '',
+            previewBody: '',
+            timer: null,
+        }
+    },
+    async mounted() {
+        const params = new URLSearchParams(location.search)
+        this.draft.rootCommEventId = params.get('rootCommEventId') || ''
+        this.operationId = crypto.randomUUID().replaceAll('-', '')
+        this.draftId = crypto.randomUUID().replaceAll('-', '')
+        try {
+            const state = await this.request('state', null)
+            this.authenticated = state.authenticated
+            this.categories = state.categories
+            this.replyAllowed = state.replyAllowed
+            this.attachments = state.draft?.attachments || []
+            this.draft.contactListId = state.categoryId
+            if (state.draft) {
+                this.draft = { ...this.draft, ...state.draft }
+                this.draftId = state.draft.draftId || this.draftId
+                this.draftRevision = state.draft.revision || 0
+            }
+            this.indexKey =
+                'pass-compose-current:' +
+                state.recoveryKey +
+                ':' +
+                (this.draft.postId || this.draft.rootCommEventId || 'new')
+            if (!state.draft?.draftId) {
+                const current = localStorage.getItem(this.indexKey)
+                if (current && /^[A-Za-z0-9_-]{8,40}$/.test(current))
+                    this.draftId = current
+            }
+            this.recoveryKey =
+                'pass-compose:' + state.recoveryKey + ':' + this.draftId
+            localStorage.setItem(this.indexKey, this.draftId)
+            if (state.recoveryKey) {
+                const saved = JSON.parse(
+                    localStorage.getItem(this.recoveryKey) || 'null',
+                )
+                if (saved) {
+                    if (
+                        (state.draft?.draftId &&
+                            Number(state.draft.revision) !==
+                                Number(saved.draftRevision)) ||
+                        (state.draft?.postRevision &&
+                            Number(state.draft.postRevision) !==
+                                Number(saved.draft.postRevision))
+                    ) {
+                        this.recoveryCandidate = saved
+                        this.status =
+                            'Compare the authority and browser versions before saving.'
+                    } else {
+                        this.draft = saved.draft
+                        if (saved.attachments)
+                            this.attachments = saved.attachments
+                        this.operationId = saved.operationId
+                        this.draftId = saved.draftId
+                        this.draftRevision = saved.draftRevision
+                        this.status = 'Recovered your unsent draft.'
+                    }
+                }
+            }
+        } catch (e) {
+            this.loadError = true
+            this.status = e.message
+        } finally {
+            this.loading = false
+        }
+        this.leaveHandler = (event) => {
+            if (this.dirty) {
+                event.preventDefault()
+                event.returnValue = ''
+            }
+        }
+        window.addEventListener('beforeunload', this.leaveHandler)
+    },
+    computed: {
+        selectedCategory() {
+            return this.categories.find(
+                (category) =>
+                    category.contactListId === this.draft.contactListId,
+            )
+        },
+        canPublish() {
+            return (
+                !this.recoveryCandidate &&
+                (!!this.draft.postId ||
+                    (!!this.selectedCategory &&
+                        (this.draft.rootCommEventId
+                            ? this.replyAllowed
+                            : this.selectedCategory.capabilities
+                                  .canStartTopic)))
+            )
+        },
+    },
+    beforeUnmount() {
+        clearTimeout(this.timer)
+        window.removeEventListener('beforeunload', this.leaveHandler)
+    },
+    watch: {
+        draft: {
+            deep: true,
+            handler() {
+                if (this.loading || this.recoveryCandidate) return
+                this.dirty = true
+                this.recover()
+                clearTimeout(this.timer)
+                this.timer = setTimeout(() => this.save(true), 1500)
+            },
+        },
+    },
+    methods: {
+        reload() {
+            location.reload()
+        },
+        chooseRecovery(useBrowser) {
+            const saved = this.recoveryCandidate
+            if (useBrowser) {
+                this.draft = {
+                    ...saved.draft,
+                    ...(this.draft.postRevision
+                        ? { postRevision: this.draft.postRevision }
+                        : {}),
+                }
+                this.operationId = saved.operationId
+                if (saved.attachments) this.attachments = saved.attachments
+                this.dirty = true
+            } else {
+                localStorage.removeItem(this.recoveryKey)
+            }
+            this.recoveryCandidate = null
+            this.status = 'Ready to continue editing.'
+        },
+        audience(value) {
+            return (
+                {
+                    public: 'Anyone, including visitors',
+                    members: 'Active site members',
+                    category: 'Granted category members',
+                    help: 'Participants in their own discussion',
+                }[value] || 'Restricted audience'
+            )
+        },
+        async removeAttachment(attachment) {
+            try {
+                if (!attachment.finalized)
+                    await this.request('removeAttachment', {
+                        attachmentId: attachment.attachmentId,
+                    })
+                this.attachments = this.attachments.filter(
+                    (item) => item.attachmentId !== attachment.attachmentId,
+                )
+                this.dirty = true
+                this.recover()
+            } catch (error) {
+                this.status = error.message
+            }
+        },
+        async request(action, data) {
+            const base = location.pathname.replace(/\/$/, '')
+            const response = await fetch(
+                base + '/' + action + (data === null ? location.search : ''),
+                data === null
+                    ? {}
+                    : {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                              'X-CSRF-Token': moqui.sessionToken,
+                          },
+                          body: JSON.stringify({
+                              ...data,
+                              moquiSessionToken: moqui.sessionToken,
+                          }),
+                      },
+            )
+            if (!response.ok)
+                throw new Error(
+                    response.status === 409
+                        ? 'Draft changed in another tab. Reload and compare; your recovery copy is retained.'
+                        : 'Unable to save. Your recovery copy is retained.',
+                )
+            return response.json()
+        },
+        recover() {
+            if (!this.recoveryKey) return
+            try {
+                localStorage.setItem(
+                    this.recoveryKey,
+                    JSON.stringify({
+                        draft: this.draft,
+                        operationId: this.operationId,
+                        draftId: this.draftId,
+                        draftRevision: this.draftRevision,
+                        attachments: this.attachments,
+                    }),
+                )
+            } catch (e) {
+                this.status =
+                    'Browser recovery storage is unavailable; save your draft before leaving.'
+            }
+        },
+        async save(draftOnly) {
+            if (
+                this.busy ||
+                this.recoveryCandidate ||
+                !this.authenticated ||
+                !this.draft.body
+            )
+                return
+            this.busy = true
+            this.recover()
+            clearTimeout(this.timer)
+            try {
+                const payload = { ...this.draft }
+                if (draftOnly) {
+                    payload.mode = 'draft'
+                    if (this.draftId) {
+                        payload.draftId = this.draftId
+                        payload.expectedRevision = this.draftRevision
+                    }
+                } else {
+                    payload.operationId = this.operationId
+                    if (this.draft.postId)
+                        payload.expectedRevision = this.draft.postRevision
+                    payload.draftId = this.draftId
+                    payload.attachmentIds = this.attachments
+                        .filter((a) => a.scanState === 'clean')
+                        .map((a) => a.attachmentId)
+                }
+                const result = await this.request('publish', payload)
+                if (draftOnly) {
+                    this.draftId = result.draftId
+                    this.draftRevision = result.revision
+                    this.status = 'Draft saved.'
+                    this.recover()
+                } else {
+                    this.status =
+                        result.state === 'pending'
+                            ? 'Submitted for review.'
+                            : 'Published.'
+                    localStorage.removeItem(this.recoveryKey)
+                    if (localStorage.getItem(this.indexKey) === this.draftId)
+                        localStorage.removeItem(this.indexKey)
+                    this.dirty = false
+                    location.assign(
+                        location.pathname.replace(/\/Compose$/, '') +
+                            '/Topics/TopicDetail?rootCommEventId=' +
+                            encodeURIComponent(
+                                result.rootCommEventId ||
+                                    this.draft.rootCommEventId,
+                            ),
+                    )
+                }
+                this.dirty = false
+            } catch (e) {
+                this.status = e.message
+            } finally {
+                this.busy = false
+            }
+        },
+        async preview() {
+            try {
+                this.previewBody = (
+                    await this.request('preview', { body: this.draft.body })
+                ).body
+            } catch (e) {
+                this.status = e.message
+            }
+        },
+        async upload(event) {
+            const file = event.target.files[0]
+            if (!file) return
+            const data = new FormData()
+            data.append('file', file)
+            data.append('contactListId', this.draft.contactListId)
+            data.append('draftId', this.draftId)
+            data.append('moquiSessionToken', moqui.sessionToken)
+            try {
+                const response = await fetch(location.pathname + '/upload', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': moqui.sessionToken },
+                    body: data,
+                })
+                if (!response.ok)
+                    throw new Error('Upload failed or media is unavailable.')
+                this.attachments.push((await response.json()).attachment)
+            } catch (e) {
+                this.status = e.message
+            }
+        },
+        discard() {
+            if (confirm('Discard the browser recovery copy?')) {
+                localStorage.removeItem(this.recoveryKey)
+                this.dirty = false
+                this.status = 'Recovery copy discarded.'
+            }
+        },
+    },
+}
+</script>

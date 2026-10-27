@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="CategorySettings">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('CategorySettings',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='CategorySettings'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassCategorySettingsBindMailboxSection" condition="view.forms.some(form =&gt; form.op === 'bindMailbox')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsBindMailbox" action="${publicPath}/save"><h2>Adopt an existing mailbox</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategorySettingsBindMailbox" transition="save" map="Object.assign({},view.formValues['bindMailbox'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="bindMailbox"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Mailbox">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="confirm">
+            <default-field title="I have reviewed the mailbox audience">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Adopt an existing mailbox">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassCategorySettingsStoreCategorySection" condition="view.forms.some(form =&gt; form.op === 'storeCategory')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsStoreCategory" action="${publicPath}/save"><h2>Save category</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategorySettingsStoreCategory" transition="save" map="Object.assign({},view.formValues['storeCategory'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeCategory"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Category (empty for new)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="name">
+            <default-field title="Name">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="parentContactListId">
+            <default-field title="Parent category">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="confirmAudience">
+            <default-field title="I have reviewed the parent audience change">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="slug">
+            <default-field title="URL label">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="rules">
+            <default-field title="Rules">
+              <text-area cols="60" rows="6"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Category revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save category">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassCategorySettingsPreviewCategoryAccessSection" condition="view.forms.some(form =&gt; form.op === 'previewCategoryAccess')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsPreviewCategoryAccess" action="${publicPath}/save"><h2>Preview publication</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategorySettingsPreviewCategoryAccess" transition="save" map="Object.assign({},view.formValues['previewCategoryAccess'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="previewCategoryAccess"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Category">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="visibility">
+            <default-field title="Audience">
+              <drop-down allow-empty="false">
+                <option key="public" text="public"/>
+                <option key="members" text="members"/>
+                <option key="category" text="category"/>
+                <option key="help" text="help"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Preview publication">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassCategorySettingsSetCategoryAccessSection" condition="view.forms.some(form =&gt; form.op === 'setCategoryAccess')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsSetCategoryAccess" action="${publicPath}/save"><h2>Confirm publication</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategorySettingsSetCategoryAccess" transition="save" map="Object.assign({},view.formValues['setCategoryAccess'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setCategoryAccess"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Category">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="visibility">
+            <default-field title="Audience">
+              <drop-down allow-empty="false">
+                <option key="public" text="public"/>
+                <option key="members" text="members"/>
+                <option key="category" text="category"/>
+                <option key="help" text="help"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="publicationState">
+            <default-field title="Publication">
+              <drop-down allow-empty="false">
+                <option key="disabled" text="disabled"/>
+                <option key="published" text="published"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Category revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="confirm">
+            <default-field title="I have reviewed the audience">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Confirm publication">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>

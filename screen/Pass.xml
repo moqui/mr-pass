@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="IronStoa PASS">
+  <always-actions>
+    <script><![CDATA[
+        if (!resolvedSiteId) { const e=new Error('Site not found');e.moquiErrorKind='NotFound';throw e }
+        if(ec.web.response){ec.web.response.setHeader('Cache-Control','no-store');ec.web.response.setHeader('Referrer-Policy','same-origin');ec.web.response.setHeader('Content-Security-Policy',"img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")}
+        publicHost=String(publicHost || "").toLowerCase()
+        siteId=resolvedSiteId
+        siteInfo=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getSiteInfo',input:{siteId,hostname:publicHost}}).call().result
+        passBases={forum:'/forum',account:'/account',members:'/members',sites:'/sites'}
+        for (const mount of siteInfo.mounts || []) passBases[mount.app]=mount.pathPrefix==='/'?'':mount.pathPrefix
+    ]]></script>
+  </always-actions>
+  <subscreens default-item="Forum">
+    <subscreens-item name="Forum" location="component://mr-pass/screen/Forum.xml"/>
+    <subscreens-item name="Account" location="component://mr-pass/screen/Account.xml"/>
+    <subscreens-item name="Members" location="component://mr-pass/screen/Members.xml"/>
+    <subscreens-item name="Sites" location="component://mr-pass/screen/Sites.xml"/>
+  </subscreens>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Header.html.fancy"/>
+    </render-mode>
+    <subscreens-active/>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Footer.html.fancy"/>
+    </render-mode>
+  </widgets>
+</screen>

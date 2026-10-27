@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+  <!-- Test-only scanner, not registered unless the test conf explicitly names it. -->
+  <service verb="scan" noun="File" authenticate="false" allow-remote="false">
+    <in-parameters>
+      <parameter name="location"/>
+      <parameter name="mimeType"/>
+    </in-parameters>
+    <out-parameters>
+      <parameter name="clean" type="Boolean"/>
+    </out-parameters>
+    <actions>
+      <script>if(System.getProperty('pass_test_scanner')!=='true')throw new Error('Test scanner is disabled');clean=String(mimeType).startsWith('image/') || ec.resource.getLocationReference(location).getText()!=='quarantine fixture'</script>
+    </actions>
+  </service>
+</services>

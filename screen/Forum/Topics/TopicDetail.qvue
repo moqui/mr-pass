@@ -1,0 +1,191 @@
+<template>
+    <section aria-label="Topic posts">
+        <p role="status" aria-live="polite">{{ status }}</p>
+        <article
+            v-for="post in posts"
+            :key="post.postId"
+            :id="'post-' + post.postId"
+            :data-post-id="post.postId"
+            :data-ordinal="post.ordinal"
+        >
+            <p>
+                {{
+                    post.author.displayName ||
+                    post.author.handle ||
+                    'Community member'
+                }}
+                · {{ formatDate(post.entryDate) }}
+            </p>
+            <a :href="forumBase + '/p/' + post.postId">Link to this post</a>
+            <a
+                v-if="post.capabilities.canEdit"
+                :href="forumBase + '/Compose?postId=' + post.postId"
+                >Edit post</a
+            >
+            <m-html-view :html="post.body" :images-bar="false"></m-html-view>
+            <ul v-if="post.attachments.length">
+                <li
+                    v-for="attachment in post.attachments"
+                    :key="attachment.attachmentId"
+                >
+                    <img
+                        v-if="attachment.mimeType.startsWith('image/')"
+                        :src="
+                            base +
+                            '/download?variant=thumbnail&amp;attachmentId=' +
+                            encodeURIComponent(attachment.attachmentId)
+                        "
+                        :alt="attachment.altText || 'Attached image'"
+                        loading="lazy"
+                    /><a
+                        :href="
+                            base +
+                            '/download?attachmentId=' +
+                            encodeURIComponent(attachment.attachmentId)
+                        "
+                        >{{ attachment.filename }}</a
+                    >
+                </li>
+            </ul>
+        </article>
+        <a v-if="nextCursor" :href="nextUrl">Next page</a>
+    </section>
+</template>
+<script>
+module.exports = {
+    name: 'PassTopicStream',
+    data() {
+        return {
+            posts: [],
+            nextCursor: null,
+            marker: null,
+            status: '',
+            base: '',
+            forumBase: '',
+            observed: new Set(),
+            timer: null,
+            poll: null,
+            observer: null,
+            busy: false,
+        }
+    },
+    async mounted() {
+        this.base = location.pathname
+        this.forumBase = this.$root.config.context.forumBase
+        try {
+            await this.load()
+            const fallback = document.getElementById('pass-ssr-posts')
+            if (fallback) fallback.remove()
+            this.observe()
+            this.poll = setInterval(() => this.load(true), 15000)
+        } catch (e) {
+            this.status =
+                'Enhanced reading is unavailable. The server-rendered posts remain below.'
+        }
+    },
+    computed: {
+        nextUrl() {
+            const params = new URLSearchParams(location.search)
+            params.set('cursor', this.nextCursor)
+            return this.base + '?' + params.toString()
+        },
+    },
+    beforeUnmount() {
+        clearInterval(this.poll)
+        clearTimeout(this.timer)
+        if (this.observer) this.observer.disconnect()
+    },
+    methods: {
+        formatDate(value) {
+            return new Date(
+                Number.isFinite(Number(value)) ? Number(value) : String(value),
+            ).toLocaleString()
+        },
+        async load(refresh) {
+            const response = await fetch(
+                this.base + '/state' + location.search,
+                { headers: { Accept: 'application/json' } },
+            )
+            if (
+                response.status === 401 ||
+                response.status === 403 ||
+                response.status === 404
+            ) {
+                this.posts = []
+                this.status =
+                    'Your access changed. Sign in or return to the topic list.'
+                clearInterval(this.poll)
+                return
+            }
+            if (!response.ok) throw new Error('Topic unavailable')
+            const data = await response.json()
+            // Reapply the current projection even if an external membership change missed a generation update.
+            this.posts = data.postList
+            this.nextCursor = data.nextCursor
+            this.revision = data.revision
+            this.generation = data.generation
+            this.$nextTick(() => this.observe())
+            this.marker = data.marker
+        },
+        observe() {
+            if (this.observer) this.observer.disconnect()
+            if (!this.marker) return
+            this.observer = new IntersectionObserver(
+                (entries) => {
+                    for (const entry of entries) {
+                        if (
+                            entry.isIntersecting &&
+                            entry.intersectionRatio >= 0.5
+                        )
+                            this.observed.add(entry.target.dataset.postId)
+                    }
+                    clearTimeout(this.timer)
+                    this.timer = setTimeout(() => this.mark(), 1500)
+                },
+                { threshold: [0.5] },
+            )
+            for (const element of this.$el.querySelectorAll('[data-post-id]'))
+                this.observer.observe(element)
+        },
+        async mark() {
+            if (
+                this.busy ||
+                !this.marker ||
+                !this.observed.size ||
+                document.hidden
+            )
+                return
+            const seen = this.posts.filter((p) => this.observed.has(p.postId))
+            if (!seen.length) return
+            const ordinal = Math.max(...seen.map((p) => Number(p.ordinal)))
+            if (ordinal <= Number(this.marker.consumedOrdinal || 0)) return
+            this.busy = true
+            try {
+                const response = await fetch(this.base + '/read', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': moqui.sessionToken,
+                    },
+                    body: JSON.stringify({
+                        ordinal,
+                        expectedRevision: this.marker.markerRevision,
+                        renderedPostIds: seen.map((p) => p.postId),
+                        moquiSessionToken: moqui.sessionToken,
+                    }),
+                })
+                if (response.status === 409) {
+                    await this.load(true)
+                    return
+                }
+                if (response.ok) this.marker = (await response.json()).marker
+            } catch (e) {
+                this.status =
+                    'Reading position will retry when the connection returns.'
+            } finally {
+                this.busy = false
+            }
+        },
+    },
+}
+</script>

@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="SiteDetail">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('SiteDetail',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='SiteDetail'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassSiteDetailStoreMountsSection" condition="view.forms.some(form =&gt; form.op === 'storeMounts')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailStoreMounts" action="${publicPath}/save"><h2>Save registered hosts and mounts</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSiteDetailStoreMounts" transition="save" map="Object.assign({},view.formValues['storeMounts'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeMounts"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="hostname">
+            <default-field title="Host name (operator only)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="forumMount">
+            <default-field title="Forum path">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="accountMount">
+            <default-field title="Account path">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="membersMount">
+            <default-field title="Members path">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="sitesMount">
+            <default-field title="Site settings path">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Site revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save registered hosts and mounts">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSiteDetailSetSiteRoleSection" condition="view.forms.some(form =&gt; form.op === 'setSiteRole')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailSetSiteRole" action="${publicPath}/save"><h2>Delegate a site role</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSiteDetailSetSiteRole" transition="save" map="Object.assign({},view.formValues['setSiteRole'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setSiteRole"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="targetPartyId">
+            <default-field title="Member">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="role">
+            <default-field title="Role">
+              <drop-down allow-empty="false">
+                <option key="member" text="member"/>
+                <option key="moderator" text="moderator"/>
+                <option key="owner" text="owner"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Membership revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="password" from="''">
+            <default-field title="Current password">
+              <password/>
+            </default-field>
+          </field>
+          <field name="code">
+            <default-field title="Authentication code">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Decision reason">
+              <text-line/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Delegate a site role">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSiteDetailPublishSitePageSection" condition="view.forms.some(form =&gt; form.op === 'publishSitePage')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailPublishSitePage" action="${publicPath}/save"><h2>Publish a site page</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSiteDetailPublishSitePage" transition="save" map="Object.assign({},view.formValues['publishSitePage'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="publishSitePage"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="pageRole">
+            <default-field title="Page">
+              <drop-down allow-empty="false">
+                <option key="guidelines" text="guidelines"/>
+                <option key="about" text="about"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="wikiPageId">
+            <default-field title="Wiki page">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="versionName">
+            <default-field title="Published version">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Publication revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Publish a site page">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSiteDetailUpdateSiteSection" condition="view.forms.some(form =&gt; form.op === 'updateSite')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailUpdateSite" action="${publicPath}/save"><h2>Save site identity</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSiteDetailUpdateSite" transition="save" map="Object.assign({},view.formValues['updateSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="updateSite"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="name">
+            <default-field title="Name">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="locale">
+            <default-field title="Locale">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="timeZone">
+            <default-field title="Time zone">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="state">
+            <default-field title="Publication">
+              <drop-down allow-empty="false">
+                <option key="disabled" text="disabled"/>
+                <option key="published" text="published"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Site revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save site identity">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSiteDetailUpdateMembershipPolicySection" condition="view.forms.some(form =&gt; form.op === 'updateMembershipPolicy')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailUpdateMembershipPolicy" action="${publicPath}/save"><h2>Save registration policy</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSiteDetailUpdateMembershipPolicy" transition="save" map="Object.assign({},view.formValues['updateMembershipPolicy'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="updateMembershipPolicy"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="registrationMode">
+            <default-field title="Registration">
+              <drop-down allow-empty="false">
+                <option key="closed" text="closed"/>
+                <option key="invitation" text="invitation"/>
+                <option key="open" text="open"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Site revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save registration policy">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>
