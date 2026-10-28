@@ -36,12 +36,19 @@
           <field name="deliveryIds">
             <default-field title="Notifications">
               <check>
-                <list-options list="view.rows" key="deliveryId" text="${title}"/>
+                <list-options list="view.rows.filter(row =&gt; !row.read)" key="deliveryId" text="${title}"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="all">
+            <default-field title="Mark every unread notification read">
+              <check>
+                <option key="true" text="All unread"/>
               </check>
             </default-field>
           </field>
           <field name="submitAction">
-            <default-field title="Mark selected seen">
+            <default-field title="Mark read">
               <submit/>
             </default-field>
           </field>

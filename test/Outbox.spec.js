@@ -307,3 +307,31 @@ feature(
         },
     },
 )
+feature('an interrupted in-app notice retries instead of waiting for an operator', {
+    when() {
+        let deliveryId
+        sys(() => {
+            const delivery = ec.entity
+                .find('mantle.forum.ForumDelivery')
+                .condition({ siteId, partyId: recipient, channel: 'in-app' })
+                .list()[0]
+            deliveryId = delivery.deliveryId
+            delivery.set('state', 'sending')
+            delivery.set('startedAt', baseTime - 600000)
+            delivery.update()
+        })
+        call('mantle.forum.DeliveryWorkerServices.reconcile#Delivery', {
+            deliveryId,
+        })
+        return {
+            state: ec.entity
+                .find('mantle.forum.ForumDelivery')
+                .disableAuthz()
+                .condition('deliveryId', deliveryId)
+                .one().state,
+        }
+    },
+    then({ state }) {
+        state === 'retry'
+    },
+})

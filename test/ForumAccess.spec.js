@@ -480,3 +480,241 @@ feature(
         },
     },
 )
+feature('a help category cannot be joined to read other members threads', {
+    when() {
+        sys(() => {
+            for (const name of ['carol', 'dave']) {
+                party[name] = call('mantle.party.PartyServices.create#Person', {
+                    firstName: name,
+                    lastName: 'Public',
+                }).partyId
+                call('mantle.party.PartyServices.create#PartyUserAccount', {
+                    partyId: party[name],
+                    username: 'pass.access.' + name,
+                    emailAddress: name + '@example.test',
+                    newPassword: 'moqui1!!',
+                    newPasswordVerify: 'moqui1!!',
+                })
+                const userId = ec.entity
+                    .find('moqui.security.UserAccount')
+                    .condition('username', 'pass.access.' + name)
+                    .one().userId
+                call('create#moqui.security.public.VerifiedAddress', {
+                    userId,
+                    emailAddress: name + '@example.test',
+                    verifiedAt: at,
+                })
+                call('create#mantle.public.PublicSiteParty', {
+                    siteId,
+                    partyId: party[name],
+                    state: 'active',
+                    role: name === 'dave' ? 'owner' : 'member',
+                    joinedAt: at,
+                    revision: 1,
+                })
+            }
+        })
+        login('pass.access.carol', 'moqui1!!')
+        const joined = failure(F + 'join#Category', {
+            siteId,
+            contactListId: helpId,
+        })
+        const other = failure(F + 'get#Topic', {
+            siteId,
+            rootCommEventId: helpPost,
+        })
+        return { joined, other }
+    },
+    then({ joined, other }) {
+        joined.includes('not permitted')
+        other.includes('not found')
+    },
+})
+feature('a staff suspension cannot be undone by joining again', {
+    when() {
+        sys(() => {
+            const s = ec.entity
+                .find('mantle.public.PublicSite')
+                .condition('siteId', siteId)
+                .one()
+            s.set('registrationMode', 'open')
+            s.update()
+        })
+        run(S + 'set#Membership', {
+            siteId,
+            targetPartyId: party.carol,
+            state: 'suspended',
+            expectedRevision: 1,
+            reason: 'Conduct review',
+        })
+        login('pass.access.carol', 'moqui1!!')
+        const rejoin = failure(S + 'join#Site', { siteId })
+        login('john.doe')
+        const state = ec.entity
+            .find('mantle.public.PublicSiteParty')
+            .disableAuthz()
+            .condition({ siteId, partyId: party.carol })
+            .one().state
+        return { rejoin, state }
+    },
+    then({ rejoin, state }) {
+        rejoin.includes('not permitted')
+        state === 'suspended'
+    },
+})
+feature('category moderators cannot sanction themselves or higher-ranked staff', {
+    when() {
+        login('pass.access.alice', 'moqui1!!')
+        const owner = failure(M + 'set#Sanction', {
+            siteId,
+            contactListId: helpId,
+            targetPartyId: ec.entity
+                .find('moqui.security.UserAccount')
+                .disableAuthz()
+                .condition('username', 'john.doe')
+                .one().partyId,
+            kind: 'silence',
+            reason: 'Rank check',
+            operationId: 'access-rank-001',
+        })
+        const self = failure(M + 'set#Sanction', {
+            siteId,
+            contactListId: helpId,
+            targetPartyId: party.alice,
+            kind: 'silence',
+            reason: 'Self check',
+            operationId: 'access-rank-002',
+        })
+        const member = run(M + 'set#Sanction', {
+            siteId,
+            contactListId: helpId,
+            targetPartyId: party.bob,
+            kind: 'silence',
+            reason: 'Ordinary member',
+            operationId: 'access-rank-003',
+        })
+        return { owner, self, member }
+    },
+    then({ owner, self, member }) {
+        owner.includes('higher-ranked')
+        self.includes('themselves')
+        !!member.sanctionId
+    },
+})
+feature('only an operator or an internal list owner binds an existing mailbox', {
+    when() {
+        const contactListId = sys(
+            () =>
+                call('create#mantle.marketing.contact.ContactList', {
+                    contactListTypeEnumId: 'MAILBOX',
+                    contactListName: 'Internal mailbox',
+                    isPublic: 'N',
+                }).contactListId,
+        )
+        login('pass.access.dave', 'moqui1!!')
+        const owner = failure(F + 'bind#Mailbox', {
+            siteId,
+            contactListId,
+            confirm: true,
+            operationId: 'access-bind-001',
+        })
+        login('john.doe')
+        const operator = run(F + 'bind#Mailbox', {
+            siteId,
+            contactListId,
+            confirm: true,
+            operationId: 'access-bind-002',
+        })
+        // Finish the adopted mailbox's conversion so later publication on this site is not held back.
+        call('mantle.forum.BootstrapServices.dispatch#Conversions', {})
+        return { owner, operator }
+    },
+    then({ owner, operator }) {
+        owner.includes('not found')
+        !!operator
+    },
+})
+feature('renaming a category keeps its parent and access ceiling', {
+    when() {
+        const before = ec.entity
+            .find('mantle.forum.ForumCategory')
+            .disableAuthz()
+            .condition('contactListId', childId)
+            .one()
+        run(F + 'store#Category', {
+            siteId,
+            contactListId: childId,
+            name: 'Renamed child',
+            expectedRevision: Number(before.policyRevision),
+        })
+        const after = ec.entity
+            .find('mantle.forum.ForumCategory')
+            .disableAuthz()
+            .condition('contactListId', childId)
+            .one()
+        return {
+            parent: after.parentContactListId,
+            rules: after.rules,
+            beforeRules: before.rules,
+        }
+    },
+    then({ parent, rules, beforeRules }) {
+        parent === parentId
+        rules === beforeRules
+    },
+})
+feature('editing a reported post keeps its review decidable', {
+    when() {
+        const openId = run(F + 'store#Category', {
+            siteId,
+            name: 'Open discussion',
+        }).contactListId
+        run(F + 'set#CategoryAccess', {
+            siteId,
+            contactListId: openId,
+            visibility: 'public',
+            publicationState: 'published',
+            expectedRevision: 1,
+            confirm: true,
+        })
+        const postId = run(F + 'publish#Post', {
+            siteId,
+            contactListId: openId,
+            title: 'Staff announcement',
+            body: 'Original wording',
+            operationId: 'access-report-001',
+        }).postId
+        login('pass.access.dave', 'moqui1!!')
+        const reviewId = run(M + 'flag#Post', {
+            siteId,
+            postId,
+            reason: 'Wording concern',
+            operationId: 'access-report-002',
+        }).reviewId
+        login('john.doe')
+        run(F + 'update#Post', {
+            siteId,
+            postId,
+            body: 'Corrected wording',
+            reason: 'Address the report',
+            expectedRevision: 1,
+        })
+        const item = ec.entity
+            .find('mantle.forum.ForumReviewItem')
+            .disableAuthz()
+            .condition('reviewId', reviewId)
+            .one()
+        const decided = run(M + 'decide#Review', {
+            siteId,
+            reviewId,
+            expectedRevision: Number(item.revision),
+            decision: 'dismissed',
+            reason: 'Wording corrected',
+        })
+        return { targetRevision: Number(item.targetRevision), decided }
+    },
+    then({ targetRevision, decided }) {
+        targetRevision === 2
+        decided.state === 'dismissed'
+    },
+})

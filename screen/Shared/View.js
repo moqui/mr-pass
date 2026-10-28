@@ -171,15 +171,19 @@ const definitions = {
         title: 'Notifications',
         read: 'findNotifications',
         list: 'notificationList',
-        link: 'topic',
+        link: 'post',
+        params: ['view'],
         forms: [
-            form('markNotifications', 'Mark selected notifications seen', []),
+            form('markNotifications', 'Mark read', [
+                field('all', 'Mark every unread notification read', 'checkbox'),
+            ]),
         ],
     },
     Unsubscribe: {
         title: 'Email preferences',
         read: 'inspectOptOut',
         params: ['token'],
+        detail: 'optOut',
         forms: [form('applyOptOut', 'Stop forum email', [])],
     },
     Login: {
@@ -210,11 +214,11 @@ const definitions = {
         forms: [
             form('beginRegistration', 'Send verification', [
                 field('emailAddress', 'Email', 'email'),
-                field('password', 'Password', 'password'),
                 text('invitationToken', 'Invitation code (when required)'),
             ]),
             form('verifyRegistration', 'Verify address', [
                 text('token', 'Verification code'),
+                field('newPassword', 'Choose a password', 'password'),
             ]),
             form('joinSite', 'Join this site', []),
         ],
@@ -507,6 +511,19 @@ const definitions = {
         ],
     },
 }
+const rowActions = {
+    Drafts: { key: 'draftId', label: 'Discard', form: 'PassDraftsDiscardDraft' },
+    MemberModeration: {
+        key: 'sanctionId',
+        label: 'End sanction',
+        form: 'PassEndSanctionForm',
+    },
+    Mail: {
+        key: 'deliveryId',
+        label: 'Reconcile',
+        form: 'PassMailResolveDelivery',
+    },
+}
 function inputFor(op, siteId, parameters) {
     const schema = ec.resource.script(
         'component://mr-pass/service/pass/Schema.js',
@@ -529,6 +546,7 @@ function inputFor(op, siteId, parameters) {
         'confirmAudience',
         'markUnread',
         'approvalRequired',
+        'all',
     ])
         if (k in input)
             input[k] =
@@ -538,6 +556,7 @@ function inputFor(op, siteId, parameters) {
     return input
 }
 function load(name, siteId, parameters, bases, identity) {
+    if (!definitions[name]) throw new Error('Unknown PASS screen')
     const def = { ...definitions[name] },
         view = {
             ...def,
@@ -547,7 +566,6 @@ function load(name, siteId, parameters, bases, identity) {
             formValues: {},
             next: null,
         }
-    if (!def) throw new Error('Unknown PASS screen')
     if (name === 'Members') {
         if (parameters.contactListId) {
             def.read = 'findCategoryMembers'
@@ -608,12 +626,19 @@ function load(name, siteId, parameters, bases, identity) {
             ]),
         ]
     if (name === 'TopicDetail') {
-        const metadata = call('getTopic', {
-            siteId,
-            rootCommEventId: parameters.rootCommEventId,
-        }).topic
+        // The screen's pre-actions already read the topic for its canonical URL.
+        const metadata =
+            parameters.topicMetadata ||
+            call('getTopic', {
+                siteId,
+                rootCommEventId: parameters.rootCommEventId,
+            }).topic
         view.title = metadata.title
         view.canReply = metadata.capabilities.canReply
+        view.canFlag = metadata.capabilities.canFlag
+        view.formValues.applyTopicAction = {
+            expectedRevision: metadata.revision,
+        }
         view.forms = view.forms.filter((form) =>
             form.op === 'setPreferences'
                 ? identity?.membershipState === 'active'
@@ -693,6 +718,21 @@ function load(name, siteId, parameters, bases, identity) {
                 : def.body
                   ? data[def.body]?.body
                   : null
+        if (name === 'MemberDetail' && detail) {
+            // The bio is member-written rich text: show it sanitized, and list the member's visible topics.
+            view.details = view.details.filter(
+                ([k]) => !['bio', 'avatarId', 'revision'].includes(k),
+            )
+            view.body = detail.bio ? StringUtilities.cleanHtml(detail.bio) : null
+            const activity = call('findTopics', {
+                siteId,
+                authorHandle: detail.handle,
+                limit: 30,
+            })
+            view.rows = activity.topicList || []
+            view.activityTitle = 'Topics started'
+            def.link = 'topic'
+        }
         view.next = data.nextCursor
         if (view.next) {
             const params = inputFor(def.read, siteId, {
@@ -730,6 +770,27 @@ function load(name, siteId, parameters, bases, identity) {
                             .replace(/[^a-z0-9]+/g, '-')
                             .replace(/^-|-$/g, '') || 'topic',
                     )
+            // A notification opens its post, which resolves the topic and position after a fresh access check.
+            if (def.link === 'post')
+                row.href = bases.forum + '/p/' + encodeURIComponent(row.postId)
+            if (name === 'Notifications') row.state = row.read ? 'Read' : 'Unread'
+            // A row action fills its form with this row's ID and revision instead of asking for them.
+            const action = rowActions[name]
+            if (action && row[action.key])
+                row.action = {
+                    label: action.label,
+                    href:
+                        '?' +
+                        action.key +
+                        '=' +
+                        encodeURIComponent(row[action.key]) +
+                        (row.revision != null
+                            ? '&expectedRevision=' +
+                              encodeURIComponent(row.revision)
+                            : '') +
+                        '#' +
+                        action.form,
+                }
             if (def.link === 'category')
                 row.href =
                     bases.forum +
@@ -806,7 +867,11 @@ function save(name, siteId, parameters) {
             },
         }
     const form = def.forms?.find((f) => f.op === parameters.formAction)
-    if (!form) throw new Error('Unknown form action')
+    if (!form) {
+        const e = new Error('Unknown form action')
+        e.moquiErrorKind = 'Unprocessable'
+        throw e
+    }
     if (
         def.account &&
         [
@@ -866,19 +931,24 @@ function preview(result, back) {
         '">Return to confirm the change</a></main></html>'
     )
 }
-function invitationResult(result, base) {
+/* The link is pasted into mail, so it is absolute on the site's own host. */
+function invitationResult(result, bases, origin) {
     const encode = (value) => WebUtilities.encodeHtml(String(value || ''))
     if (!result.token)
         return '<!doctype html><html lang="en"><meta charset="utf-8"><title>Invitation</title><p>This invitation was already created. Its one-time code is no longer displayed. Revoke it and create a new invitation if the code was lost.</p></html>'
-    const link = base + '/Invitation?token=' + encodeURIComponent(result.token)
+    const link =
+        origin +
+        bases.account +
+        '/Invitation?token=' +
+        encodeURIComponent(result.token)
     return (
         '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invitation created</title><main><h1>Invitation created</h1><p>Share this link with the intended recipient. The code is displayed once.</p><p><a href="' +
         encode(link) +
         '">' +
         encode(link) +
         '</a></p><p><a href="' +
-        encode(base) +
-        '/../forum/Settings/Members">Return to members</a></p></main></html>'
+        encode(bases.forum + '/Settings/Members') +
+        '">Return to members</a></p></main></html>'
     )
 }
 ;({ load, save, inputFor, preview, invitationResult })

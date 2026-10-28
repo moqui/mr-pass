@@ -13,26 +13,11 @@ const fail = (kind, text) => {
     e.moquiErrorKind = kind
     throw e
 }
+const facade = () =>
+    ec.resource.script('component://mr-pass/service/pass/Facade.js')
 function remoteAccount(action, input, siteId) {
-    const backend = System.getProperty('pass_backend_url'),
-        clientId = System.getProperty('pass_client_id'),
-        secret = System.getProperty('pass_client_secret')
-    if (!backend || !clientId || !secret)
-        fail('Unavailable', 'Remote authentication is not configured')
-    const response = ec.service
-        .rest()
-        .method('POST')
-        .uri(
-            String(backend).replace(/\/$/, '') +
-                '/rest/s1/pass/v1/sites/' +
-                encodeURIComponent(siteId) +
-                '/account/' +
-                action,
-        )
-        .timeout(30)
-        .followRedirects(false)
-        .addHeader('x-pass-client', clientId)
-        .addHeader('x-pass-client-secret', secret)
+    const response = facade()
+        .authorityClient(siteId, 'account/' + action, 'POST')
         .jsonObject(input)
         .call()
     if (Number(response.statusCode) !== 200)
@@ -107,22 +92,50 @@ function finishSso(parameters, siteId) {
         attrs.remove(key)
     return { authenticated: true }
 }
+/* A local path only: one leading slash, no backslash, whitespace or control character
+   (browsers drop tabs, so "/\t/host" would otherwise be read as "//host"). */
+function safeReturnPath(value) {
+    const path = String(value || '')
+    return /^\/(?![\/\\])[^\s\\\u0000-\u001f\u007f]*$/.test(path) ? path : null
+}
+function rememberReturn(parameters) {
+    const destination = safeReturnPath(parameters.returnTo)
+    if (destination) ec.web.sessionAttributes.passReturnTo = destination
+}
+function clearRemoteSession() {
+    for (const key of ['passDelegation', 'passSubject', 'passAuthorityCookie'])
+        ec.web.sessionAttributes.remove(key)
+}
 function call(op, parameters, siteId) {
-    const destination = String(parameters.returnTo || '')
-    if (
-        destination.startsWith('/') &&
-        !destination.startsWith('//') &&
-        !/[\\\r\n]/.test(destination)
-    )
-        ec.web.sessionAttributes.passReturnTo = destination
-    if (op === 'startSso') return startSso(parameters, siteId)
+    if (op === 'startSso') {
+        const result = startSso(parameters, siteId)
+        rememberReturn(parameters)
+        return result
+    }
+    if (op === 'endSession' && System.getProperty('pass_backend_url')) {
+        // Sign-out always ends the local session; revoking the remote credential is best effort.
+        try {
+            return callAuthority(op, parameters, siteId)
+        } catch (error) {
+            ec.logger.warn('Remote sign-out revocation failed: ' + error.message)
+            return {}
+        } finally {
+            clearRemoteSession()
+            ec.web.rotateSession()
+        }
+    }
+    const result = callAuthority(op, parameters, siteId)
+    rememberReturn(parameters)
+    return result
+}
+function callAuthority(op, parameters, siteId) {
     const spec = verbs[op]
     if (!spec) fail('NotFound', 'Account action not found')
     const allowed = {
         startSession: ['username', 'password'],
         completeSession: ['code'],
-        beginRegistration: ['emailAddress', 'password', 'invitationToken'],
-        verifyRegistration: ['token'],
+        beginRegistration: ['emailAddress', 'invitationToken'],
+        verifyRegistration: ['token', 'newPassword'],
         requestRecovery: ['emailAddress'],
         endSession: [],
         manageAccount: [
@@ -149,6 +162,8 @@ function call(op, parameters, siteId) {
                 .name('pass.Facade.call#Operation')
                 .parameters({ operation: 'getSiteInfo', input: { siteId } })
                 .call().result.site
+            // Same rule as the authority's registration route: an unpublished site takes no registrations.
+            if (s.state !== 'published') fail('Unauthorized', 'Registration is closed')
             if (s.registrationMode !== 'open') {
                 if (
                     s.registrationMode !== 'invitation' ||
@@ -177,24 +192,8 @@ function call(op, parameters, siteId) {
             .parameters({ input })
             .call().result
     } else {
-        const clientId = System.getProperty('pass_client_id'),
-            clientSecret = System.getProperty('pass_client_secret')
-        if (!clientId || !clientSecret)
-            fail('Unavailable', 'Deployment authentication is not configured')
-        const client = ec.service
-            .rest()
-            .method('POST')
-            .uri(
-                String(backend).replace(/\/$/, '') +
-                    '/rest/s1/pass/v1/sites/' +
-                    encodeURIComponent(siteId) +
-                    '/account/' +
-                    spec[2],
-            )
-            .timeout(30)
-            .followRedirects(false)
-            .addHeader('x-pass-client', clientId)
-            .addHeader('x-pass-client-secret', clientSecret)
+        const client = facade()
+            .authorityClient(siteId, 'account/' + spec[2], 'POST')
             .jsonObject(input)
         if (ec.web.sessionAttributes.passAuthorityCookie)
             client.addHeader(
@@ -209,14 +208,7 @@ function call(op, parameters, siteId) {
         const response = client.call()
         if (Number(response.statusCode) !== 200)
             fail(
-                {
-                    401: 'AuthenticationRequired',
-                    403: 'Unauthorized',
-                    404: 'NotFound',
-                    409: 'Conflict',
-                    422: 'Unprocessable',
-                    429: 'Tarpit',
-                }[Number(response.statusCode)] || 'Unavailable',
+                facade().statusKind(response.statusCode),
                 'Authentication could not be completed',
             )
         const cookies = response
@@ -237,11 +229,7 @@ function call(op, parameters, siteId) {
             delete result.credential
         }
     }
-    if (op === 'endSession') {
-        ec.web.sessionAttributes.remove('passDelegation')
-        ec.web.sessionAttributes.remove('passSubject')
-        ec.web.sessionAttributes.remove('passAuthorityCookie')
-    }
+    if (op === 'endSession') clearRemoteSession()
     return result
 }
-;({ call, finishSso })
+;({ call, finishSso, safeReturnPath })

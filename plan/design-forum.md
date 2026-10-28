@@ -173,8 +173,9 @@ a browser recovery copy is disposable and isolated by account/site. No dual-writ
 replication scheme is part of this design.
 
 The proposed `pass.*` facade exposes typed screen services. Local adapters call §15's domain
-services; remote adapters call `/rest/s1/pass/v1/sites/{siteId}/...`, implemented by Mantle's
-new `service/pass.rest.xml`. Generic Mantle REST/entity endpoints are not the public API. Host
+services; remote adapters call `/rest/s1/pass/v1/sites/{siteId}/...`, served only by Mantle's
+`PassApi` servlet and its route catalogue (no generic REST resource reaches these services).
+Generic Mantle REST/entity endpoints are not the public API. Host
 resolution uses a configured host map plus backend-validated site/mount bindings; an arbitrary
 Host header, query `siteId` or category ID cannot select another site's authority or content.
 
@@ -1345,7 +1346,7 @@ Every screen's Needs labels must resolve here.
 | --- | --- | --- | --- | --- |
 | PASS-SITE | data model, service type, seed data / Mantle + PASS | PublicSite/hosts/mounts/roles/profiles; SiteServices and Pass shell | Sites, SiteDetail, discovery, accounts, future apps | Explicit publication, host binding, scoped roles, startup readiness, default disabled site. |
 | PASS-AUTH | service type, data model / framework | registration/recovery challenges and delegated public sessions | Login, SecondFactor, Registration, Invitation, AccountSettings | Verified identity without internal groups; audience/site-scoped remote credentials, factor continuity, revocation. |
-| PASS-API | service type, protocol client / framework + Mantle | authenticated adapter and restricted pass.rest.xml v1 | every facade/remote screen | Typed DTOs, current actor authorization, cursor/revision/idempotency/error contracts, configured endpoints only. |
+| PASS-API | service type, protocol client / framework + Mantle | authenticated adapter and restricted PassApi v1 route catalogue | every facade/remote screen | Typed DTOs, current actor authorization, cursor/revision/idempotency/error contracts, configured endpoints only. |
 | PASS-ACCESS | data model, service type / Mantle | shared site/category/topic/conversation access evaluator | all reads/writes including Comms/email | Publication plus legacy policy, hierarchy, source grants, current visibility and source-discussion gates. |
 | PASS-TOPIC | data model, service type / Mantle | forum thread metadata, revisions/drafts/tags/reactions/polls/bookmarks | topic, composition, personal screens | Canonical CommunicationEvent body, stable IDs/ordinals, atomic transitions, independent solved/closed state. |
 | PASS-READ | data model, service type / Mantle | ForumTopicUser, mode boundary, CEP allocation extensions | Topics, stream, Comms, notifications | Public markers/internal receipts, tracking-mode conversion, scalable counts and no public row fan-out. |

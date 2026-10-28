@@ -4,7 +4,7 @@
   <always-actions>
     <script><![CDATA[
         if (!resolvedSiteId) { const e=new Error('Site not found');e.moquiErrorKind='NotFound';throw e }
-        if(ec.web.response){ec.web.response.setHeader('Cache-Control','no-store');ec.web.response.setHeader('Referrer-Policy','same-origin');ec.web.response.setHeader('Content-Security-Policy',"img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")}
+        if(ec.web.response){ec.web.response.setHeader('Cache-Control','no-store');ec.web.response.setHeader('Referrer-Policy','same-origin');ec.web.response.setHeader('Content-Security-Policy',"script-src 'self' 'unsafe-eval'; img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")}
         publicHost=String(publicHost || "").toLowerCase()
         siteId=resolvedSiteId
         siteInfo=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getSiteInfo',input:{siteId,hostname:publicHost}}).call().result

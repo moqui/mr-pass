@@ -5,7 +5,7 @@
     <actions>
       <script><![CDATA[
         const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Members',resolvedSiteId,ec.web.parameters)
-        if(saved.invitationId){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').invitationResult(saved,passBases.account));return}
+        if(saved.invitationId){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').invitationResult(saved,passBases,'https://'+publicHost));return}
         if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
         if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
         else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')

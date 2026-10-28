@@ -23,8 +23,11 @@ frontend through deployment configuration or environment variables:
 On the authority, register `pass_client_<id>_secret` and comma-separated
 `pass_client_<id>_sites`. Register the exact frontend SSO callback URI in
 `pass_client_<id>_callback`, such as `https://forum.example.test/account/Sso`.
-Delegations are hashed, revocable, site/client scoped, and expire after 15 minutes. Expiry requires
-sign-in again; a failed write retains its draft and operation ID. Password changes, account
+Delegations are hashed, revocable, site/client scoped, and expire after 15 minutes without use;
+use in the last five minutes extends them, up to twelve hours from sign-in, after which sign-in is
+required again. A failed write retains its draft and operation ID. Every authority call carries the
+deployment's client ID and secret (a credential is refused from any other caller) and the browser's
+address, which the authority trusts only from a registered client for its rate limits. Password changes, account
 termination/disable, or ending the issuing visit invalidate delegations. Credentials and the
 authority's second-factor cookie stay in the frontend's server-side session.
 

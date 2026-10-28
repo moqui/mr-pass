@@ -1,7 +1,7 @@
 const A = 'org.moqui.public.AccountServices.'
 const callAccount = (name, input) => call(A + name, { input }).result
 const capture = ec.factory.getTool('MailCapture')
-let accountId, verificationToken, secret
+let accountId, verificationToken, staleToken, secret
 function sys(work) {
     const was = ec.artifactExecution.disableAuthz()
     try {
@@ -46,9 +46,14 @@ spec({
 })
 feature('registration stores a disabled account and only a token digest', {
     when() {
+        logout()
+        // Someone else asks first; the owner's own request replaces that challenge.
         callAccount('begin#Registration', {
             emailAddress: 'pass.identity@example.test',
-            password: 'moqui1!!',
+        })
+        staleToken = capture.last().body.match(/[A-Za-z0-9_-]{64}/)[0]
+        callAccount('begin#Registration', {
+            emailAddress: 'pass.identity@example.test',
         })
         const message = capture.last()
         verificationToken = message.body.match(/[A-Za-z0-9_-]{64}/)[0]
@@ -62,26 +67,47 @@ feature('registration stores a disabled account and only a token digest', {
             .find('moqui.security.public.RegistrationChallenge')
             .disableAuthz()
             .condition('userId', accountId)
+            .condition('consumedAt', null)
             .one()
         return {
             disabled: account.disabled,
             hash: challenge.tokenHash,
             partyId: account.partyId,
+            stale: fails(() =>
+                callAccount('verify#Registration', {
+                    token: staleToken,
+                    newPassword: 'attacker1!!',
+                }),
+            ),
         }
     },
-    then({ disabled, hash, partyId }) {
+    then({ disabled, hash, partyId, stale }) {
         disabled === 'Y'
         hash !== verificationToken
         partyId === null
+        stale.includes('expired')
     },
 })
 feature('verification is single use and registration adds no internal groups', {
     when() {
-        const result = callAccount('verify#Registration', {
+        const asked = callAccount('verify#Registration', {
             token: verificationToken,
         })
+        const weak = fails(() =>
+            callAccount('verify#Registration', {
+                token: verificationToken,
+                newPassword: 'short',
+            }),
+        )
+        const result = callAccount('verify#Registration', {
+            token: verificationToken,
+            newPassword: 'moqui1!!',
+        })
         const replay = fails(() =>
-            callAccount('verify#Registration', { token: verificationToken }),
+            callAccount('verify#Registration', {
+                token: verificationToken,
+                newPassword: 'moqui1!!',
+            }),
         )
         const groups = ec.entity
             .find('moqui.security.UserGroupMember')
@@ -89,9 +115,11 @@ feature('verification is single use and registration adds no internal groups', {
             .condition('userId', accountId)
             .condition('userGroupId', 'not-equals', 'ALL_USERS')
             .count()
-        return { result, replay, groups }
+        return { asked, weak, result, replay, groups }
     },
-    then({ result, replay, groups }) {
+    then({ asked, weak, result, replay, groups }) {
+        asked.passwordRequired === true
+        weak.includes('policy')
         result.verified === true
         replay.includes('expired')
         groups === 0

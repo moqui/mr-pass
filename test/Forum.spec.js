@@ -368,3 +368,49 @@ feature(
         },
     },
 )
+feature('the PASS and Mantle copies of the operation schema and routes stay identical', {
+    when() {
+        const text = (location) =>
+            String(ec.resource.getLocationText(location) || '')
+        const pass = text('component://mr-pass/service/pass/Schema.js')
+        return {
+            schema:
+                pass.length > 0 &&
+                pass ===
+                    text(
+                        'component://mr-mantle/service/mantle/forum/ForumSchema.js',
+                    ),
+            routes:
+                text('component://mr-pass/service/pass/Routes.js') ===
+                text('component://mr-mantle/script/PassRoutes.js'),
+        }
+    },
+    then({ schema, routes }) {
+        // A remote PASS host has no Mantle and the authority has no PASS, so each keeps a copy; change both together.
+        schema === true
+        routes === true
+    },
+})
+feature('only a plain local path is kept as a sign-in return path', {
+    when() {
+        const safe = ec.resource.script(
+            'component://mr-pass/service/pass/Account.js',
+        ).safeReturnPath
+        return {
+            local: safe('/forum/t/abc/topic?around=x'),
+            tab: safe('/\t/evil.example'),
+            protocolRelative: safe('//evil.example'),
+            backslash: safe('/\\evil.example'),
+            absolute: safe('https://evil.example/'),
+            newline: safe('/forum\r\nSet-Cookie: x'),
+        }
+    },
+    then({ local, tab, protocolRelative, backslash, absolute, newline }) {
+        local === '/forum/t/abc/topic?around=x'
+        tab === null
+        protocolRelative === null
+        backslash === null
+        absolute === null
+        newline === null
+    },
+})

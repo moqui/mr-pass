@@ -5,6 +5,40 @@ const fail = (kind, text) => {
     e.moquiErrorKind = kind
     throw e
 }
+const statusKind = (status) =>
+    ({
+        401: 'AuthenticationRequired',
+        403: 'Unauthorized',
+        404: 'NotFound',
+        409: 'Conflict',
+        422: 'Unprocessable',
+        429: 'Tarpit',
+    })[Number(status)] || 'Unavailable'
+/* Every authority call names this deployment with its secret and its browser's address (for rate limits). */
+function authorityClient(siteId, path, method) {
+    const backend = System.getProperty('pass_backend_url'),
+        clientId = System.getProperty('pass_client_id'),
+        secret = System.getProperty('pass_client_secret')
+    if (!backend || !clientId || !secret)
+        fail('Unavailable', 'Remote authority is not configured')
+    const client = ec.service
+        .rest()
+        .uri(
+            String(backend).replace(/\/$/, '') +
+                '/rest/s1/pass/v1/sites/' +
+                encodeURIComponent(siteId) +
+                '/' +
+                path,
+        )
+        .method(method)
+        .timeout(30)
+        .followRedirects(false)
+        .addHeader('x-pass-client', clientId)
+        .addHeader('x-pass-client-secret', secret)
+    const address = ec.web?.request?.remoteAddr
+    if (address) client.addHeader('x-pass-client-ip', String(address))
+    return client
+}
 function call(operation, input) {
     const def = schema[operation]
     if (!def || Object.keys(input).some((k) => !def.fields.includes(k)))
@@ -26,22 +60,14 @@ function call(operation, input) {
     const [method, pattern] = route,
         payload = { ...input }
     delete payload.siteId
-    let path = pattern.replace(/\{([^}]+)\}/g, (_, name) => {
+    const path = pattern.replace(/\{([^}]+)\}/g, (_, name) => {
         const value = payload[name]
         delete payload[name]
-        return encodeURIComponent(String(value || ''))
+        if (value == null || value === '')
+            fail('Unprocessable', 'Missing ' + name)
+        return encodeURIComponent(String(value))
     })
-    let url =
-        String(backend).replace(/\/$/, '') +
-        '/rest/s1/pass/v1/sites/' +
-        encodeURIComponent(input.siteId) +
-        '/' +
-        path
-    const client = ec.service.rest().uri(url).method(method).timeout(30)
-    client.addHeader(
-        'x-pass-client',
-        System.getProperty('pass_client_id') || '',
-    )
+    const client = authorityClient(input.siteId, path, method)
     const token = ec.web.sessionAttributes.passDelegation
     if (token) client.addHeader('authorization', 'Bearer ' + token)
     else if (method !== 'GET' && operation !== 'applyOptOut')
@@ -59,17 +85,7 @@ function call(operation, input) {
             })
             .send()
         if (Number(upload.statusCode) < 200 || Number(upload.statusCode) >= 300)
-            fail(
-                {
-                    401: 'AuthenticationRequired',
-                    403: 'Unauthorized',
-                    404: 'NotFound',
-                    409: 'Conflict',
-                    422: 'Unprocessable',
-                    429: 'Tarpit',
-                }[Number(upload.statusCode)] || 'Unavailable',
-                'Upload could not be completed',
-            )
+            fail(statusKind(upload.statusCode), 'Upload could not be completed')
         return upload.jsonObject()
     }
     if (method === 'GET') {
@@ -84,17 +100,7 @@ function call(operation, input) {
         if (method === 'GET' && token) return call(operation, input)
     }
     if (status < 200 || status >= 300)
-        fail(
-            {
-                401: 'AuthenticationRequired',
-                403: 'Unauthorized',
-                404: 'NotFound',
-                409: 'Conflict',
-                422: 'Unprocessable',
-                429: 'Tarpit',
-            }[status] || 'Unavailable',
-            'The authority could not complete this request',
-        )
+        fail(statusKind(status), 'The authority could not complete this request')
     return response.jsonObject()
 }
 function download(siteId, attachmentId, variant) {
@@ -127,20 +133,13 @@ function download(siteId, attachmentId, variant) {
         }
         return
     }
-    const client = ec.service
-        .rest()
-        .uri(
-            String(backend).replace(/\/$/, '') +
-                '/rest/s1/pass/v1/sites/' +
-                encodeURIComponent(siteId) +
-                '/attachments/' +
-                encodeURIComponent(attachmentId) +
-                (variant ? '?variant=' + encodeURIComponent(variant) : ''),
-        )
-        .method('GET')
-        .timeout(30)
-        .followRedirects(false)
-        .addHeader('x-pass-client', System.getProperty('pass_client_id') || '')
+    const client = authorityClient(
+        siteId,
+        'attachments/' +
+            encodeURIComponent(attachmentId) +
+            (variant ? '?variant=' + encodeURIComponent(variant) : ''),
+        'GET',
+    )
     if (ec.web.sessionAttributes.passDelegation)
         client.addHeader(
             'authorization',
@@ -150,4 +149,4 @@ function download(siteId, attachmentId, variant) {
         skipHeaders: ['set-cookie', 'x-csrf-token', 'moquisessiontoken'],
     })
 }
-;({ call, download })
+;({ call, download, authorityClient, statusKind })

@@ -179,6 +179,7 @@ export interface OperationInputs {
         limit?: number
         cursor?: Cursor
         view?: string
+        authorHandle?: string
     }
     getTopic: {
         siteId: string
@@ -374,10 +375,12 @@ export interface OperationInputs {
         siteId: string
         cursor?: Cursor
         limit?: number
+        view?: 'all' | 'unread'
     }
     markNotifications: {
         siteId: string
         deliveryIds?: string[]
+        all?: boolean
     }
     storePolicy: {
         siteId: string

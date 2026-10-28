@@ -110,9 +110,9 @@
     <section name="PassEndSanction" condition="view.forms.some(form=&gt;form.op==='endSanction')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" action="${publicPath}/save"><h2>End a sanction</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassEndSanctionForm" action="${publicPath}/save"><h2>End a sanction</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
-        <form-single name="PassEndSanctionForm" transition="save" skip-start="true" skip-end="true">
+        <form-single name="PassEndSanctionForm" transition="save" map="Object.assign({},view.formValues['endSanction'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
             <default-field>
               <hidden default-value="endSanction"/>

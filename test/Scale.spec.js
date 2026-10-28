@@ -141,9 +141,13 @@ feature(
                     nextOrdinal: second.postList[0].ordinal,
                     opaque: /^[A-Za-z0-9_-]{32}$/.test(first.nextCursor),
                     last: last.postList.length,
-                    located: last.postList[0].postId,
+                    located: last.postList.some(
+                        (post) => post.postId === 'PASS_SCALE_POST_09995',
+                    ),
+                    context: last.postList[0].ordinal,
                     receipts,
                     batch: batch.prepared,
+                    prepared: batch.done,
                     ordinal: reply.ordinal,
                 }
             } finally {
@@ -156,17 +160,23 @@ feature(
             opaque,
             last,
             located,
+            context,
             receipts,
             batch,
+            prepared,
             ordinal,
         }) {
             first === 30
             nextOrdinal === 31
             opaque === true
-            last === 6
-            located === 'PASS_SCALE_POST_09995'
+            // Five posts of context before the located post, through the last post.
+            last === 11
+            located === true
+            context === 9990
             receipts === 0
-            batch === 100
+            // Only the parent author and watchers are candidates, not the 100,000 members.
+            batch <= 1
+            prepared === true
             ordinal === 10001
         },
     },

@@ -65,7 +65,7 @@
             <p v-if="selectedCategory">
                 Audience: {{ audience(selectedCategory.visibility) }}.
             </p>
-            <p v-if="!canPublish">
+            <p v-if="!canPublish && !scansPending">
                 Posting is currently unavailable here. Your draft can still be
                 saved.
             </p>
@@ -73,6 +73,7 @@
                 v-model="draft.body"
                 name="body"
                 :rows="14"
+                aria-label="Message"
                 placeholder="Write your message"
             ></m-rich-text>
             <label v-if="draft.postId"
@@ -90,6 +91,10 @@
                     </button>
                 </li>
             </ul>
+            <p v-if="scansPending" role="status">
+                Publishing is available once every attachment has passed
+                scanning. Remove any that did not.
+            </p>
             <q-btn
                 type="submit"
                 color="primary"
@@ -227,9 +232,14 @@ module.exports = {
                     category.contactListId === this.draft.contactListId,
             )
         },
+        // Files still being scanned (or quarantined) would be left out of the post, so publishing waits for them.
+        scansPending() {
+            return this.attachments.some((a) => a.scanState !== 'clean')
+        },
         canPublish() {
             return (
                 !this.recoveryCandidate &&
+                !this.scansPending &&
                 (!!this.draft.postId ||
                     (!!this.selectedCategory &&
                         (this.draft.rootCommEventId

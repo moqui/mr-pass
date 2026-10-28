@@ -443,3 +443,49 @@ feature('a failed save retains browser text and the operation ID for retry', {
         retained === true
     },
 })
+feature('sign-in ignores a return path that would leave the site', {
+    when() {
+        const page = browser.newPage()
+        // A tab between the slashes is dropped by browsers, turning "/\t/host" into "//host".
+        page.goto('/account/Login?returnTo=' + encodeURIComponent('/\t/evil.example'))
+        page.getByLabel('Email or username', { exact: true }).fill('john.doe')
+        page.getByLabel('Password', { exact: true }).fill('moqui')
+        page.getByRole('button', { name: 'Sign in', exact: true }).click()
+        page.waitForURL('/forum')
+        return { url: page.url() }
+    },
+    then({ url }) {
+        !url.includes('evil.example')
+        url.endsWith('/forum')
+    },
+})
+feature('a signed-in cookie session still needs the CSRF token to change data', {
+    when() {
+        const page = browser.newPage()
+        page.goto('/account/Login')
+        page.getByLabel('Email or username', { exact: true }).fill('john.doe')
+        page.getByLabel('Password', { exact: true }).fill('moqui')
+        page.getByRole('button', { name: 'Sign in', exact: true }).click()
+        page.waitForURL('/forum')
+        page.allowProblems(/403 Forbidden .*\/posts/)
+        return {
+            status: page.evaluate(
+                (url) =>
+                    fetch(url, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: 'forged',
+                            body: 'forged',
+                            operationId: 'forged-signed-in-001',
+                        }),
+                    }).then((response) => response.status),
+                api + '/posts',
+            ),
+        }
+    },
+    then({ status }) {
+        status === 403
+    },
+})

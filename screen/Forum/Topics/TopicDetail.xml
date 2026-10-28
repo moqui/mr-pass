@@ -39,16 +39,15 @@
   </transition>
   <pre-actions>
     <script><![CDATA[
-        const metadata=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getTopic',input:{siteId:resolvedSiteId,rootCommEventId}}).call().result.topic
-        canonicalUrl=(passBases.forum || '')+'/t/'+encodeURIComponent(rootCommEventId)+'/'+encodeURIComponent(metadata.slug)
-        if(ec.web.request?.method==='GET' && (typeof requestedTopicSlug==='undefined' || requestedTopicSlug!==metadata.slug)) { sri.sendRedirectAndStopRender(canonicalUrl+(ec.web.parameters.around?'?around='+encodeURIComponent(ec.web.parameters.around):''));return }
+        topicMetadata=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getTopic',input:{siteId:resolvedSiteId,rootCommEventId}}).call().result.topic
+        canonicalUrl=(passBases.forum || '')+'/t/'+encodeURIComponent(rootCommEventId)+'/'+encodeURIComponent(topicMetadata.slug)
+        if(ec.web.request?.method==='GET' && (typeof requestedTopicSlug==='undefined' || requestedTopicSlug!==topicMetadata.slug)) { sri.sendRedirectAndStopRender(canonicalUrl+(ec.web.parameters.around?'?around='+encodeURIComponent(ec.web.parameters.around):''));return }
     ]]></script>
   </pre-actions>
   <actions>
     <script><![CDATA[
         screenName='TopicDetail'
-        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,Object.assign({},ec.web.parameters,{rootCommEventId}),passBases,siteInfo)
-        view.title=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getTopic',input:{siteId:resolvedSiteId,rootCommEventId}}).call().result.topic.title
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,Object.assign({},ec.web.parameters,{rootCommEventId,topicMetadata}),passBases,siteInfo)
     ]]></script>
   </actions>
   <widgets>

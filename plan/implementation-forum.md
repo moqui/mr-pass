@@ -19,6 +19,21 @@ regressions run against the shared mailbox changes; BOSS is not a PASS runtime d
 | Discovery and delivery | Current-authority database search, stale legacy search-hit rechecks, safe snippets, canonical links/post locators, exact approved wiki binding, public RSS/Atom/sitemap and social metadata. Paged outbox recipients, channel deduplication/preferences, scoped email opt-out, bounded retries, uncertain-send reconciliation and named independent-item failures. |
 | Operations | Readiness and health for authority/account configuration, mail, scanner, image/SSO package capability, outbox lag, delivery states and conversion jobs; checkpoint retry/cancel/resume and delivery reconciliation. No shared personalized/private response cache; visibility generations and polling refresh current projections. |
 
+## Review fixes
+
+An October 27 review of the S1 code corrected these before further work. Each has a spec.
+
+| Area | Correction |
+| --- | --- |
+| Identity | A return path must be a plain local path (no control characters, so `/%09/host` cannot become `//host`), stored only after the action succeeds; redirects refuse control characters. Registration no longer stores a password before verification: the new account chooses it on the verification step, and a repeated request for an unverified address replaces the challenge rather than going silent. Remote sign-out always ends the local session. Every authority call carries the deployment secret; a delegated credential is refused from any other caller. Client secrets compare by digest. Authority rate limits use the browser address a registered client forwards. Delegations slide while in use, up to twelve hours. |
+| Access | Help categories cannot be self-joined (which exposed every help thread). Only an operator, or an internal owner of the list, can bind an existing mailbox. Binding keeps internal list members' Comms access (read, post, named recipients, mentions, purpose) before publication. Staff suspensions and removals are not undone by rejoining. Staff sanction only lower-ranked parties, never themselves. |
+| Integrity | Any edit rebinds a post's open reviews to the new revision. An omitted category field keeps its value, so a rename keeps the parent ceiling. Topic moves conflict only when either audience's policy revisions change. Search shows the current topic title, excludes unlisted topics, treats `%`/`_` literally and returns single-escaped snippets. An `around` window starts a few posts before its target. |
+| Scale | Outbox preparation scans the parent author and topic/category/site watchers, not every site member, and keeps preparing within a time budget. Topic lists, search and mailbox summaries reuse access answers within one call. Public mailbox summaries count the 200 most recent topics. Idempotency and reading markers lock the actor's row, not the site or topic. Indexes cover attachment, review-target, notification, action-log, watcher, avatar, mailbox-topic and opt-out-expiry queries. |
+| Delivery and operations | Notices link to the post, opt-out stops the scope that caused the mail, mounts at `/` produce correct URLs, and an interrupted in-app notice retries. Bootstrap runs, account cleanup and opt-out token cleanup isolate and name failures, with the error's first line. The generic REST catalogue `pass.rest.xml` was removed: the `PassApi` servlet is the only route to these services. |
+| Screens | Notifications keep a read state, with an unread view and mark-all. Unsubscribe names what it stops and what it keeps. Member profiles show sanitized bios and the member's topics. Drafts, sanctions and deliveries have row actions that fill their forms. Posts have a Report link, and topic tools start at the current revision. Post headings are author and date. Composing waits for attachment scans. The editor is labelled, invitation links are absolute, and the CSP restricts scripts to the site. |
+
+Local attachment downloads read the stored file into memory (bounded by the 10 MiB upload limit). Remote downloads stream through the frontend. Notification mail does not yet carry thread headers: the framework reserves `References`/`In-Reply-To` for its own fields.
+
 ## Screens
 
 All 27 S1 screen definitions have their functional core in the dedicated public shell:
@@ -42,6 +57,7 @@ The following checks ran through the existing incremental development build with
 
 | Check | Result and coverage |
 | --- | --- |
+| Review re-run (Oct 27) | 72/72 service features, 12/12 ForumHttp, 4/4 RemoteHttp with RemoteFixtures in a separate runtime, 1/1 Scale, three `public_site` Rust tests, and screen lint with 0 parse failures. |
 | Focused service suite | 62 features across Forum, ForumAccess, Media, PublicIdentity, SsoHandoff, Outbox, Mantle Mailboxes and BOSS InboxMailboxes. Covers policy ceilings/revocation, help threads, operation replay, moderation evidence, last owners, atomic rollback, profile media, marker conversion, exact-version wiki binding and isolated delivery failures. |
 | Local browser suite | 10/10 ForumHttp checks: anonymous HTML/API agreement, host/site substitution, CSRF, phone layout, real rich-text editing and draft resume, concurrent replay/409 edits, keyboard focus, conflict comparison and failed-save recovery. |
 | Separate remote runtimes | RemoteFixtures confirms no Mantle catalog or copied business accounts. 4/4 RemoteHttp checks cover anonymous reading, password/delegation/private drafts, multipart text/image publication/download/thumbnail/revocation, and avatar visibility. |

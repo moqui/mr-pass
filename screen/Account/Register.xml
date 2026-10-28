@@ -80,11 +80,6 @@
               <text-line input-type="email"/>
             </default-field>
           </field>
-          <field name="password" from="''">
-            <default-field title="Password">
-              <password/>
-            </default-field>
-          </field>
           <field name="invitationToken">
             <default-field title="Invitation code (when required)">
               <text-line input-type="text"/>
@@ -150,6 +145,11 @@
           <field name="token">
             <default-field title="Verification code">
               <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="newPassword" from="''">
+            <default-field title="Choose a password">
+              <password/>
             </default-field>
           </field>
           <field name="submitAction">
