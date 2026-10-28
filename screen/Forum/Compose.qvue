@@ -79,6 +79,58 @@
             <label v-if="draft.postId"
                 >Edit reason<input v-model="draft.reason" required
             /></label>
+            <label v-if="!draft.rootCommEventId && !draft.postId"
+                >Tags (comma separated, up to five)<input
+                    v-model="draft.tagsText"
+                    maxlength="250"
+            /></label>
+            <fieldset v-if="!draft.postId">
+                <legend>Poll</legend>
+                <label
+                    ><input type="checkbox" v-model="draft.pollEnabled" /> Add a
+                    poll</label
+                >
+                <template v-if="draft.pollEnabled">
+                    <label
+                        >Question<input
+                            v-model="draft.pollQuestion"
+                            maxlength="250"
+                    /></label>
+                    <label
+                        >Choices, one per line<textarea
+                            v-model="draft.pollOptions"
+                            rows="4"
+                        ></textarea></label
+                    ><label
+                        >Choices a voter may pick<input
+                            type="number"
+                            min="1"
+                            max="20"
+                            v-model.number="draft.pollMaxChoices"
+                    /></label>
+                    <label
+                        >Show results<select v-model="draft.pollResults">
+                            <option value="voted">After voting</option>
+                            <option value="always">Always</option>
+                            <option value="closed">When the poll closes</option>
+                        </select></label
+                    ><label
+                        >Closes at<input
+                            type="datetime-local"
+                            v-model="draft.pollClosesAt"
+                    /></label>
+                    <label
+                        ><input
+                            type="checkbox"
+                            v-model="draft.pollAllowChange"
+                        />
+                        Voters may change their vote</label
+                    ><label
+                        ><input type="checkbox" v-model="draft.pollReveal" />
+                        Show who voted for each choice</label
+                    >
+                </template>
+            </fieldset>
             <label>Attach a file<input type="file" @change="upload" /></label>
             <ul>
                 <li
@@ -141,6 +193,15 @@ module.exports = {
                 title: '',
                 body: '',
                 rootCommEventId: '',
+                tagsText: '',
+                pollEnabled: false,
+                pollQuestion: '',
+                pollOptions: '',
+                pollMaxChoices: 1,
+                pollResults: 'voted',
+                pollClosesAt: '',
+                pollAllowChange: true,
+                pollReveal: false,
             },
             operationId: '',
             draftId: null,
@@ -168,6 +229,18 @@ module.exports = {
             this.draft.contactListId = state.categoryId
             if (state.draft) {
                 this.draft = { ...this.draft, ...state.draft }
+                this.draft.tagsText = (state.draft.tags || []).join(', ')
+                const poll = state.draft.poll
+                if (poll)
+                    Object.assign(this.draft, {
+                        pollEnabled: true,
+                        pollQuestion: poll.question,
+                        pollOptions: poll.options.join('\n'),
+                        pollMaxChoices: poll.maxChoices,
+                        pollResults: poll.resultsPolicy,
+                        pollAllowChange: poll.allowChange,
+                        pollReveal: poll.revealVoters,
+                    })
                 this.draftId = state.draft.draftId || this.draftId
                 this.draftRevision = state.draft.revision || 0
             }
@@ -369,6 +442,29 @@ module.exports = {
             clearTimeout(this.timer)
             try {
                 const payload = { ...this.draft }
+                // Tags and polls belong to new content; an edit changes only the text.
+                if (!this.draft.postId) {
+                    if (!this.draft.rootCommEventId)
+                        payload.tags = this.draft.tagsText
+                            .split(',')
+                            .map((tag) => tag.trim())
+                            .filter(Boolean)
+                    if (this.draft.pollEnabled)
+                        payload.poll = {
+                            question: this.draft.pollQuestion,
+                            options: this.draft.pollOptions
+                                .split('\n')
+                                .map((option) => option.trim())
+                                .filter(Boolean),
+                            maxChoices: Number(this.draft.pollMaxChoices || 1),
+                            resultsPolicy: this.draft.pollResults,
+                            closesAt: this.draft.pollClosesAt
+                                ? new Date(this.draft.pollClosesAt).getTime()
+                                : null,
+                            allowChange: this.draft.pollAllowChange,
+                            revealVoters: this.draft.pollReveal,
+                        }
+                }
                 if (draftOnly) {
                     payload.mode = 'draft'
                     if (this.draftId) {

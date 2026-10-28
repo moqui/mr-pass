@@ -34,6 +34,15 @@ export interface HostInput { hostname: string; canonical?: boolean }
 export interface MountInput { app: 'forum' | 'account' | 'members' | 'sites'; pathPrefix: string; enabled?: boolean; appMountId?: string }
 /** Server-owned uploaded file handle. It is never a browser-supplied resource location. */
 export interface UploadedFile { readonly name: string; readonly size: number; readonly contentType: string }
+export interface PollInput {
+    question: string
+    options: string[]
+    maxChoices?: number
+    closesAt?: number | string | null
+    resultsPolicy?: 'always' | 'voted' | 'closed'
+    revealVoters?: boolean
+    allowChange?: boolean
+}
 export interface OperationInputs {
     findSites: {
         siteId: string
@@ -158,6 +167,7 @@ export interface OperationInputs {
         expectedRevision?: number
         confirmAudience?: boolean
         operationId?: string
+        mode?: string
     }
     previewCategoryAccess: {
         siteId: string
@@ -180,6 +190,9 @@ export interface OperationInputs {
         cursor?: Cursor
         view?: string
         authorHandle?: string
+        tag?: string
+        solved?: string
+        period?: string
     }
     getTopic: {
         siteId: string
@@ -213,6 +226,8 @@ export interface OperationInputs {
         expectedRevision?: number
         postId?: string
         postRevision?: number
+        tags?: string[]
+        poll?: PollInput
     }
     findDrafts: {
         siteId: string
@@ -238,6 +253,8 @@ export interface OperationInputs {
         operationId: string
         attachmentIds?: string[]
         draftId?: string
+        tags?: string[]
+        poll?: PollInput
     }
     updatePost: {
         siteId: string
@@ -295,6 +312,8 @@ export interface OperationInputs {
         targetContactListId?: string
         confirmAudience?: boolean
         expectedGeneration?: number
+        postId?: string
+        active?: boolean
     }
     findActions: {
         siteId: string
@@ -480,6 +499,92 @@ export interface OperationInputs {
     endSanction: {
         siteId: string
         sanctionId?: string
+        expectedRevision?: number
+        reason?: string
+    }
+    findTags: {
+        siteId: string
+        query?: string
+        limit?: number
+        cursor?: Cursor
+    }
+    storeTag: {
+        siteId: string
+        tagId?: string
+        name?: string
+        description?: string
+        allowedCategories?: string[]
+        expectedRevision?: number
+        reason?: string
+        operationId: string
+    }
+    mergeTag: {
+        siteId: string
+        tagId?: string
+        targetTagId?: string
+        expectedRevision?: number
+        reason?: string
+        operationId: string
+    }
+    setReaction: {
+        siteId: string
+        postId?: string
+        reactionKey?: string
+        active?: boolean
+    }
+    acceptAnswer: {
+        siteId: string
+        rootCommEventId?: string
+        postId?: string
+        expectedRevision?: number
+        reason?: string
+    }
+    getPoll: {
+        siteId: string
+        pollId?: string
+    }
+    votePoll: {
+        siteId: string
+        pollId?: string
+        optionIds?: string[]
+    }
+    storeBookmark: {
+        siteId: string
+        bookmarkId?: string
+        postId?: string
+        note?: string
+        remindAt?: number | string
+        expectedRevision?: number
+    }
+    removeBookmark: {
+        siteId: string
+        bookmarkId?: string
+    }
+    findBookmarks: {
+        siteId: string
+        limit?: number
+        cursor?: Cursor
+    }
+    getPostHistory: {
+        siteId: string
+        postId?: string
+    }
+    comparePostRevisions: {
+        siteId: string
+        postId?: string
+        fromRevision?: number
+        toRevision?: number
+    }
+    restorePostRevision: {
+        siteId: string
+        postId?: string
+        revision?: number
+        expectedRevision?: number
+        reason?: string
+    }
+    deletePost: {
+        siteId: string
+        postId?: string
         expectedRevision?: number
         reason?: string
     }

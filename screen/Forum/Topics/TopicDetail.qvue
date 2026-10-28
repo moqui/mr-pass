@@ -16,13 +16,133 @@
                 }}
                 · {{ formatDate(post.entryDate) }}
             </p>
-            <a :href="forumBase + '/p/' + post.postId">Link to this post</a>
-            <a
-                v-if="post.capabilities.canEdit"
-                :href="forumBase + '/Compose?postId=' + post.postId"
-                >Edit post</a
-            >
+            <p v-if="post.accepted"><strong>Accepted answer</strong></p>
+            <p v-if="post.wiki">Wiki post: eligible members may improve it</p>
+            <nav aria-label="Post actions" class="post-actions">
+                <a :href="forumBase + '/p/' + post.postId">Link to this post</a>
+                <a
+                    v-if="post.capabilities.canEdit"
+                    :href="forumBase + '/Compose?postId=' + post.postId"
+                    >Edit post</a
+                >
+                <a
+                    v-if="post.hasHistory"
+                    :href="
+                        forumBase +
+                        '/Topics/PostHistory?postId=' +
+                        encodeURIComponent(post.postId)
+                    "
+                    >History</a
+                >
+                <a
+                    v-if="topic.canFlag"
+                    :href="
+                        '?postId=' +
+                        encodeURIComponent(post.postId) +
+                        '#PassTopicDetailFlagPost'
+                    "
+                    >Report</a
+                >
+                <a
+                    v-if="topic.signedIn"
+                    :href="
+                        '?postId=' +
+                        encodeURIComponent(post.postId) +
+                        '#PassTopicDetailStoreBookmark'
+                    "
+                    >Bookmark</a
+                >
+                <a
+                    v-if="
+                        topic.canAccept &&
+                        !post.accepted &&
+                        post.postId !== post.rootCommEventId &&
+                        post.visibility === 'approved'
+                    "
+                    :href="
+                        '?postId=' +
+                        encodeURIComponent(post.postId) +
+                        '#PassTopicDetailAcceptAnswer'
+                    "
+                    >Accept answer</a
+                >
+                <a
+                    v-if="post.capabilities.canDelete"
+                    :href="
+                        '?postId=' +
+                        encodeURIComponent(post.postId) +
+                        '&expectedRevision=' +
+                        post.revision +
+                        '#PassTopicDetailDeletePost'
+                    "
+                    >Delete</a
+                >
+            </nav>
             <m-html-view :html="post.body" :images-bar="false"></m-html-view>
+            <section
+                v-if="post.pollId && polls[post.pollId]"
+                class="poll"
+                aria-label="Poll"
+            >
+                <h3>{{ polls[post.pollId].question }}</h3>
+                <fieldset v-if="polls[post.pollId].canVote">
+                    <legend>
+                        Choose up to {{ polls[post.pollId].maxChoices }}
+                    </legend>
+                    <label
+                        v-for="option in polls[post.pollId].options"
+                        :key="option.optionId"
+                        ><input
+                            :type="
+                                polls[post.pollId].maxChoices > 1
+                                    ? 'checkbox'
+                                    : 'radio'
+                            "
+                            :name="'poll-' + post.pollId"
+                            :value="option.optionId"
+                            v-model="choices[post.pollId]"
+                        />
+                        {{ option.label }}</label
+                    >
+                    <button type="button" @click="vote(post.pollId)">
+                        Vote
+                    </button>
+                </fieldset>
+                <ul v-if="polls[post.pollId].voterCount != null">
+                    <li
+                        v-for="option in polls[post.pollId].options"
+                        :key="option.optionId"
+                    >
+                        {{ option.label }}: {{ option.voteCount }}
+                        <span v-if="option.voters && option.voters.length"
+                            >({{ option.voters.join(', ') }})</span
+                        >
+                    </li>
+                </ul>
+                <p v-else>Results appear after you vote.</p>
+            </section>
+            <div
+                v-if="
+                    post.capabilities.canReact ||
+                    Object.keys(post.reactions || {}).length
+                "
+                class="reactions"
+                aria-label="Reactions"
+            >
+                <template v-for="key in reactionKeys" :key="key">
+                    <button
+                        v-if="post.capabilities.canReact"
+                        type="button"
+                        :aria-pressed="post.myReactions.includes(key)"
+                        @click="react(post, key)"
+                    >
+                        {{ key }} {{ post.reactions[key] || 0 }}
+                    </button>
+                    <span v-else-if="post.reactions[key]"
+                        >{{ key }} {{ post.reactions[key] }}</span
+                    >
+                </template>
+            </div>
             <ul v-if="post.attachments.length">
                 <li
                     v-for="attachment in post.attachments"
@@ -67,6 +187,10 @@ module.exports = {
             poll: null,
             observer: null,
             busy: false,
+            topic: {},
+            polls: {},
+            choices: {},
+            reactionKeys: ['like', 'thanks', 'insightful', 'agree', 'laugh'],
         }
     },
     async mounted() {
@@ -121,11 +245,62 @@ module.exports = {
             const data = await response.json()
             // Reapply the current projection even if an external membership change missed a generation update.
             this.posts = data.postList
+            this.topic = data.topic || {}
+            this.polls = data.polls || {}
+            for (const [pollId, poll] of Object.entries(this.polls))
+                if (!(pollId in this.choices))
+                    this.choices[pollId] =
+                        poll.maxChoices > 1
+                            ? [...poll.myChoices]
+                            : poll.myChoices[0] || ''
             this.nextCursor = data.nextCursor
             this.revision = data.revision
             this.generation = data.generation
             this.$nextTick(() => this.observe())
             this.marker = data.marker
+        },
+        // Actions post to the same save transition the plain forms use, asking for JSON instead of a redirect.
+        async act(input) {
+            const response = await fetch(this.base + '/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-Token': moqui.sessionToken,
+                },
+                body: JSON.stringify({
+                    ...input,
+                    operationId: crypto.randomUUID().replaceAll('-', ''),
+                    moquiSessionToken: moqui.sessionToken,
+                }),
+            })
+            if (!response.ok) throw new Error('Action failed')
+            return response.json()
+        },
+        async react(post, key) {
+            try {
+                await this.act({
+                    formAction: 'setReaction',
+                    postId: post.postId,
+                    reactionKey: key,
+                    active: !post.myReactions.includes(key),
+                })
+                await this.load(true)
+            } catch (e) {
+                this.status = 'Your reaction was not saved. Try again.'
+            }
+        },
+        async vote(pollId) {
+            const choice = this.choices[pollId]
+            const optionIds = Array.isArray(choice) ? choice : [choice]
+            if (!optionIds.filter(Boolean).length) return
+            try {
+                await this.act({ formAction: 'votePoll', pollId, optionIds })
+                await this.load(true)
+                this.status = 'Your vote was recorded.'
+            } catch (e) {
+                this.status = 'Your vote was not recorded. Try again.'
+            }
         },
         observe() {
             if (this.observer) this.observer.disconnect()

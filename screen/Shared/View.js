@@ -20,6 +20,44 @@ const definitions = {
         read: 'findTopics',
         list: 'topicList',
         link: 'topic',
+        params: ['view', 'tag', 'solved', 'period'],
+    },
+    Tags: {
+        title: 'Tags',
+        read: 'findTags',
+        list: 'tagList',
+        link: 'tag',
+        params: ['query'],
+    },
+    Bookmarks: {
+        title: 'Bookmarks',
+        read: 'findBookmarks',
+        list: 'bookmarkList',
+        link: 'post',
+        forms: [
+            form('storeBookmark', 'Edit bookmark', [
+                text('bookmarkId', 'Bookmark'),
+                text('note', 'Note'),
+                field('remindAt', 'Remind me at', 'datetime'),
+                field('expectedRevision', 'Bookmark revision', 'number'),
+            ]),
+            form('removeBookmark', 'Remove bookmark', [
+                text('bookmarkId', 'Bookmark'),
+            ]),
+        ],
+    },
+    PostHistory: {
+        title: 'Post history',
+        read: 'getPostHistory',
+        list: 'revisionList',
+        params: ['postId'],
+        forms: [
+            form('restorePostRevision', 'Restore this revision', [
+                field('revision', 'Revision to restore', 'number'),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Current revision', 'number'),
+            ]),
+        ],
     },
     Categories: {
         title: 'Categories',
@@ -77,6 +115,22 @@ const definitions = {
                 text('postId', 'Post'),
                 text('reason', 'Reason'),
             ]),
+            form('setReaction', 'React', []),
+            form('votePoll', 'Vote', []),
+            form('storeBookmark', 'Bookmark a post', [
+                text('postId', 'Post'),
+                text('note', 'Note'),
+                field('remindAt', 'Remind me at', 'datetime'),
+            ]),
+            form('acceptAnswer', 'Accept an answer', [
+                text('postId', 'Answer (empty to clear)'),
+                field('expectedRevision', 'Topic revision', 'number'),
+            ]),
+            form('deletePost', 'Delete a post', [
+                text('postId', 'Post'),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Post revision', 'number'),
+            ]),
             form('previewTopicAction', 'Preview category move', [
                 text('targetContactListId', 'Destination category'),
             ]),
@@ -86,8 +140,11 @@ const definitions = {
                     'reopen',
                     'title',
                     'category',
+                    'wiki',
                 ]),
                 text('targetContactListId', 'Destination category'),
+                text('postId', 'Post (wiki)'),
+                field('active', 'Wiki mode on', 'checkbox'),
                 field(
                     'confirmAudience',
                     'I reviewed the destination audience',
@@ -374,8 +431,28 @@ const definitions = {
                     'checkbox',
                 ),
                 text('slug', 'URL label'),
+                field('mode', 'Discussion style', 'select', [
+                    'discussion',
+                    'qa',
+                ]),
                 field('rules', 'Rules', 'textarea'),
                 field('expectedRevision', 'Category revision', 'number'),
+            ]),
+            form('storeTag', 'Save tag', [
+                text('tagId', 'Tag (empty for new)'),
+                text('name', 'Name'),
+                text('description', 'Description'),
+                text(
+                    'allowedCategories',
+                    'Limit to categories (comma separated)',
+                ),
+                field('expectedRevision', 'Tag revision', 'number'),
+            ]),
+            form('mergeTag', 'Merge tags', [
+                text('tagId', 'Tag to merge'),
+                text('targetTagId', 'Merge into'),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Tag revision', 'number'),
             ]),
             form('previewCategoryAccess', 'Preview publication', [
                 text('contactListId', 'Category'),
@@ -512,7 +589,16 @@ const definitions = {
     },
 }
 const rowActions = {
-    Drafts: { key: 'draftId', label: 'Discard', form: 'PassDraftsDiscardDraft' },
+    Drafts: {
+        key: 'draftId',
+        label: 'Discard',
+        form: 'PassDraftsDiscardDraft',
+    },
+    Bookmarks: {
+        key: 'bookmarkId',
+        label: 'Edit or remind',
+        form: 'PassBookmarksStoreBookmark',
+    },
     MemberModeration: {
         key: 'sanctionId',
         label: 'End sanction',
@@ -537,21 +623,45 @@ function inputFor(op, siteId, parameters) {
         if (parameters[k] != null && parameters[k] !== '')
             input[k] = parameters[k]
     }
-    for (const k of ['attachmentIds', 'deliveryIds', 'renderedPostIds'])
+    for (const k of [
+        'attachmentIds',
+        'deliveryIds',
+        'renderedPostIds',
+        'optionIds',
+    ])
         if (k in input && !Array.isArray(input[k])) input[k] = [input[k]]
-    for (const k of ['expectedRevision', 'sequenceNum', 'limit', 'ordinal'])
+    // Free-text lists from plain forms are comma separated.
+    for (const k of ['tags', 'allowedCategories'])
+        if (typeof input[k] === 'string')
+            input[k] = input[k]
+                .split(',')
+                .map((v) => v.trim())
+                .filter(Boolean)
+    for (const k of [
+        'expectedRevision',
+        'sequenceNum',
+        'limit',
+        'ordinal',
+        'revision',
+        'fromRevision',
+        'toRevision',
+    ])
         if (k in input) input[k] = Number(input[k])
+    // A browser datetime-local value is local time; send epoch milliseconds.
+    if (typeof input.remindAt === 'string')
+        input.remindAt = new Date(input.remindAt).getTime()
     for (const k of [
         'confirm',
         'confirmAudience',
         'markUnread',
         'approvalRequired',
         'all',
+        'active',
     ])
         if (k in input)
             input[k] =
                 input[k] === true || input[k] === 'true' || input[k] === 'on'
-    for (const key of ['hosts', 'mounts', 'config'])
+    for (const key of ['hosts', 'mounts', 'config', 'poll'])
         if (typeof input[key] === 'string') input[key] = JSON.parse(input[key])
     return input
 }
@@ -582,6 +692,7 @@ function load(name, siteId, parameters, bases, identity) {
         !identity?.authenticated &&
         [
             'Drafts',
+            'Bookmarks',
             'Settings',
             'Notifications',
             'ReviewQueue',
@@ -634,17 +745,27 @@ function load(name, siteId, parameters, bases, identity) {
                 rootCommEventId: parameters.rootCommEventId,
             }).topic
         view.title = metadata.title
+        view.topic = metadata
         view.canReply = metadata.capabilities.canReply
         view.canFlag = metadata.capabilities.canFlag
+        view.canAccept = metadata.capabilities.canAccept
+        view.signedIn = !!identity?.authenticated
         view.formValues.applyTopicAction = {
             expectedRevision: metadata.revision,
         }
+        view.formValues.acceptAnswer = { expectedRevision: metadata.revision }
         view.forms = view.forms.filter((form) =>
             form.op === 'setPreferences'
                 ? identity?.membershipState === 'active'
                 : form.op === 'flagPost'
                   ? metadata.capabilities.canFlag
-                  : metadata.capabilities.canModerate,
+                  : ['storeBookmark', 'deletePost'].includes(form.op)
+                    ? !!identity?.authenticated
+                    : form.op === 'acceptAnswer'
+                      ? metadata.capabilities.canAccept
+                      : ['setReaction', 'votePoll'].includes(form.op)
+                        ? false
+                        : metadata.capabilities.canModerate,
         )
         if (identity?.membershipState === 'active') {
             const preferences = call('getPreferences', {
@@ -723,7 +844,9 @@ function load(name, siteId, parameters, bases, identity) {
             view.details = view.details.filter(
                 ([k]) => !['bio', 'avatarId', 'revision'].includes(k),
             )
-            view.body = detail.bio ? StringUtilities.cleanHtml(detail.bio) : null
+            view.body = detail.bio
+                ? StringUtilities.cleanHtml(detail.bio)
+                : null
             const activity = call('findTopics', {
                 siteId,
                 authorHandle: detail.handle,
@@ -757,7 +880,46 @@ function load(name, siteId, parameters, bases, identity) {
             view.nextHref = '?' + query.join('&')
         }
         view.revision = data.revision
+        if (name === 'PostHistory') {
+            view.forms = data.canRestore ? view.forms : []
+            view.formValues.restorePostRevision = {
+                expectedRevision: data.revision,
+            }
+            view.backHref =
+                bases.forum + '/p/' + encodeURIComponent(data.postId)
+            if (parameters.fromRevision && parameters.toRevision)
+                view.diffHtml = call('comparePostRevisions', {
+                    siteId,
+                    postId: parameters.postId,
+                    fromRevision: Number(parameters.fromRevision),
+                    toRevision: Number(parameters.toRevision),
+                }).diff.html
+        }
         for (const row of view.rows) {
+            if (name === 'PostHistory') {
+                row.label =
+                    'Revision ' +
+                    row.revision +
+                    (row.current ? ' (current)' : '') +
+                    ' · ' +
+                    (row.editor?.displayName ||
+                        row.editor?.handle ||
+                        'Community member')
+                row.snippet = row.reason || null
+                if (row.revision > 1)
+                    row.href =
+                        '?postId=' +
+                        encodeURIComponent(parameters.postId) +
+                        '&fromRevision=' +
+                        (row.revision - 1) +
+                        '&toRevision=' +
+                        row.revision
+                continue
+            }
+            if (def.link === 'tag')
+                row.href = bases.forum + '?tag=' + encodeURIComponent(row.name)
+            if (name === 'TopicDetail' && row.pollId)
+                row.poll = call('getPoll', { siteId, pollId: row.pollId }).poll
             if (def.link === 'topic')
                 row.href =
                     bases.forum +
@@ -771,9 +933,10 @@ function load(name, siteId, parameters, bases, identity) {
                             .replace(/^-|-$/g, '') || 'topic',
                     )
             // A notification opens its post, which resolves the topic and position after a fresh access check.
-            if (def.link === 'post')
+            if (def.link === 'post' && row.postId)
                 row.href = bases.forum + '/p/' + encodeURIComponent(row.postId)
-            if (name === 'Notifications') row.state = row.read ? 'Read' : 'Unread'
+            if (name === 'Notifications')
+                row.state = row.read ? 'Read' : 'Unread'
             // A row action fills its form with this row's ID and revision instead of asking for them.
             const action = rowActions[name]
             if (action && row[action.key])

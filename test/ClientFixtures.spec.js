@@ -69,6 +69,8 @@ feature('provision a published HTTP test community', {
             .condition({ siteId, partyId })
             .one()
         state.set('lastPostedAt', Date.now() - 60000)
+        // The browser specs start several topics in one run; an established owner is past the new-member daily cap.
+        state.set('trustLevel', 'member')
         state.update()
         return published
     },

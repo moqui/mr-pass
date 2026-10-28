@@ -164,6 +164,14 @@
               <text-line input-type="text"/>
             </default-field>
           </field>
+          <field name="mode">
+            <default-field title="Discussion style">
+              <drop-down allow-empty="false">
+                <option key="discussion" text="discussion"/>
+                <option key="qa" text="qa"/>
+              </drop-down>
+            </default-field>
+          </field>
           <field name="rules">
             <default-field title="Rules">
               <text-area cols="60" rows="6"/>
@@ -340,6 +348,175 @@
           </field>
           <field name="submitAction">
             <default-field title="Confirm publication">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassCategorySettingsStoreTagSection" condition="view.forms.some(form =&gt; form.op === 'storeTag')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsStoreTag" action="${publicPath}/save"><h2>Save tag</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategorySettingsStoreTag" transition="save" map="Object.assign({},view.formValues['storeTag'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeTag"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="tagId">
+            <default-field title="Tag (empty for new)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="name">
+            <default-field title="Name">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="description">
+            <default-field title="Description">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="allowedCategories">
+            <default-field title="Limit to categories (comma separated)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Tag revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save tag">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassCategorySettingsMergeTagSection" condition="view.forms.some(form =&gt; form.op === 'mergeTag')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsMergeTag" action="${publicPath}/save"><h2>Merge tags</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategorySettingsMergeTag" transition="save" map="Object.assign({},view.formValues['mergeTag'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="mergeTag"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="tagId">
+            <default-field title="Tag to merge">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="targetTagId">
+            <default-field title="Merge into">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Tag revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Merge tags">
               <submit/>
             </default-field>
           </field>

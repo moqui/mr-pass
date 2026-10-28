@@ -305,6 +305,107 @@ feature('the browser can edit a post through its revision-protected composer', {
         visible === true
     },
 })
+feature(
+    'a composed poll can be voted on in the enhanced topic, and edits have a history',
+    {
+        when() {
+            const page = browser.newPage({
+                viewport: { width: 1200, height: 900 },
+            })
+            page.goto('/account/Login')
+            page.getByLabel('Email or username', { exact: true }).fill(
+                'john.doe',
+            )
+            page.getByLabel('Password', { exact: true }).fill('moqui')
+            page.getByRole('button', { name: 'Sign in', exact: true }).click()
+            page.waitForURL('/forum')
+            page.allowProblems(/Blocked script execution in 'about:srcdoc'/)
+            page.goto('/forum/Compose')
+            page.waitFor(
+                () => !!document.querySelector('[contenteditable="true"]'),
+                { timeout: 30 },
+            )
+            const category = page.evaluate(
+                () =>
+                    document.querySelector('select option:nth-child(2)').value,
+            )
+            page.locator('select').evaluate((element, value) => {
+                element.value = value
+                element.dispatchEvent(new Event('change', { bubbles: true }))
+            }, category)
+            page.getByLabel('Title', { exact: true }).fill(
+                'Favourite colour poll',
+            )
+            page.locator('[contenteditable="true"]').fill('Pick one colour.')
+            page.getByLabel('Add a poll').click()
+            page.getByLabel('Question', { exact: true }).fill('Which colour?')
+            page.getByLabel('Choices, one per line', { exact: true }).fill(
+                'Red\nBlue',
+            )
+            // The previous feature posted moments ago; a retry with the same operation ID waits out the posting interval.
+        page.allowProblems(/429 Too Many Requests/)
+        page.getByRole('button', { name: 'Publish', exact: true }).click()
+        try {
+            page.waitForURL(/\/forum\/t\//, { timeout: 12 })
+        } catch (e) {
+            page.getByRole('button', { name: 'Publish', exact: true }).click()
+            page.waitForURL(/\/forum\/t\//, { timeout: 30 })
+        }
+            page.waitFor(
+                () =>
+                    Array.from(document.querySelectorAll('button')).some(
+                        (b) => b.textContent.trim() === 'Vote',
+                    ),
+                { timeout: 20 },
+            )
+            page.getByLabel('Blue', { exact: true }).click()
+            page.getByRole('button', { name: 'Vote', exact: true }).click()
+            const counted = page.waitFor(
+                () => document.body.innerText.includes('Blue: 1'),
+                { timeout: 20 },
+            )
+            const enhanced = page.evaluate(
+                () => !document.getElementById('pass-ssr-posts'),
+            )
+            page.goto('/forum')
+            page.getByRole('link', {
+                name: 'Concurrent durable create',
+                exact: true,
+            }).click()
+            page.waitFor(
+                () =>
+                    Array.from(document.querySelectorAll('a')).some(
+                        (a) => a.textContent.trim() === 'History',
+                    ),
+                { timeout: 20 },
+            )
+            page.getByRole('link', { name: 'History', exact: true })
+                .first()
+                .click()
+            page.waitForURL(/PostHistory/, { timeout: 20 })
+            page.getByRole('link', { name: /^Revision 3/ })
+                .first()
+                .click()
+            return {
+                counted,
+                enhanced,
+                diff: page.waitFor(
+                    () => !!document.querySelector('.moqui-diff'),
+                    {
+                        timeout: 20,
+                    },
+                ),
+                text: page.text(),
+            }
+        },
+        then({ counted, enhanced, diff, text }) {
+            counted === true
+            enhanced === true
+            diff === true
+            text.includes('An edit saved from the browser.')
+        },
+    },
+)
 feature('a newer authority draft requires an explicit recovery choice', {
     when() {
         const page = browser.newPage()
@@ -447,7 +548,9 @@ feature('sign-in ignores a return path that would leave the site', {
     when() {
         const page = browser.newPage()
         // A tab between the slashes is dropped by browsers, turning "/\t/host" into "//host".
-        page.goto('/account/Login?returnTo=' + encodeURIComponent('/\t/evil.example'))
+        page.goto(
+            '/account/Login?returnTo=' + encodeURIComponent('/\t/evil.example'),
+        )
         page.getByLabel('Email or username', { exact: true }).fill('john.doe')
         page.getByLabel('Password', { exact: true }).fill('moqui')
         page.getByRole('button', { name: 'Sign in', exact: true }).click()
@@ -459,33 +562,38 @@ feature('sign-in ignores a return path that would leave the site', {
         url.endsWith('/forum')
     },
 })
-feature('a signed-in cookie session still needs the CSRF token to change data', {
-    when() {
-        const page = browser.newPage()
-        page.goto('/account/Login')
-        page.getByLabel('Email or username', { exact: true }).fill('john.doe')
-        page.getByLabel('Password', { exact: true }).fill('moqui')
-        page.getByRole('button', { name: 'Sign in', exact: true }).click()
-        page.waitForURL('/forum')
-        page.allowProblems(/403 Forbidden .*\/posts/)
-        return {
-            status: page.evaluate(
-                (url) =>
-                    fetch(url, {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: 'forged',
-                            body: 'forged',
-                            operationId: 'forged-signed-in-001',
-                        }),
-                    }).then((response) => response.status),
-                api + '/posts',
-            ),
-        }
+feature(
+    'a signed-in cookie session still needs the CSRF token to change data',
+    {
+        when() {
+            const page = browser.newPage()
+            page.goto('/account/Login')
+            page.getByLabel('Email or username', { exact: true }).fill(
+                'john.doe',
+            )
+            page.getByLabel('Password', { exact: true }).fill('moqui')
+            page.getByRole('button', { name: 'Sign in', exact: true }).click()
+            page.waitForURL('/forum')
+            page.allowProblems(/403 Forbidden .*\/posts/)
+            return {
+                status: page.evaluate(
+                    (url) =>
+                        fetch(url, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: 'forged',
+                                body: 'forged',
+                                operationId: 'forged-signed-in-001',
+                            }),
+                        }).then((response) => response.status),
+                    api + '/posts',
+                ),
+            }
+        },
+        then({ status }) {
+            status === 403
+        },
     },
-    then({ status }) {
-        status === 403
-    },
-})
+)

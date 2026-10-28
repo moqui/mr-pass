@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Bookmarks">
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Bookmarks',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='Bookmarks'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassBookmarksStoreBookmarkSection" condition="view.forms.some(form =&gt; form.op === 'storeBookmark')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassBookmarksStoreBookmark" action="${publicPath}/save"><h2>Edit bookmark</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassBookmarksStoreBookmark" transition="save" map="Object.assign({},view.formValues['storeBookmark'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeBookmark"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="bookmarkId">
+            <default-field title="Bookmark">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="note">
+            <default-field title="Note">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="remindAt">
+            <default-field title="Remind me at">
+              <text-line input-type="datetime-local"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Bookmark revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Edit bookmark">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassBookmarksRemoveBookmarkSection" condition="view.forms.some(form =&gt; form.op === 'removeBookmark')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassBookmarksRemoveBookmark" action="${publicPath}/save"><h2>Remove bookmark</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassBookmarksRemoveBookmark" transition="save" map="Object.assign({},view.formValues['removeBookmark'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="removeBookmark"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="bookmarkId">
+            <default-field title="Bookmark">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Remove bookmark">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>
