@@ -812,6 +812,22 @@ const definitions = {
                     text('reason', 'Evidence and reason'),
                 ],
             ),
+            form('storeRoute', 'Save an inbound route', [
+                text('routeId', 'Route (empty for new)'),
+                field('address', 'Route address (registered domain)', 'email'),
+                text(
+                    'contactListId',
+                    'Category for new topics (empty: replies only)',
+                ),
+                field('active', 'Enabled', 'checkbox'),
+                field('expectedRevision', 'Route revision', 'number'),
+            ]),
+            form('testRoute', 'Send a route test to my own address', [
+                text('routeId', 'Route'),
+            ]),
+            form('retryInbound', 'Retry a failed inbound message', [
+                text('receiptId', 'Inbound message'),
+            ]),
             form('storeMailSettings', 'Save outbound mail', [
                 field('senderAddress', 'Registered sender', 'email'),
                 text('senderName', 'Sender name'),
@@ -1228,6 +1244,14 @@ function load(name, siteId, parameters, bases, identity) {
                     ([k, v]) => v != null && k !== 'revision',
                 ),
             )
+        }
+        if (name === 'Mail') {
+            view.routes = call('findRoutes', { siteId }).routeList
+            view.receipts = call('findInboundReceipts', {
+                siteId,
+                limit: 30,
+            }).receiptList
+            view.formValues.storeRoute = { active: true, expectedRevision: 0 }
         }
         if (name === 'Notifications') {
             view.outcomes = call('findMyReviews', { siteId }).reviewList

@@ -176,7 +176,8 @@ feature(
         then({ visible, hidden, removed, remaining }) {
             visible === 'fixture.txt'
             hidden.includes('not found')
-            removed === 1
+            // Other specs' abandoned staging expires in the same run; this spec's own item is gone.
+            removed >= 1
             remaining === 0
         },
     },

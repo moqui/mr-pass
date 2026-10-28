@@ -687,6 +687,31 @@ export interface OperationInputs {
         reason?: string
         active?: boolean
     }
+    storeRoute: {
+        siteId: string
+        routeId?: string
+        address?: string
+        contactListId?: string
+        active?: boolean
+        expectedRevision?: number
+        operationId: string
+    }
+    findRoutes: {
+        siteId: string
+    }
+    findInboundReceipts: {
+        siteId: string
+        limit?: number
+        cursor?: Cursor
+    }
+    testRoute: {
+        siteId: string
+        routeId?: string
+    }
+    retryInbound: {
+        siteId: string
+        receiptId?: string
+    }
 }
 export type Operation = keyof OperationInputs
 export type Request<O extends Operation> = { operation: O; input: OperationInputs[O] }
