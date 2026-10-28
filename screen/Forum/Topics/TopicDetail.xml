@@ -11,6 +11,7 @@
     <actions>
       <script><![CDATA[
         const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('TopicDetail',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction==='previewCaseReply' && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').caseReplyPreview(saved,Object.assign({},ec.web.parameters,{rootCommEventId}),publicPath.replace(/\/save$/, '')));return}
         if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
         if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
         else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
@@ -686,6 +687,404 @@
           </field>
           <field name="submitAction">
             <default-field title="Moderate topic">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassTopicDetailCreateCaseFromTopicSection" condition="view.forms.some(form =&gt; form.op === 'createCaseFromTopic')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailCreateCaseFromTopic" action="${publicPath}/save"><h2>Escalate to a support case</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassTopicDetailCreateCaseFromTopic" transition="save" map="Object.assign({},view.formValues['createCaseFromTopic'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="createCaseFromTopic"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="postIds">
+            <default-field title="Posts to copy into the case (comma separated)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="requestCategoryId">
+            <default-field title="Support queue (optional)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Escalate to a support case">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassTopicDetailPreviewCaseReplySection" condition="view.forms.some(form =&gt; form.op === 'previewCaseReply')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewCaseReply" action="${publicPath}/save"><h2>Preview a public reply from a case</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassTopicDetailPreviewCaseReply" transition="save" map="Object.assign({},view.formValues['previewCaseReply'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="previewCaseReply"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="requestId">
+            <default-field title="Case">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="body">
+            <default-field title="Public reply">
+              <text-area cols="60" rows="6"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Preview a public reply from a case">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassTopicDetailLinkDiscussionSection" condition="view.forms.some(form =&gt; form.op === 'linkDiscussion')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailLinkDiscussion" action="${publicPath}/save"><h2>Link a product or article</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassTopicDetailLinkDiscussion" transition="save" map="Object.assign({},view.formValues['linkDiscussion'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="linkDiscussion"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="sourceType">
+            <default-field title="Source">
+              <drop-down allow-empty="false">
+                <option key="product" text="product"/>
+                <option key="article" text="article"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="sourceId">
+            <default-field title="Product or wiki page">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="gate">
+            <default-field title="Article access">
+              <drop-down allow-empty="false">
+                <option key="narrow" text="narrow"/>
+                <option key="none" text="none"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Link a product or article">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassTopicDetailDetachDiscussionSection" condition="view.forms.some(form =&gt; form.op === 'detachDiscussion')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDetachDiscussion" action="${publicPath}/save"><h2>Detach a linked discussion</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassTopicDetailDetachDiscussion" transition="save" map="Object.assign({},view.formValues['detachDiscussion'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="detachDiscussion"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="linkId">
+            <default-field title="Link">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="confirmAudience">
+            <default-field title="I reviewed the category audience">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Detach a linked discussion">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassTopicDetailDraftArticleFromTopicSection" condition="view.forms.some(form =&gt; form.op === 'draftArticleFromTopic')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDraftArticleFromTopic" action="${publicPath}/save"><h2>Draft an article from this topic</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassTopicDetailDraftArticleFromTopic" transition="save" map="Object.assign({},view.formValues['draftArticleFromTopic'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="draftArticleFromTopic"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="title">
+            <default-field title="Article title">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="postIds">
+            <default-field title="Posts to include (comma separated)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reviewerUsername">
+            <default-field title="Reviewer username">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Note for the reviewer">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Draft an article from this topic">
               <submit/>
             </default-field>
           </field>

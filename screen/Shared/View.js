@@ -278,6 +278,40 @@ const definitions = {
                 text('reason', 'Reason'),
                 field('expectedRevision', 'Current topic revision', 'number'),
             ]),
+            form('createCaseFromTopic', 'Escalate to a support case', [
+                text(
+                    'postIds',
+                    'Posts to copy into the case (comma separated)',
+                ),
+                text('requestCategoryId', 'Support queue (optional)'),
+                text('reason', 'Reason'),
+            ]),
+            form('previewCaseReply', 'Preview a public reply from a case', [
+                text('requestId', 'Case'),
+                field('body', 'Public reply', 'textarea'),
+            ]),
+            form('publishCaseReply', 'Publish the previewed reply', []),
+            form('linkDiscussion', 'Link a product or article', [
+                field('sourceType', 'Source', 'select', ['product', 'article']),
+                text('sourceId', 'Product or wiki page'),
+                field('gate', 'Article access', 'select', ['narrow', 'none']),
+                text('reason', 'Reason'),
+            ]),
+            form('detachDiscussion', 'Detach a linked discussion', [
+                text('linkId', 'Link'),
+                field(
+                    'confirmAudience',
+                    'I reviewed the category audience',
+                    'checkbox',
+                ),
+                text('reason', 'Reason'),
+            ]),
+            form('draftArticleFromTopic', 'Draft an article from this topic', [
+                text('title', 'Article title'),
+                text('postIds', 'Posts to include (comma separated)'),
+                text('reviewerUsername', 'Reviewer username'),
+                text('reason', 'Note for the reviewer'),
+            ]),
         ],
     },
     Compose: { title: 'Write a topic or reply', compose: true },
@@ -629,6 +663,10 @@ const definitions = {
                 text(
                     'subscriptionUrl',
                     'Manage-subscription page (https address or local path)',
+                ),
+                text(
+                    'publishingWikiSpaceId',
+                    'Publishing wiki space for article drafts',
                 ),
                 field('state', 'Publication', 'select', [
                     'disabled',
@@ -1125,6 +1163,27 @@ function load(name, siteId, parameters, bases, identity) {
                             ? false
                             : metadata.capabilities.canModerate,
         )
+        if (name === 'TopicDetail') {
+            // Related records: public product and article cards; case links only for internal staff.
+            const links = call('getTopicLinks', {
+                siteId,
+                rootCommEventId: parameters.rootCommEventId,
+            })
+            view.links = links.linkList
+            const linkForms = {
+                createCaseFromTopic: links.capabilities.canCreateCase,
+                previewCaseReply: links.capabilities.canReplyFromCase,
+                publishCaseReply: false,
+                linkDiscussion: links.capabilities.canLinkDiscussion,
+                detachDiscussion: links.capabilities.canLinkDiscussion,
+                draftArticleFromTopic: links.capabilities.canDraftArticle,
+            }
+            view.forms = definitions.TopicDetail.forms.filter((form) =>
+                form.op in linkForms
+                    ? linkForms[form.op]
+                    : view.forms.includes(form),
+            )
+        }
         if (identity?.membershipState === 'active') {
             const preferences = call('getPreferences', {
                 siteId,
@@ -1592,6 +1651,35 @@ function preview(result, back) {
         '">Return to confirm the change</a></main></html>'
     )
 }
+/* The exact public body and audience of a reply from a case, with a form that publishes only this preview. */
+function caseReplyPreview(result, parameters, back) {
+    const encode = (value) => WebUtilities.encodeHtml(String(value ?? ''))
+    const hidden = (name, value) =>
+        '<input type="hidden" name="' +
+        name +
+        '" value="' +
+        encode(value) +
+        '">'
+    return (
+        '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review public reply</title><main style="max-width:45rem;margin:2rem auto;padding:1rem;font:1rem/1.6 system-ui"><h1>Review public reply</h1><p>Audience: ' +
+        encode(result.audience) +
+        '</p><p>This is exactly what will be published. Nothing else from the case is copied.</p><article style="border:1px solid #888;padding:1rem">' +
+        result.body +
+        '</article><form method="post" action="' +
+        encode(back + '/save') +
+        '">' +
+        hidden('moquiSessionToken', ec.web.sessionToken) +
+        hidden('formAction', 'publishCaseReply') +
+        hidden('operationId', ec.user.randomString(32)) +
+        hidden('rootCommEventId', parameters.rootCommEventId) +
+        hidden('requestId', parameters.requestId) +
+        hidden('body', parameters.body) +
+        hidden('previewHash', result.previewHash) +
+        '<button>Publish this reply</button></form><p><a href="' +
+        encode(back) +
+        '">Return without publishing</a></p></main></html>'
+    )
+}
 /* The link is pasted into mail, so it is absolute on the site's own host. */
 function invitationResult(result, bases, origin) {
     const encode = (value) => WebUtilities.encodeHtml(String(value || ''))
@@ -1612,4 +1700,4 @@ function invitationResult(result, bases, origin) {
         '">Return to members</a></p></main></html>'
     )
 }
-;({ load, save, inputFor, preview, invitationResult })
+;({ load, save, inputFor, preview, caseReplyPreview, invitationResult })

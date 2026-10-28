@@ -63,6 +63,7 @@ export interface OperationInputs {
         timeZone?: string
         state?: string
         subscriptionUrl?: string
+        publishingWikiSpaceId?: string
     }
     getMembership: {
         siteId: string
@@ -724,6 +725,7 @@ export interface OperationInputs {
         thruDate?: string | number
         reason?: string
         operationId: string
+        wikiPageId?: string
     }
     endAccessGrant: {
         siteId: string
@@ -744,9 +746,60 @@ export interface OperationInputs {
         targetType?: 'site' | 'category'
         contactListId?: string
         reason?: string
+        wikiPageId?: string
     }
     findSubscriptionBindings: {
         siteId: string
+    }
+    getTopicLinks: {
+        siteId: string
+        rootCommEventId?: string
+    }
+    createCaseFromTopic: {
+        siteId: string
+        rootCommEventId?: string
+        postIds?: string[]
+        requestCategoryId?: string
+        reason?: string
+        operationId: string
+    }
+    previewCaseReply: {
+        siteId: string
+        rootCommEventId?: string
+        requestId?: string
+        body?: string
+    }
+    publishCaseReply: {
+        siteId: string
+        rootCommEventId?: string
+        requestId?: string
+        body?: string
+        previewHash?: string
+        operationId: string
+    }
+    linkDiscussion: {
+        siteId: string
+        rootCommEventId?: string
+        sourceType?: 'product' | 'article'
+        sourceId?: string
+        gate?: 'narrow' | 'none'
+        reason?: string
+        operationId: string
+    }
+    detachDiscussion: {
+        siteId: string
+        linkId?: string
+        confirmAudience?: boolean
+        reason?: string
+    }
+    draftArticleFromTopic: {
+        siteId: string
+        rootCommEventId?: string
+        postIds?: string[]
+        title?: string
+        reviewerUsername?: string
+        reason?: string
+        operationId: string
     }
 }
 export type Operation = keyof OperationInputs

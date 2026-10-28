@@ -366,6 +366,11 @@
               <text-line input-type="text"/>
             </default-field>
           </field>
+          <field name="publishingWikiSpaceId">
+            <default-field title="Publishing wiki space for article drafts">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
           <field name="state">
             <default-field title="Publication">
               <drop-down allow-empty="false">
