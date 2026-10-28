@@ -801,6 +801,7 @@ export interface OperationInputs {
         reason?: string
         operationId: string
     }
+    findModerationScopes: Record<string, never>
 }
 export type Operation = keyof OperationInputs
 export type Request<O extends Operation> = { operation: O; input: OperationInputs[O] }
