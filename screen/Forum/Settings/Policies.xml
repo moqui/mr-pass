@@ -5,6 +5,7 @@
     <actions>
       <script><![CDATA[
         const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Policies',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction==='testRule' && !ec.web.request.getHeader('accept')?.includes('application/json')){ec.web.response.setContentType('text/html');ec.web.response.write('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rule test</title><main style="max-width:45rem;margin:2rem auto;font:1rem/1.6 system-ui"><h1>Rule test</h1><p>'+(saved.matched?'The rule matches this text.':'The rule does not match this text.')+'</p><p>Censored display: '+saved.censored+'</p><a href="'+WebUtilities.encodeHtml(publicPath.replace(/\/save$/, ''))+'">Return to policies</a></main></html>');return}
         if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
         if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
         else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
@@ -25,7 +26,7 @@
     <section name="PassPoliciesStorePolicySection" condition="view.forms.some(form =&gt; form.op === 'storePolicy')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStorePolicy" action="${publicPath}/save"><h2>Save contribution policy</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStorePolicy" action="${publicPath}/save"><h2>Save forum policy</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPoliciesStorePolicy" transition="save" map="Object.assign({},view.formValues['storePolicy'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -74,22 +75,359 @@
             </default-field>
           </field>
           <field name="firstContributionCount">
-            <default-field title="Contributions requiring approval">
+            <default-field title="Posting: contributions requiring approval">
               <text-line input-type="number"/>
             </default-field>
           </field>
           <field name="postIntervalSeconds">
-            <default-field title="Minimum seconds between posts">
+            <default-field title="Posting: minimum seconds between posts">
               <text-line input-type="number"/>
             </default-field>
           </field>
+          <field name="editWindowHours">
+            <default-field title="Posting: author edit window in hours">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="maxPostLength">
+            <default-field title="Posting: maximum post length">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="slowModeSeconds">
+            <default-field title="Posting: default slow mode seconds">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="basicTopicsEntered">
+            <default-field title="Trust (basic): topics entered">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="basicPostsRead">
+            <default-field title="Trust (basic): posts read">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="basicReadingMinutes">
+            <default-field title="Trust (basic): reading minutes">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="basicVisitDays">
+            <default-field title="Trust (basic): visiting days">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="memberVisitDays">
+            <default-field title="Trust (member): visiting days">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="memberTopicsEntered">
+            <default-field title="Trust (member): topics entered">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="memberPostsRead">
+            <default-field title="Trust (member): posts read">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="memberReadingMinutes">
+            <default-field title="Trust (member): reading minutes">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="regularVisitDays">
+            <default-field title="Trust (regular): visiting days">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="regularTopicsEntered">
+            <default-field title="Trust (regular): topics entered">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="regularPostsRead">
+            <default-field title="Trust (regular): posts read">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="regularApprovedContributions">
+            <default-field title="Trust (regular): approved contributions">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="abuseFreeDays">
+            <default-field title="Trust: days without sanctions before promotion">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="flagHideCount">
+            <default-field title="Moderation: reports that hide a post">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="classifierEnabled">
+            <default-field title="Moderation: send posts to the approved classifier">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="privateEnabled">
+            <default-field title="Private messages: members may start conversations">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="privateMinTrust">
+            <default-field title="Private messages: minimum trust to start">
+              <drop-down allow-empty="false">
+                <option key="new" text="new"/>
+                <option key="basic" text="basic"/>
+                <option key="member" text="member"/>
+                <option key="regular" text="regular"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="privateRecipientLimit">
+            <default-field title="Private messages: recipients per conversation">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="privateExistingReplies">
+            <default-field title="Private messages: replies continue when starting is off">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="privateFullBodyEmail">
+            <default-field title="Private messages: allow full message email">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="mediaMaxBytes">
+            <default-field title="Media: maximum bytes per file">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="mediaFilesPerPost">
+            <default-field title="Media: files per post">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason for this revision">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
           <field name="expectedRevision">
-            <default-field title="Site revision">
+            <default-field title="Policy revision">
               <text-line input-type="number"/>
             </default-field>
           </field>
           <field name="submitAction">
-            <default-field title="Save contribution policy">
+            <default-field title="Save forum policy">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassPoliciesStoreRuleSection" condition="view.forms.some(form =&gt; form.op === 'storeRule')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStoreRule" action="${publicPath}/save"><h2>Save content rule</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassPoliciesStoreRule" transition="save" map="Object.assign({},view.formValues['storeRule'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeRule"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="ruleId">
+            <default-field title="Rule (empty for new)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="ruleType">
+            <default-field title="Match">
+              <drop-down allow-empty="false">
+                <option key="word" text="word"/>
+                <option key="regex" text="regex"/>
+                <option key="link" text="link"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="pattern">
+            <default-field title="Word, pattern or link domain">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="action">
+            <default-field title="Action">
+              <drop-down allow-empty="false">
+                <option key="block" text="block"/>
+                <option key="approve" text="approve"/>
+                <option key="flag" text="flag"/>
+                <option key="censor" text="censor"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Only in category (optional)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="sequenceNum">
+            <default-field title="Priority">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="active">
+            <default-field title="Enabled">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Rule revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Save content rule">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassPoliciesTestRuleSection" condition="view.forms.some(form =&gt; form.op === 'testRule')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesTestRule" action="${publicPath}/save"><h2>Test a rule</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassPoliciesTestRule" transition="save" map="Object.assign({},view.formValues['testRule'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="testRule"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="ruleType">
+            <default-field title="Match">
+              <drop-down allow-empty="false">
+                <option key="word" text="word"/>
+                <option key="regex" text="regex"/>
+                <option key="link" text="link"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="pattern">
+            <default-field title="Word, pattern or link domain">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="body">
+            <default-field title="Sample text">
+              <text-area cols="60" rows="6"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Test a rule">
               <submit/>
             </default-field>
           </field>

@@ -10,6 +10,7 @@
   <default-property name="pass_scanner_service" value="pass.test.MediaServices.scan#File"/>
   <default-property name="pass_media_root" value="runtime://tmp/pass-media"/>
   <default-property name="pass_test_scanner" value="true"/>
+  <default-property name="pass_classifier_service" value="pass.test.ClassifierServices.classify#Post"/>
   <webapp-list>
     <webapp name="webroot">
       <public-site host="127.0.0.1" site-id="PASS_HTTP" screen-location="component://mr-pass/screen/Pass.xml" resolver-service="pass.RouteServices.resolve#Route">

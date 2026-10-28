@@ -14,6 +14,73 @@ const field = (name, label, type = 'text', options = null) => ({
 })
 const text = (name, label) => field(name, label)
 const form = (op, label, fields) => ({ op, label, fields })
+/* Policy settings shown by section; the authority enforces each bound. */
+const POLICY_FIELDS = [
+    [
+        'firstContributionCount',
+        'Posting: contributions requiring approval',
+        'number',
+    ],
+    ['postIntervalSeconds', 'Posting: minimum seconds between posts', 'number'],
+    ['editWindowHours', 'Posting: author edit window in hours', 'number'],
+    ['maxPostLength', 'Posting: maximum post length', 'number'],
+    ['slowModeSeconds', 'Posting: default slow mode seconds', 'number'],
+    ['basicTopicsEntered', 'Trust (basic): topics entered', 'number'],
+    ['basicPostsRead', 'Trust (basic): posts read', 'number'],
+    ['basicReadingMinutes', 'Trust (basic): reading minutes', 'number'],
+    ['basicVisitDays', 'Trust (basic): visiting days', 'number'],
+    ['memberVisitDays', 'Trust (member): visiting days', 'number'],
+    ['memberTopicsEntered', 'Trust (member): topics entered', 'number'],
+    ['memberPostsRead', 'Trust (member): posts read', 'number'],
+    ['memberReadingMinutes', 'Trust (member): reading minutes', 'number'],
+    ['regularVisitDays', 'Trust (regular): visiting days', 'number'],
+    ['regularTopicsEntered', 'Trust (regular): topics entered', 'number'],
+    ['regularPostsRead', 'Trust (regular): posts read', 'number'],
+    [
+        'regularApprovedContributions',
+        'Trust (regular): approved contributions',
+        'number',
+    ],
+    [
+        'abuseFreeDays',
+        'Trust: days without sanctions before promotion',
+        'number',
+    ],
+    ['flagHideCount', 'Moderation: reports that hide a post', 'number'],
+    [
+        'classifierEnabled',
+        'Moderation: send posts to the approved classifier',
+        'checkbox',
+    ],
+    [
+        'privateEnabled',
+        'Private messages: members may start conversations',
+        'checkbox',
+    ],
+    [
+        'privateMinTrust',
+        'Private messages: minimum trust to start',
+        'select',
+        ['new', 'basic', 'member', 'regular'],
+    ],
+    [
+        'privateRecipientLimit',
+        'Private messages: recipients per conversation',
+        'number',
+    ],
+    [
+        'privateExistingReplies',
+        'Private messages: replies continue when starting is off',
+        'checkbox',
+    ],
+    [
+        'privateFullBodyEmail',
+        'Private messages: allow full message email',
+        'checkbox',
+    ],
+    ['mediaMaxBytes', 'Media: maximum bytes per file', 'number'],
+    ['mediaFilesPerPost', 'Media: files per post', 'number'],
+]
 const definitions = {
     Topics: {
         title: 'Latest topics',
@@ -131,7 +198,15 @@ const definitions = {
                 text('reason', 'Reason'),
                 field('expectedRevision', 'Post revision', 'number'),
             ]),
-            form('previewTopicAction', 'Preview category move', [
+            form('previewTopicAction', 'Preview a move, split or merge', [
+                field('action', 'Change', 'select', [
+                    'category',
+                    'move-posts',
+                    'split',
+                    'merge',
+                ]),
+                text('postIds', 'Selected posts (comma separated)'),
+                text('targetRootCommEventId', 'Destination topic'),
                 text('targetContactListId', 'Destination category'),
             ]),
             form('applyTopicAction', 'Moderate topic', [
@@ -140,11 +215,38 @@ const definitions = {
                     'reopen',
                     'title',
                     'category',
+                    'pin',
+                    'unpin',
+                    'unlist',
+                    'list',
+                    'slow',
+                    'timer',
+                    'delete',
+                    'restore',
                     'wiki',
+                    'move-posts',
+                    'split',
+                    'merge',
                 ]),
                 text('targetContactListId', 'Destination category'),
-                text('postId', 'Post (wiki)'),
+                text('targetRootCommEventId', 'Destination topic'),
+                text('postIds', 'Selected posts (comma separated)'),
+                text('postId', 'Post (wiki, delete or restore)'),
                 field('active', 'Wiki mode on', 'checkbox'),
+                field(
+                    'slowIntervalSeconds',
+                    'Slow mode seconds (0 ends it)',
+                    'number',
+                ),
+                field('timerAction', 'Timer action', 'select', [
+                    'close',
+                    'reopen',
+                    'unpin',
+                    'unlist',
+                    'list',
+                    'cancel',
+                ]),
+                field('dueAt', 'Timer due at', 'datetime'),
                 field(
                     'confirmAudience',
                     'I reviewed the destination audience',
@@ -234,6 +336,10 @@ const definitions = {
             form('markNotifications', 'Mark read', [
                 field('all', 'Mark every unread notification read', 'checkbox'),
             ]),
+            form('appealReview', 'Appeal a moderation decision', [
+                text('reviewId', 'Decision'),
+                field('reason', 'Why it should be reconsidered', 'textarea'),
+            ]),
         ],
     },
     Unsubscribe: {
@@ -296,6 +402,7 @@ const definitions = {
         read: 'findReviews',
         list: 'reviewList',
         link: 'review',
+        forms: [form('decideReviews', 'Decide selected reviews', [])],
     },
     ReviewDetail: {
         title: 'Review decision',
@@ -332,6 +439,18 @@ const definitions = {
                 text('sanctionId', 'Sanction'),
                 field('expectedRevision', 'Sanction revision', 'number'),
                 text('reason', 'Reason'),
+            ]),
+            form('setTrust', 'Set or lock trust level', [
+                text('targetPartyId', 'Member'),
+                field('trustLevel', 'Trust level', 'select', [
+                    'new',
+                    'basic',
+                    'member',
+                    'regular',
+                ]),
+                field('locked', 'Lock this level', 'checkbox'),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Member state revision', 'number'),
             ]),
             form('setSanction', 'Apply sanction', [
                 text('targetPartyId', 'Member'),
@@ -527,19 +646,35 @@ const definitions = {
         title: 'Forum policies',
         read: 'getPolicy',
         detail: 'policy',
+        list: 'ruleList',
         forms: [
-            form('storePolicy', 'Save contribution policy', [
-                field(
-                    'firstContributionCount',
-                    'Contributions requiring approval',
-                    'number',
+            form('storePolicy', 'Save forum policy', [
+                ...POLICY_FIELDS.map(([name, label, type, options]) =>
+                    field(name, label, type, options),
                 ),
-                field(
-                    'postIntervalSeconds',
-                    'Minimum seconds between posts',
-                    'number',
-                ),
-                field('expectedRevision', 'Site revision', 'number'),
+                text('reason', 'Reason for this revision'),
+                field('expectedRevision', 'Policy revision', 'number'),
+            ]),
+            form('storeRule', 'Save content rule', [
+                text('ruleId', 'Rule (empty for new)'),
+                field('ruleType', 'Match', 'select', ['word', 'regex', 'link']),
+                text('pattern', 'Word, pattern or link domain'),
+                field('action', 'Action', 'select', [
+                    'block',
+                    'approve',
+                    'flag',
+                    'censor',
+                ]),
+                text('contactListId', 'Only in category (optional)'),
+                field('sequenceNum', 'Priority', 'number'),
+                field('active', 'Enabled', 'checkbox'),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Rule revision', 'number'),
+            ]),
+            form('testRule', 'Test a rule', [
+                field('ruleType', 'Match', 'select', ['word', 'regex', 'link']),
+                text('pattern', 'Word, pattern or link domain'),
+                field('body', 'Sample text', 'textarea'),
             ]),
         ],
     },
@@ -589,6 +724,11 @@ const definitions = {
     },
 }
 const rowActions = {
+    Policies: {
+        key: 'ruleId',
+        label: 'Edit rule',
+        form: 'PassPoliciesStoreRule',
+    },
     Drafts: {
         key: 'draftId',
         label: 'Discard',
@@ -628,10 +768,11 @@ function inputFor(op, siteId, parameters) {
         'deliveryIds',
         'renderedPostIds',
         'optionIds',
+        'reviewIds',
     ])
         if (k in input && !Array.isArray(input[k])) input[k] = [input[k]]
     // Free-text lists from plain forms are comma separated.
-    for (const k of ['tags', 'allowedCategories'])
+    for (const k of ['tags', 'allowedCategories', 'postIds'])
         if (typeof input[k] === 'string')
             input[k] = input[k]
                 .split(',')
@@ -645,11 +786,13 @@ function inputFor(op, siteId, parameters) {
         'revision',
         'fromRevision',
         'toRevision',
+        'slowIntervalSeconds',
     ])
         if (k in input) input[k] = Number(input[k])
     // A browser datetime-local value is local time; send epoch milliseconds.
-    if (typeof input.remindAt === 'string')
-        input.remindAt = new Date(input.remindAt).getTime()
+    for (const k of ['remindAt', 'dueAt'])
+        if (typeof input[k] === 'string')
+            input[k] = new Date(input[k]).getTime()
     for (const k of [
         'confirm',
         'confirmAudience',
@@ -657,6 +800,7 @@ function inputFor(op, siteId, parameters) {
         'approvalRequired',
         'all',
         'active',
+        'locked',
     ])
         if (k in input)
             input[k] =
@@ -880,6 +1024,41 @@ function load(name, siteId, parameters, bases, identity) {
             view.nextHref = '?' + query.join('&')
         }
         view.revision = data.revision
+        if (name === 'Policies') {
+            view.formValues.storePolicy = {
+                ...data.policy,
+                expectedRevision: data.revision,
+            }
+            view.formValues.storeRule = { active: true, sequenceNum: 0 }
+            view.rows = call('findRules', { siteId }).ruleList.map((rule) => ({
+                ...rule,
+                title:
+                    rule.ruleType +
+                    ' “' +
+                    rule.pattern +
+                    '” → ' +
+                    rule.action +
+                    (rule.enabled === 'Y' ? '' : ' (disabled)'),
+            }))
+            view.details = []
+        }
+        if (name === 'MemberModeration' && data.memberState) {
+            view.formValues.setTrust = {
+                targetPartyId: parameters.targetPartyId,
+                trustLevel: data.memberState.trustLevel || 'new',
+                expectedRevision: data.memberState.revision ?? 0,
+            }
+            view.details = view.details.concat(
+                Object.entries(data.memberState).filter(
+                    ([k, v]) => v != null && k !== 'revision',
+                ),
+            )
+        }
+        if (name === 'Notifications') {
+            view.outcomes = call('findMyReviews', { siteId }).reviewList
+            if (!view.outcomes.length)
+                view.forms = view.forms.filter((f) => f.op !== 'appealReview')
+        }
         if (name === 'PostHistory') {
             view.forms = data.canRestore ? view.forms : []
             view.formValues.restorePostRevision = {
@@ -918,6 +1097,14 @@ function load(name, siteId, parameters, bases, identity) {
             }
             if (def.link === 'tag')
                 row.href = bases.forum + '?tag=' + encodeURIComponent(row.name)
+            if (name === 'ReviewQueue')
+                row.title =
+                    row.reasonFamily +
+                    ' · ' +
+                    row.targetType +
+                    (row.linkedReviewId ? ' · appeal' : '') +
+                    ' · ' +
+                    row.reviewId
             if (name === 'TopicDetail' && row.pollId)
                 row.poll = call('getPoll', { siteId, pollId: row.pollId }).poll
             if (def.link === 'topic')
@@ -1017,17 +1204,24 @@ function save(name, siteId, parameters) {
                 { app: 'sites', pathPrefix: parameters.sitesMount || '/sites' },
             ],
         }
+    // The policy form posts every setting; an unchecked box is an explicit false.
     if (parameters.formAction === 'storePolicy')
         parameters = {
             ...parameters,
-            config: {
-                firstContributionCount: Number(
-                    parameters.firstContributionCount || 2,
-                ),
-                postIntervalSeconds: Number(
-                    parameters.postIntervalSeconds || 10,
-                ),
-            },
+            config: Object.fromEntries(
+                POLICY_FIELDS.filter(
+                    ([name, , type]) =>
+                        type === 'checkbox' ||
+                        (parameters[name] != null && parameters[name] !== ''),
+                ).map(([name, , type]) => [
+                    name,
+                    type === 'number'
+                        ? Number(parameters[name])
+                        : type === 'checkbox'
+                          ? ['true', 'on', true].includes(parameters[name])
+                          : String(parameters[name]),
+                ]),
+            ),
         }
     const form = def.forms?.find((f) => f.op === parameters.formAction)
     if (!form) {
@@ -1082,6 +1276,27 @@ function preview(result, back) {
         params.push(
             'contactListId=' + encodeURIComponent(category.contactListId),
         )
+    for (const key of ['action', 'targetRootCommEventId'])
+        if (result[key])
+            params.push(key + '=' + encodeURIComponent(result[key]))
+    if (result.selectedPostIds?.length && result.action !== 'merge')
+        params.push(
+            'postIds=' + encodeURIComponent(result.selectedPostIds.join(',')),
+        )
+    const selection = result.selectedPostIds
+        ? '<p>Posts moved, with their replies: ' +
+          encode(result.selectedPostIds.length) +
+          ' (' +
+          encode(result.replyCount ?? 0) +
+          ' replies added to the selection)</p><p>Attachments moved: ' +
+          encode(result.attachmentCount ?? 0) +
+          '</p><p>Topic watchers are not copied to the destination: ' +
+          encode(result.watcherCount ?? 0) +
+          '</p>' +
+          (result.acceptedAnswerAffected
+              ? '<p>The accepted answer moves and is cleared.</p>'
+              : '')
+        : ''
     return (
         '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review audience</title><main style="max-width:45rem;margin:2rem auto;padding:1rem;font:1rem/1.6 system-ui"><h1>Review audience</h1><p>Current audience: ' +
         encode(audience(result.sourceVisibility || category.visibility)) +
@@ -1089,7 +1304,9 @@ function preview(result, back) {
         encode(audience(result.targetVisibility || result.proposedVisibility)) +
         '</p><p>Discussions or posts affected: ' +
         encode(result.topicCount ?? result.visiblePostCount ?? 0) +
-        '</p><p>Existing email cannot be retracted. Future reads and deliveries use the new audience.</p><a href="' +
+        '</p>' +
+        selection +
+        '<p>Existing email cannot be retracted. Future reads and deliveries use the new audience.</p><a href="' +
         encode(back + (params.length ? '?' + params.join('&') : '')) +
         '">Return to confirm the change</a></main></html>'
     )

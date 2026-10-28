@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+  <!-- Test-only classifier, used only when the test conf names it in pass_classifier_service. It sends text that
+       mentions "suspicious" to review and fails on "classifier outage", so specs can check failure tolerance. -->
+  <service verb="classify" noun="Post" authenticate="false" allow-remote="false">
+    <in-parameters>
+      <parameter name="siteId"/>
+      <parameter name="postId"/>
+      <parameter name="revision" type="Integer"/>
+      <parameter name="text"/>
+    </in-parameters>
+    <out-parameters>
+      <parameter name="decision"/>
+      <parameter name="model"/>
+      <parameter name="version"/>
+      <parameter name="reason"/>
+    </out-parameters>
+    <actions>
+      <script><![CDATA[
+        if (String(text).includes('classifier outage')) throw new Error('Test classifier unavailable')
+        model = 'test-classifier'
+        version = '1'
+        decision = String(text).includes('suspicious') ? 'review' : 'ok'
+        reason = decision === 'review' ? 'Mentions suspicious content' : ''
+      ]]></script>
+    </actions>
+  </service>
+</services>

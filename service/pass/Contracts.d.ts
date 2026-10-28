@@ -314,6 +314,11 @@ export interface OperationInputs {
         expectedGeneration?: number
         postId?: string
         active?: boolean
+        postIds?: string[]
+        targetRootCommEventId?: string
+        slowIntervalSeconds?: number
+        timerAction?: string
+        dueAt?: number | string
     }
     findActions: {
         siteId: string
@@ -405,6 +410,7 @@ export interface OperationInputs {
         siteId: string
         config?: Record<string, string | number | boolean>
         expectedRevision?: number
+        reason?: string
     }
     getPolicy: {
         siteId: string
@@ -476,6 +482,9 @@ export interface OperationInputs {
         siteId: string
         rootCommEventId?: string
         targetContactListId?: string
+        action?: string
+        postIds?: string[]
+        targetRootCommEventId?: string
     }
     resolveDelivery: {
         siteId: string
@@ -587,6 +596,51 @@ export interface OperationInputs {
         postId?: string
         expectedRevision?: number
         reason?: string
+    }
+    storeRule: {
+        siteId: string
+        ruleId?: string
+        contactListId?: string
+        ruleType?: string
+        pattern?: string
+        action?: string
+        active?: boolean
+        sequenceNum?: number
+        expectedRevision?: number
+        reason?: string
+        operationId: string
+    }
+    findRules: {
+        siteId: string
+    }
+    testRule: {
+        siteId: string
+        ruleType?: string
+        pattern?: string
+        body?: string
+    }
+    setTrust: {
+        siteId: string
+        targetPartyId?: string
+        trustLevel?: string
+        locked?: boolean
+        reason?: string
+        expectedRevision?: number
+    }
+    decideReviews: {
+        siteId: string
+        reviewIds?: string[]
+        decision?: string
+        reason?: string
+    }
+    appealReview: {
+        siteId: string
+        reviewId?: string
+        reason?: string
+        operationId: string
+    }
+    findMyReviews: {
+        siteId: string
     }
 }
 export type Operation = keyof OperationInputs

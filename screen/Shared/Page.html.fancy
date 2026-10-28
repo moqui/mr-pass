@@ -13,6 +13,9 @@
 <#if view.body><article>${raw(view.body)}</article></#if>
 <#if view.details.length><dl class="card"><#list view.details as item><dt>${item[0]}</dt><dd>${item[1]}</dd></#list></dl></#if>
 <#if screenName == 'Notifications'><nav aria-label="Notification views"><a href="?view=all">All</a> · <a href="?view=unread">Unread</a></nav></#if>
+<#if view.outcomes?.length><section class="card" aria-label="Moderation outcomes"><h2>Moderation outcomes</h2><#list view.outcomes as outcome><p>${outcome.title} · ${outcome.decisionReason || 'Removed by moderators'}<#if outcome.appealState> · appeal ${outcome.appealState}<#else> · <a href="?reviewId=${encodeURIComponent(outcome.reviewId)}#PassNotificationsAppealReview">Appeal</a></#if></p></#list></section></#if>
+<#if view.topic?.timers?.length><p>Scheduled: <#list view.topic.timers as timer>${timer.action} at ${timer.dueAt} </#list></p></#if>
+<#if view.topic?.slowIntervalSeconds><p>Slow mode: one reply every ${view.topic.slowIntervalSeconds} seconds per member.</p></#if>
 <#if view.activityTitle><h2>${view.activityTitle}</h2></#if>
 <#if screenName == 'Topics'><nav aria-label="Topic views"><a href="${passBases.forum}?view=latest">Latest</a><#if siteInfo.authenticated><a href="${passBases.forum}?view=new">New</a><a href="${passBases.forum}?view=unread">Unread</a></#if><a href="${passBases.forum}?view=top">Top</a><a href="${passBases.forum}/Tags">Tags</a><a href="${passBases.forum}?solved=Y">Solved</a><a href="${passBases.forum}?solved=N">Unsolved</a></nav><#if ec.web.parameters.view == 'top'><nav aria-label="Top period"><a href="?view=top&amp;period=day">Today</a><a href="?view=top&amp;period=week">This week</a><a href="?view=top&amp;period=month">This month</a><a href="?view=top&amp;period=year">This year</a><a href="?view=top&amp;period=all">All time</a></nav></#if></#if>
 <#if view.stream><div id="public-root" style="display:none"></div><div id="pass-ssr-posts"></#if>

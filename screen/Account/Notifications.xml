@@ -58,5 +58,72 @@
         </render-mode>
       </widgets>
     </section>
+    <section name="PassNotificationsAppealReviewSection" condition="view.forms.some(form =&gt; form.op === 'appealReview')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassNotificationsAppealReview" action="${publicPath}/save"><h2>Appeal a moderation decision</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassNotificationsAppealReview" transition="save" map="Object.assign({},view.formValues['appealReview'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="appealReview"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field title="Decision">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Why it should be reconsidered">
+              <text-area cols="60" rows="6"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Appeal a moderation decision">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
   </widgets>
 </screen>

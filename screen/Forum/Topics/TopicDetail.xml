@@ -448,7 +448,7 @@
     <section name="PassTopicDetailPreviewTopicActionSection" condition="view.forms.some(form =&gt; form.op === 'previewTopicAction')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewTopicAction" action="${publicPath}/save"><h2>Preview category move</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewTopicAction" action="${publicPath}/save"><h2>Preview a move, split or merge</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailPreviewTopicAction" transition="save" map="Object.assign({},view.formValues['previewTopicAction'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -496,13 +496,33 @@
               <hidden/>
             </default-field>
           </field>
+          <field name="action">
+            <default-field title="Change">
+              <drop-down allow-empty="false">
+                <option key="category" text="category"/>
+                <option key="move-posts" text="move-posts"/>
+                <option key="split" text="split"/>
+                <option key="merge" text="merge"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="postIds">
+            <default-field title="Selected posts (comma separated)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="targetRootCommEventId">
+            <default-field title="Destination topic">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
           <field name="targetContactListId">
             <default-field title="Destination category">
               <text-line input-type="text"/>
             </default-field>
           </field>
           <field name="submitAction">
-            <default-field title="Preview category move">
+            <default-field title="Preview a move, split or merge">
               <submit/>
             </default-field>
           </field>
@@ -570,7 +590,18 @@
                 <option key="reopen" text="reopen"/>
                 <option key="title" text="title"/>
                 <option key="category" text="category"/>
+                <option key="pin" text="pin"/>
+                <option key="unpin" text="unpin"/>
+                <option key="unlist" text="unlist"/>
+                <option key="list" text="list"/>
+                <option key="slow" text="slow"/>
+                <option key="timer" text="timer"/>
+                <option key="delete" text="delete"/>
+                <option key="restore" text="restore"/>
                 <option key="wiki" text="wiki"/>
+                <option key="move-posts" text="move-posts"/>
+                <option key="split" text="split"/>
+                <option key="merge" text="merge"/>
               </drop-down>
             </default-field>
           </field>
@@ -579,8 +610,18 @@
               <text-line input-type="text"/>
             </default-field>
           </field>
+          <field name="targetRootCommEventId">
+            <default-field title="Destination topic">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="postIds">
+            <default-field title="Selected posts (comma separated)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
           <field name="postId">
-            <default-field title="Post (wiki)">
+            <default-field title="Post (wiki, delete or restore)">
               <text-line input-type="text"/>
             </default-field>
           </field>
@@ -589,6 +630,28 @@
               <check>
                 <option key="true" text="Confirm"/>
               </check>
+            </default-field>
+          </field>
+          <field name="slowIntervalSeconds">
+            <default-field title="Slow mode seconds (0 ends it)">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="timerAction">
+            <default-field title="Timer action">
+              <drop-down allow-empty="false">
+                <option key="close" text="close"/>
+                <option key="reopen" text="reopen"/>
+                <option key="unpin" text="unpin"/>
+                <option key="unlist" text="unlist"/>
+                <option key="list" text="list"/>
+                <option key="cancel" text="cancel"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="dueAt">
+            <default-field title="Timer due at">
+              <text-line input-type="datetime-local"/>
             </default-field>
           </field>
           <field name="confirmAudience">
