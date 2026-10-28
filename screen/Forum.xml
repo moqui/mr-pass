@@ -10,6 +10,17 @@
     </actions>
     <default-response type="none"/>
   </transition>
+  <!-- An old URL of an imported community (a proxy can send unknown old paths here), after current access checks. -->
+  <transition name="legacy" method="get" read-only="true">
+    <actions>
+      <script><![CDATA[
+        const url=ec.resource.script('component://mr-pass/screen/Shared/View.js').legacyUrl(resolvedSiteId,String(ec.web.parameters.path || ''),passBases)
+        if(url) ec.web.response.sendRedirect(url)
+        else {ec.web.response.setStatus(404);ec.web.response.setContentType('text/plain');ec.web.response.write('Not found')}
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
   <subscreens default-item="Topics"/>
   <widgets>
     <subscreens-active/>

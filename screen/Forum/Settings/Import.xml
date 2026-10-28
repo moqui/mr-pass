@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Import">
+  <transition name="downloadExport" method="get" read-only="true">
+    <actions>
+      <script>ec.resource.script('component://mr-pass/service/pass/Facade.js').downloadExport(resolvedSiteId,ec.web.parameters.exportId)</script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <transition name="save">
+    <actions>
+      <script><![CDATA[
+        const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Import',resolvedSiteId,ec.web.parameters)
+        if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
+        if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
+        else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true' + (saved.importId || ec.web.parameters.importId ? '&importId=' + encodeURIComponent(saved.importId || ec.web.parameters.importId) : ''))
+    ]]></script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
+  <actions>
+    <script><![CDATA[
+        screenName='Import'
+        view=ec.resource.script('component://mr-pass/screen/Shared/View.js').load(screenName,siteId,ec.web.parameters,passBases,siteInfo)
+    ]]></script>
+  </actions>
+  <widgets>
+    <render-mode>
+      <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
+    </render-mode>
+    <section name="PassImportRegisterImportSection" condition="view.forms.some(form =&gt; form.op === 'registerImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportRegisterImport" action="${publicPath}/save"><h2>Register an archive (operator)</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportRegisterImport" transition="save" map="Object.assign({},view.formValues['registerImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="registerImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="archiveName">
+            <default-field title="Archive file in the import directory">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="checksum">
+            <default-field title="SHA-256 checksum">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="sourceName">
+            <default-field title="Source community name">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Register an archive (operator)">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportStageImportSection" condition="view.forms.some(form =&gt; form.op === 'stageImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportStageImport" action="${publicPath}/save"><h2>Stage and preflight the archive</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportStageImport" transition="save" map="Object.assign({},view.formValues['stageImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="stageImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Stage and preflight the archive">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportStoreImportMappingsSection" condition="view.forms.some(form =&gt; form.op === 'storeImportMappings')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportStoreImportMappings" action="${publicPath}/save"><h2>Record a decision</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportStoreImportMappings" transition="save" map="Object.assign({},view.formValues['storeImportMappings'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeImportMappings"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="mappingType">
+            <default-field title="Decision about">
+              <drop-down allow-empty="false">
+                <option key="identity" text="identity"/>
+                <option key="staff" text="staff"/>
+                <option key="group" text="group"/>
+                <option key="feature" text="feature"/>
+                <option key="change" text="change"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="sourceId">
+            <default-field title="Source id (table:id for a change)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="decision">
+            <default-field title="Decision">
+              <drop-down allow-empty="false">
+                <option key="map" text="map"/>
+                <option key="create" text="create"/>
+                <option key="inactive" text="inactive"/>
+                <option key="owner" text="owner"/>
+                <option key="moderator" text="moderator"/>
+                <option key="member" text="member"/>
+                <option key="grant" text="grant"/>
+                <option key="snapshot" text="snapshot"/>
+                <option key="deny" text="deny"/>
+                <option key="preserve" text="preserve"/>
+                <option key="defer" text="defer"/>
+                <option key="keep" text="keep"/>
+                <option key="apply" text="apply"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="targetId">
+            <default-field title="Existing party (to map an identity)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Record a decision">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportRunImportSection" condition="view.forms.some(form =&gt; form.op === 'runImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportRunImport" action="${publicPath}/save"><h2>Run the import</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportRunImport" transition="save" map="Object.assign({},view.formValues['runImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="runImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Run the import">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportReconcileImportSection" condition="view.forms.some(form =&gt; form.op === 'reconcileImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportReconcileImport" action="${publicPath}/save"><h2>Reconcile</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportReconcileImport" transition="save" map="Object.assign({},view.formValues['reconcileImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="reconcileImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Reconcile">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportApproveImportSection" condition="view.forms.some(form =&gt; form.op === 'approveImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportApproveImport" action="${publicPath}/save"><h2>Approve the reconciliation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportApproveImport" transition="save" map="Object.assign({},view.formValues['approveImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="approveImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="role">
+            <default-field title="Approve as">
+              <drop-down allow-empty="false">
+                <option key="operator" text="operator"/>
+                <option key="owner" text="owner"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Reconciliation revision">
+              <text-line input-type="number"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Approve the reconciliation">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportActivateImportSection" condition="view.forms.some(form =&gt; form.op === 'activateImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportActivateImport" action="${publicPath}/save"><h2>Activate the imported community</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportActivateImport" transition="save" map="Object.assign({},view.formValues['activateImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="activateImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="sourceFrozen">
+            <default-field title="The source community is frozen">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="backupReference">
+            <default-field title="Target backup reference">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="confirm">
+            <default-field title="Activate now">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Activate the imported community">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassImportCancelImportSection" condition="view.forms.some(form =&gt; form.op === 'cancelImport')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassImportCancelImport" action="${publicPath}/save"><h2>Cancel the import</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassImportCancelImport" transition="save" map="Object.assign({},view.formValues['cancelImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="cancelImport"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="importId">
+            <default-field title="Import">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Cancel the import">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+  </widgets>
+</screen>

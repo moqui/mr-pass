@@ -1004,6 +1004,74 @@ const definitions = {
             ]),
         ],
     },
+    Import: {
+        title: 'Community import',
+        read: 'findImports',
+        list: 'importList',
+        forms: [
+            form('registerImport', 'Register an archive (operator)', [
+                text('archiveName', 'Archive file in the import directory'),
+                text('checksum', 'SHA-256 checksum'),
+                text('sourceName', 'Source community name'),
+            ]),
+            form('stageImport', 'Stage and preflight the archive', [
+                text('importId', 'Import'),
+            ]),
+            form('storeImportMappings', 'Record a decision', [
+                text('importId', 'Import'),
+                field('mappingType', 'Decision about', 'select', [
+                    'identity',
+                    'staff',
+                    'group',
+                    'feature',
+                    'change',
+                ]),
+                text('sourceId', 'Source id (table:id for a change)'),
+                field('decision', 'Decision', 'select', [
+                    'map',
+                    'create',
+                    'inactive',
+                    'owner',
+                    'moderator',
+                    'member',
+                    'grant',
+                    'snapshot',
+                    'deny',
+                    'preserve',
+                    'defer',
+                    'keep',
+                    'apply',
+                ]),
+                text('targetId', 'Existing party (to map an identity)'),
+                text('reason', 'Reason'),
+            ]),
+            form('runImport', 'Run the import', [
+                text('importId', 'Import'),
+                text('reason', 'Reason'),
+            ]),
+            form('reconcileImport', 'Reconcile', [text('importId', 'Import')]),
+            form('approveImport', 'Approve the reconciliation', [
+                text('importId', 'Import'),
+                field('role', 'Approve as', 'select', ['operator', 'owner']),
+                field('expectedRevision', 'Reconciliation revision', 'number'),
+                text('reason', 'Reason'),
+            ]),
+            form('activateImport', 'Activate the imported community', [
+                text('importId', 'Import'),
+                field(
+                    'sourceFrozen',
+                    'The source community is frozen',
+                    'checkbox',
+                ),
+                text('backupReference', 'Target backup reference'),
+                field('confirm', 'Activate now', 'checkbox'),
+            ]),
+            form('cancelImport', 'Cancel the import', [
+                text('importId', 'Import'),
+                text('reason', 'Reason'),
+            ]),
+        ],
+    },
     Activity: {
         title: 'Community activity',
         read: 'getActivity',
@@ -1115,11 +1183,12 @@ function inputFor(op, siteId, parameters) {
         'includeOwn',
         'dryRun',
         'mine',
+        'sourceFrozen',
     ])
         if (k in input)
             input[k] =
                 input[k] === true || input[k] === 'true' || input[k] === 'on'
-    for (const key of ['hosts', 'mounts', 'config', 'poll'])
+    for (const key of ['hosts', 'mounts', 'config', 'poll', 'mappings'])
         if (typeof input[key] === 'string') input[key] = JSON.parse(input[key])
     return input
 }
@@ -1171,6 +1240,7 @@ function load(name, siteId, parameters, bases, identity) {
             'Mail',
             'Operations',
             'Activity',
+            'Import',
         ].includes(name)
     ) {
         view.needsLogin = true
@@ -1500,6 +1570,32 @@ function load(name, siteId, parameters, bases, identity) {
                 expectedRevision: String(retention.revision),
             }
         }
+        if (name === 'Import') {
+            view.rows = (data.importList || []).map((v) => ({
+                label: (v.sourceName || v.archiveName) + ' · ' + v.stage,
+                href: '?importId=' + encodeURIComponent(v.importId),
+                note:
+                    'Discourse ' +
+                    (v.discourseVersion || 'unknown version') +
+                    ' · reconciliation ' +
+                    (v.reconciliationRevision || 0),
+            }))
+            if (parameters.importId) {
+                view.importDetail = call('getImport', {
+                    siteId,
+                    importId: parameters.importId,
+                })
+                const importId = parameters.importId
+                for (const f of view.forms)
+                    view.formValues[f.op] = {
+                        ...(view.formValues[f.op] || {}),
+                        importId,
+                    }
+                view.formValues.approveImport.expectedRevision = String(
+                    view.importDetail.import.reconciliationRevision || 0,
+                )
+            }
+        }
         if (name === 'Activity') {
             view.activity = data
             view.details = []
@@ -1673,6 +1769,24 @@ function save(name, siteId, parameters) {
                 },
                 { app: 'sites', pathPrefix: parameters.sitesMount || '/sites' },
             ],
+        }
+    // The decision form records one mapping.
+    if (parameters.formAction === 'storeImportMappings')
+        parameters = {
+            ...parameters,
+            mappings: JSON.stringify([
+                Object.fromEntries(
+                    [
+                        'mappingType',
+                        'sourceId',
+                        'decision',
+                        'targetId',
+                        'reason',
+                    ]
+                        .filter((k) => parameters[k])
+                        .map((k) => [k, String(parameters[k])]),
+                ),
+            ]),
         }
     // The policy form posts every setting; an unchecked box is an explicit false.
     if (parameters.formAction === 'storePolicy')
@@ -1848,6 +1962,26 @@ function operationPreview(result, back) {
         '">Return to start it</a></main></html>'
     )
 }
+/* Where an old URL of an imported community points now, or null when it names nothing this reader may see. */
+function legacyUrl(siteId, path, bases) {
+    let found
+    try {
+        found = call('resolvePermalink', { siteId, path })
+    } catch (e) {
+        ec.message.clearErrors()
+        return null
+    }
+    const forum = bases.forum || ''
+    if (found.kind === 'category')
+        return (
+            forum +
+            '/Categories/CategoryDetail?contactListId=' +
+            encodeURIComponent(found.contactListId)
+        )
+    if (found.kind === 'post')
+        return forum + '/p/' + encodeURIComponent(found.postId)
+    return forum + '/t/' + encodeURIComponent(found.rootCommEventId)
+}
 /* The link is pasted into mail, so it is absolute on the site's own host. */
 function invitationResult(result, bases, origin) {
     const encode = (value) => WebUtilities.encodeHtml(String(value || ''))
@@ -1869,6 +2003,7 @@ function invitationResult(result, bases, origin) {
     )
 }
 ;({
+    legacyUrl,
     load,
     save,
     inputFor,

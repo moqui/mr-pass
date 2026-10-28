@@ -868,6 +868,61 @@ export interface OperationInputs {
         fromDate?: string | number
         thruDate?: string | number
     }
+    registerImport: {
+        siteId: string
+        archiveName?: string
+        checksum?: string
+        sourceName?: string
+    }
+    stageImport: {
+        siteId: string
+        importId?: string
+    }
+    storeImportMappings: {
+        siteId: string
+        importId?: string
+        mappings?: Array<{ mappingType: 'identity' | 'staff' | 'group' | 'feature'; sourceId: string; decision: string; targetId?: string; reason?: string }>
+        reason?: string
+    }
+    findImports: {
+        siteId: string
+    }
+    getImport: {
+        siteId: string
+        importId?: string
+    }
+    runImport: {
+        siteId: string
+        importId?: string
+        reason?: string
+    }
+    reconcileImport: {
+        siteId: string
+        importId?: string
+    }
+    approveImport: {
+        siteId: string
+        importId?: string
+        role?: 'operator' | 'owner'
+        expectedRevision?: number
+        reason?: string
+    }
+    activateImport: {
+        siteId: string
+        importId?: string
+        sourceFrozen?: boolean
+        backupReference?: string
+        confirm?: boolean
+    }
+    cancelImport: {
+        siteId: string
+        importId?: string
+        reason?: string
+    }
+    resolvePermalink: {
+        siteId: string
+        path?: string
+    }
 }
 export type Operation = keyof OperationInputs
 export type Request<O extends Operation> = { operation: O; input: OperationInputs[O] }

@@ -44,7 +44,14 @@
   </transition>
   <pre-actions>
     <script><![CDATA[
-        topicMetadata=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getTopic',input:{siteId:resolvedSiteId,rootCommEventId}}).call().result.topic
+        try{topicMetadata=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getTopic',input:{siteId:resolvedSiteId,rootCommEventId}}).call().result.topic}
+        catch(error){
+          // An imported community's /t/slug/id link names its topic by the old id.
+          ec.message.clearErrors()
+          const url=ec.resource.script('component://mr-pass/screen/Shared/View.js').legacyUrl(resolvedSiteId,'/t/'+rootCommEventId+(typeof requestedTopicSlug!=='undefined' && requestedTopicSlug?'/'+requestedTopicSlug:''),passBases)
+          if(url && ec.web.request?.method==='GET'){sri.sendRedirectAndStopRender(url);return}
+          throw error
+        }
         if(topicMetadata.kind==='private'){sri.sendRedirectAndStopRender((passBases.forum || '')+'/Messages/ConversationDetail?rootCommEventId='+encodeURIComponent(topicMetadata.rootCommEventId));return}
         // A merged topic's old ID redirects to its destination.
         canonicalUrl=(passBases.forum || '')+'/t/'+encodeURIComponent(topicMetadata.rootCommEventId)+'/'+encodeURIComponent(topicMetadata.slug)
