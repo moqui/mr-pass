@@ -361,6 +361,11 @@
               <text-line input-type="text"/>
             </default-field>
           </field>
+          <field name="subscriptionUrl">
+            <default-field title="Manage-subscription page (https address or local path)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
           <field name="state">
             <default-field title="Publication">
               <drop-down allow-empty="false">
@@ -452,6 +457,86 @@
           </field>
           <field name="submitAction">
             <default-field title="Save registration policy">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSiteDetailStoreSubscriptionBindingSection" condition="view.forms.some(form =&gt; form.op === 'storeSubscriptionBinding')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailStoreSubscriptionBinding" action="${publicPath}/save"><h2>Bind a subscription resource (operator only)</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSiteDetailStoreSubscriptionBinding" transition="save" map="Object.assign({},view.formValues['storeSubscriptionBinding'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="storeSubscriptionBinding"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="subscriptionResourceId">
+            <default-field title="Subscription resource">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="targetType">
+            <default-field title="Scope">
+              <drop-down allow-empty="false">
+                <option key="site" text="site"/>
+                <option key="category" text="category"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field title="Category (for a category scope)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Reason">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Bind a subscription resource (operator only)">
               <submit/>
             </default-field>
           </field>

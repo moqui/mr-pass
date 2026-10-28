@@ -62,6 +62,7 @@ export interface OperationInputs {
         locale?: string
         timeZone?: string
         state?: string
+        subscriptionUrl?: string
     }
     getMembership: {
         siteId: string
@@ -173,6 +174,7 @@ export interface OperationInputs {
         siteId: string
         contactListId?: string
         visibility?: string
+        qualifyingSources?: Array<'manual' | 'subscription'>
     }
     setCategoryAccess: {
         siteId: string
@@ -181,6 +183,7 @@ export interface OperationInputs {
         publicationState?: string
         expectedRevision?: number
         confirm?: boolean
+        qualifyingSources?: Array<'manual' | 'subscription'>
     }
     findTopics: {
         siteId: string
@@ -711,6 +714,39 @@ export interface OperationInputs {
     retryInbound: {
         siteId: string
         receiptId?: string
+    }
+    setAccessGrant: {
+        siteId: string
+        handle?: string
+        targetType?: 'site' | 'category'
+        contactListId?: string
+        fromDate?: string | number
+        thruDate?: string | number
+        reason?: string
+        operationId: string
+    }
+    endAccessGrant: {
+        siteId: string
+        grantId?: string
+        expectedRevision?: number
+        reason?: string
+    }
+    findAccessGrants: {
+        siteId: string
+        contactListId?: string
+        handle?: string
+        limit?: number
+        cursor?: Cursor
+    }
+    storeSubscriptionBinding: {
+        siteId: string
+        subscriptionResourceId?: string
+        targetType?: 'site' | 'category'
+        contactListId?: string
+        reason?: string
+    }
+    findSubscriptionBindings: {
+        siteId: string
     }
 }
 export type Operation = keyof OperationInputs

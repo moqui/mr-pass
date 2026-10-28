@@ -626,6 +626,10 @@ const definitions = {
                 text('name', 'Name'),
                 text('locale', 'Locale'),
                 text('timeZone', 'Time zone'),
+                text(
+                    'subscriptionUrl',
+                    'Manage-subscription page (https address or local path)',
+                ),
                 field('state', 'Publication', 'select', [
                     'disabled',
                     'published',
@@ -640,6 +644,19 @@ const definitions = {
                 ]),
                 field('expectedRevision', 'Site revision', 'number'),
             ]),
+            form(
+                'storeSubscriptionBinding',
+                'Bind a subscription resource (operator only)',
+                [
+                    text('subscriptionResourceId', 'Subscription resource'),
+                    field('targetType', 'Scope', 'select', [
+                        'site',
+                        'category',
+                    ]),
+                    text('contactListId', 'Category (for a category scope)'),
+                    text('reason', 'Reason'),
+                ],
+            ),
         ],
     },
     CategorySettings: {
@@ -696,6 +713,10 @@ const definitions = {
                     'category',
                     'help',
                 ]),
+                text(
+                    'qualifyingSources',
+                    'Grant sources that qualify (manual, subscription)',
+                ),
             ]),
             form('setCategoryAccess', 'Confirm publication', [
                 text('contactListId', 'Category'),
@@ -709,6 +730,10 @@ const definitions = {
                     'disabled',
                     'published',
                 ]),
+                text(
+                    'qualifyingSources',
+                    'Grant sources that qualify (manual, subscription)',
+                ),
                 field('expectedRevision', 'Category revision', 'number'),
                 field('confirm', 'I have reviewed the audience', 'checkbox'),
             ]),
@@ -754,6 +779,19 @@ const definitions = {
             ]),
             form('createInvitation', 'Create invitation', [
                 field('emailAddress', 'Verified recipient email', 'email'),
+            ]),
+            form('setAccessGrant', 'Grant access', [
+                text('handle', 'Member handle'),
+                field('targetType', 'Scope', 'select', ['site', 'category']),
+                text('contactListId', 'Category (for a category grant)'),
+                field('fromDate', 'From (optional)', 'datetime'),
+                field('thruDate', 'Until (optional)', 'datetime'),
+                text('reason', 'Reason'),
+            ]),
+            form('endAccessGrant', 'End a manual grant', [
+                text('grantId', 'Grant'),
+                field('expectedRevision', 'Grant revision', 'number'),
+                text('reason', 'Reason'),
             ]),
         ],
     },
@@ -910,6 +948,7 @@ function inputFor(op, siteId, parameters) {
         'participantHandles',
         'targetHandles',
         'ownerHandles',
+        'qualifyingSources',
     ])
         if (typeof input[k] === 'string')
             input[k] = input[k]
@@ -928,7 +967,7 @@ function inputFor(op, siteId, parameters) {
     ])
         if (k in input) input[k] = Number(input[k])
     // A browser datetime-local value is local time; send epoch milliseconds.
-    for (const k of ['remindAt', 'dueAt', 'expiresAt'])
+    for (const k of ['remindAt', 'dueAt', 'expiresAt', 'fromDate', 'thruDate'])
         if (typeof input[k] === 'string')
             input[k] = new Date(input[k]).getTime()
     for (const k of [
@@ -962,10 +1001,14 @@ function load(name, siteId, parameters, bases, identity) {
     if (name === 'Members') {
         if (parameters.contactListId) {
             def.read = 'findCategoryMembers'
-            view.forms = view.forms.filter(
-                (form) => form.op === 'setCategoryMember',
-            )
             view.title = 'Category members and roles'
+            view.forms = view.forms.filter((form) =>
+                [
+                    'setCategoryMember',
+                    'setAccessGrant',
+                    'endAccessGrant',
+                ].includes(form.op),
+            )
         } else
             view.forms = view.forms.filter(
                 (form) => form.op !== 'setCategoryMember',
@@ -1125,10 +1168,12 @@ function load(name, siteId, parameters, bases, identity) {
                 includeOwn: preferences.delivery.includeOwn === 'Y',
                 expectedRevision: preferences.revision,
             }
+            const membership = call('getMembership', { siteId })
             view.formValues.leaveSite = {
-                expectedRevision: call('getMembership', { siteId }).membership
-                    .revision,
+                expectedRevision: membership.membership.revision,
             }
+            view.entitlements = membership.entitlements || []
+            view.subscriptionUrl = membership.subscriptionUrl
         }
     }
     if (def.read && (!def.optional || parameters[def.optional])) {
@@ -1251,6 +1296,21 @@ function load(name, siteId, parameters, bases, identity) {
                 ),
             )
         }
+        if (name === 'Members') {
+            view.grants = call('findAccessGrants', {
+                siteId,
+                ...(parameters.contactListId
+                    ? { contactListId: parameters.contactListId }
+                    : {}),
+            }).grantList
+            view.formValues.setAccessGrant = parameters.contactListId
+                ? { targetType: 'category' }
+                : { targetType: 'site' }
+        }
+        if (name === 'SiteDetail' && identity?.capabilities?.canManageSite)
+            view.bindings = call('findSubscriptionBindings', {
+                siteId,
+            }).bindingList
         if (name === 'Mail') {
             view.routes = call('findRoutes', { siteId }).routeList
             view.receipts = call('findInboundReceipts', {

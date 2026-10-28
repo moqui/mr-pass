@@ -254,6 +254,11 @@
               </drop-down>
             </default-field>
           </field>
+          <field name="qualifyingSources">
+            <default-field title="Grant sources that qualify (manual, subscription)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
           <field name="submitAction">
             <default-field title="Preview publication">
               <submit/>
@@ -332,6 +337,11 @@
                 <option key="disabled" text="disabled"/>
                 <option key="published" text="published"/>
               </drop-down>
+            </default-field>
+          </field>
+          <field name="qualifyingSources">
+            <default-field title="Grant sources that qualify (manual, subscription)">
+              <text-line input-type="text"/>
             </default-field>
           </field>
           <field name="expectedRevision">
