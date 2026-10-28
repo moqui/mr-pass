@@ -336,19 +336,23 @@ module.exports = {
             if (ordinal <= Number(this.marker.consumedOrdinal || 0)) return
             this.busy = true
             try {
-                const response = await fetch(this.base + '/read', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': moqui.sessionToken,
+                // The query names the conversation on a Messages page; a topic URL carries its ID in the path.
+                const response = await fetch(
+                    this.base + '/read' + location.search,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': moqui.sessionToken,
+                        },
+                        body: JSON.stringify({
+                            ordinal,
+                            expectedRevision: this.marker.markerRevision,
+                            renderedPostIds: seen.map((p) => p.postId),
+                            moquiSessionToken: moqui.sessionToken,
+                        }),
                     },
-                    body: JSON.stringify({
-                        ordinal,
-                        expectedRevision: this.marker.markerRevision,
-                        renderedPostIds: seen.map((p) => p.postId),
-                        moquiSessionToken: moqui.sessionToken,
-                    }),
-                })
+                )
                 if (response.status === 409) {
                     await this.load(true)
                     return

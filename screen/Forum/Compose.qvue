@@ -314,11 +314,11 @@ module.exports = {
                 !this.recoveryCandidate &&
                 !this.scansPending &&
                 (!!this.draft.postId ||
-                    (!!this.selectedCategory &&
-                        (this.draft.rootCommEventId
-                            ? this.replyAllowed
-                            : this.selectedCategory.capabilities
-                                  .canStartTopic)))
+                    // A reply needs the topic's permission; a private conversation has no category.
+                    (this.draft.rootCommEventId
+                        ? this.replyAllowed
+                        : !!this.selectedCategory &&
+                          this.selectedCategory.capabilities.canStartTopic))
             )
         },
     },
@@ -526,6 +526,8 @@ module.exports = {
             const data = new FormData()
             data.append('file', file)
             data.append('contactListId', this.draft.contactListId)
+            if (this.draft.rootCommEventId)
+                data.append('rootCommEventId', this.draft.rootCommEventId)
             data.append('draftId', this.draftId)
             data.append('moquiSessionToken', moqui.sessionToken)
             try {

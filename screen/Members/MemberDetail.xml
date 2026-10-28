@@ -28,5 +28,86 @@
     <render-mode>
       <text type="html" location="component://mr-pass/screen/Shared/Page.html.fancy"/>
     </render-mode>
+    <section name="PassMemberDetailSetMemberPreferenceSection" condition="view.forms.some(form =&gt; form.op === 'setMemberPreference')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassMemberDetailSetMemberPreference" action="${publicPath}/save"><h2>Mute or block this member</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassMemberDetailSetMemberPreference" transition="save" map="Object.assign({},view.formValues['setMemberPreference'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setMemberPreference"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="targetHandle">
+            <default-field title="Member">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="preference">
+            <default-field title="Preference">
+              <drop-down allow-empty="false">
+                <option key="none" text="none"/>
+                <option key="mute" text="mute"/>
+                <option key="block" text="block"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expiresAt">
+            <default-field title="Until (optional)">
+              <text-line input-type="datetime-local"/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Mute or block this member">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
   </widgets>
 </screen>

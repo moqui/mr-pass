@@ -72,6 +72,37 @@ feature('provision a published HTTP test community', {
         // The browser specs start several topics in one run; an established owner is past the new-member daily cap.
         state.set('trustLevel', 'member')
         state.update()
+        // A second member and public profiles, so the browser specs can exchange private messages.
+        const reader = call('mantle.party.PartyServices.create#Person', {
+            firstName: 'Forum',
+            lastName: 'Reader',
+        }).partyId
+        call('mantle.party.PartyServices.create#PartyUserAccount', {
+            partyId: reader,
+            username: 'pass.http.reader',
+            emailAddress: 'reader@example.test',
+            newPassword: 'moqui1!!',
+            newPasswordVerify: 'moqui1!!',
+        })
+        call('create#mantle.public.PublicSiteParty', {
+            siteId,
+            partyId: reader,
+            state: 'active',
+            role: 'member',
+            revision: 1,
+        })
+        for (const [profileParty, handle] of [
+            [partyId, 'host'],
+            [reader, 'reader'],
+        ])
+            call('create#mantle.public.PublicSiteProfile', {
+                siteId,
+                partyId: profileParty,
+                handle,
+                displayName: handle,
+                discoverability: 'members',
+                revision: 1,
+            })
         return published
     },
     then(result) {

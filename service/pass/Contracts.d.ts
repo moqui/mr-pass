@@ -213,6 +213,7 @@ export interface OperationInputs {
         query?: string
         limit?: number
         cursor?: Cursor
+        scope?: string
     }
     storeDraft: {
         siteId: string
@@ -385,6 +386,7 @@ export interface OperationInputs {
         file?: UploadedFile
         altText?: string
         purpose?: string
+        rootCommEventId?: string
     }
     removeStagedAttachment: {
         siteId: string
@@ -641,6 +643,46 @@ export interface OperationInputs {
     }
     findMyReviews: {
         siteId: string
+    }
+    createConversation: {
+        siteId: string
+        participantHandles?: string[]
+        title?: string
+        body?: string
+        attachmentIds?: string[]
+        operationId: string
+    }
+    findConversations: {
+        siteId: string
+        view?: string
+        limit?: number
+        cursor?: Cursor
+    }
+    updateParticipants: {
+        siteId: string
+        rootCommEventId?: string
+        participantHandles?: string[]
+        targetHandles?: string[]
+        ownerHandles?: string
+        confirm?: boolean
+        expectedRevision?: number
+    }
+    setConversationState: {
+        siteId: string
+        rootCommEventId?: string
+        action?: string
+    }
+    setMemberPreference: {
+        siteId: string
+        targetHandle?: string
+        preference?: string
+        expiresAt?: number | string
+    }
+    escalateReview: {
+        siteId: string
+        reviewId?: string
+        reason?: string
+        active?: boolean
     }
 }
 export type Operation = keyof OperationInputs

@@ -1,7 +1,11 @@
 <h1>${view.title}</h1>
 <#if view.avatarHref><img src="${view.avatarHref}" alt="Profile image" width="128" height="128"></#if>
 <#if ec.web.parameters.saved><p role="status">Your change was saved.</p></#if>
-<#if screenName == 'Search'><form method="get"><label>Search topics <input name="query" value="${ec.web.parameters.query || ''}" maxlength="200"></label><button>Search</button></form></#if>
+<#if screenName == 'Search'><form method="get"><label>Search topics <input name="query" value="${ec.web.parameters.query || ''}" maxlength="200"></label><#if siteInfo.authenticated><label><input type="checkbox" name="scope" value="private"<#if ec.web.parameters.scope == 'private'> checked</#if>> Search my private messages instead</label></#if><button>Search</button></form></#if>
+<#if view.participantsText><p>Participants: ${view.participantsText}</p></#if>
+<#if view.messageHref><p><a href="${view.messageHref}">Send a private message</a></p></#if>
+<#if screenName == 'Conversations'><nav aria-label="Message views"><a href="?view=inbox">Inbox</a> · <a href="?view=archived">Archived</a></nav></#if>
+<#if view.context?.length><section class="card" aria-label="Reported conversation context"><h2>Context shown for this report</h2><#list view.context as item><article><p>Post ${item.ordinal}</p>${raw(item.body)}</article></#list></section></#if>
 <#if screenName == 'Tags'><form method="get"><label>Find tags <input name="query" value="${ec.web.parameters.query || ''}" maxlength="40"></label><button>Find</button></form></#if>
 <#if screenName == 'Topics' && ec.web.parameters.tag><p>Tagged <strong>${ec.web.parameters.tag}</strong> · <a href="${passBases.forum}">All topics</a></p></#if>
 <#if view.backHref><p><a href="${view.backHref}">Back to the post</a></p></#if>

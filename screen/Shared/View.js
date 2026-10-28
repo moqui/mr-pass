@@ -264,6 +264,69 @@ const definitions = {
         ],
     },
     Compose: { title: 'Write a topic or reply', compose: true },
+    Conversations: {
+        title: 'Messages',
+        read: 'findConversations',
+        list: 'conversationList',
+        link: 'conversation',
+        params: ['view'],
+        forms: [
+            form('createConversation', 'New private message', [
+                text(
+                    'participantHandles',
+                    'To (member handles, comma separated)',
+                ),
+                text('title', 'Subject'),
+                field('body', 'Message', 'textarea'),
+            ]),
+        ],
+    },
+    ConversationDetail: {
+        title: 'Conversation',
+        read: 'getPosts',
+        list: 'postList',
+        params: ['rootCommEventId'],
+        stream: true,
+        forms: [
+            form('updateParticipants', 'Change participants', [
+                text(
+                    'participantHandles',
+                    'Add members (handles, comma separated)',
+                ),
+                field(
+                    'confirm',
+                    'New participants will see the whole conversation',
+                    'checkbox',
+                ),
+                text('targetHandles', 'Remove members (handles)'),
+                text('ownerHandles', 'Make owners (handles)'),
+                field('expectedRevision', 'Conversation revision', 'number'),
+            ]),
+            form('setConversationState', 'Archive or leave', [
+                field('action', 'Action', 'select', [
+                    'archive',
+                    'unarchive',
+                    'leave',
+                ]),
+            ]),
+            form('flagPost', 'Report a post', [
+                text('postId', 'Post'),
+                text('reason', 'Reason'),
+            ]),
+            form('setReaction', 'React', []),
+            form('votePoll', 'Vote', []),
+            form('storeBookmark', 'Bookmark a post', [
+                text('postId', 'Post'),
+                text('note', 'Note'),
+                field('remindAt', 'Remind me at', 'datetime'),
+            ]),
+            form('deletePost', 'Delete a post', [
+                text('postId', 'Post'),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Post revision', 'number'),
+            ]),
+        ],
+    },
     Drafts: {
         title: 'Your drafts',
         read: 'findDrafts',
@@ -282,6 +345,17 @@ const definitions = {
         params: ['handle'],
         detail: 'profile',
         optional: 'handle',
+        forms: [
+            form('setMemberPreference', 'Mute or block this member', [
+                text('targetHandle', 'Member'),
+                field('preference', 'Preference', 'select', [
+                    'none',
+                    'mute',
+                    'block',
+                ]),
+                field('expiresAt', 'Until (optional)', 'datetime'),
+            ]),
+        ],
     },
     Settings: {
         title: 'Account settings',
@@ -415,6 +489,14 @@ const definitions = {
             ]),
             form('claimReview', 'Claim review', [
                 field('expectedRevision', 'Review revision', 'number'),
+            ]),
+            form('escalateReview', 'Private context escalation', [
+                text('reason', 'Reason'),
+                field(
+                    'active',
+                    'Approve the requested escalation (site owner)',
+                    'checkbox',
+                ),
             ]),
             form('decideReview', 'Record decision', [
                 field('decision', 'Decision', 'select', [
@@ -772,7 +854,14 @@ function inputFor(op, siteId, parameters) {
     ])
         if (k in input && !Array.isArray(input[k])) input[k] = [input[k]]
     // Free-text lists from plain forms are comma separated.
-    for (const k of ['tags', 'allowedCategories', 'postIds'])
+    for (const k of [
+        'tags',
+        'allowedCategories',
+        'postIds',
+        'participantHandles',
+        'targetHandles',
+        'ownerHandles',
+    ])
         if (typeof input[k] === 'string')
             input[k] = input[k]
                 .split(',')
@@ -790,7 +879,7 @@ function inputFor(op, siteId, parameters) {
     ])
         if (k in input) input[k] = Number(input[k])
     // A browser datetime-local value is local time; send epoch milliseconds.
-    for (const k of ['remindAt', 'dueAt'])
+    for (const k of ['remindAt', 'dueAt', 'expiresAt'])
         if (typeof input[k] === 'string')
             input[k] = new Date(input[k]).getTime()
     for (const k of [
@@ -837,6 +926,8 @@ function load(name, siteId, parameters, bases, identity) {
         [
             'Drafts',
             'Bookmarks',
+            'Conversations',
+            'ConversationDetail',
             'Settings',
             'Notifications',
             'ReviewQueue',
@@ -880,7 +971,7 @@ function load(name, siteId, parameters, bases, identity) {
                 ),
             ]),
         ]
-    if (name === 'TopicDetail') {
+    if (name === 'TopicDetail' || name === 'ConversationDetail') {
         // The screen's pre-actions already read the topic for its canonical URL.
         const metadata =
             parameters.topicMetadata ||
@@ -898,18 +989,34 @@ function load(name, siteId, parameters, bases, identity) {
             expectedRevision: metadata.revision,
         }
         view.formValues.acceptAnswer = { expectedRevision: metadata.revision }
+        if (name === 'ConversationDetail') {
+            view.participantsText = (metadata.participants || [])
+                .map(
+                    (p) =>
+                        (p.displayName || p.handle) +
+                        (p.role === 'owner' ? ' (owner)' : ''),
+                )
+                .join(', ')
+            view.formValues.updateParticipants = {
+                expectedRevision: metadata.revision,
+            }
+        }
         view.forms = view.forms.filter((form) =>
-            form.op === 'setPreferences'
-                ? identity?.membershipState === 'active'
-                : form.op === 'flagPost'
-                  ? metadata.capabilities.canFlag
-                  : ['storeBookmark', 'deletePost'].includes(form.op)
-                    ? !!identity?.authenticated
-                    : form.op === 'acceptAnswer'
-                      ? metadata.capabilities.canAccept
-                      : ['setReaction', 'votePoll'].includes(form.op)
-                        ? false
-                        : metadata.capabilities.canModerate,
+            form.op === 'updateParticipants'
+                ? metadata.capabilities.canManageParticipants
+                : form.op === 'setConversationState'
+                  ? true
+                  : form.op === 'setPreferences'
+                    ? identity?.membershipState === 'active'
+                    : form.op === 'flagPost'
+                      ? metadata.capabilities.canFlag
+                      : ['storeBookmark', 'deletePost'].includes(form.op)
+                        ? !!identity?.authenticated
+                        : form.op === 'acceptAnswer'
+                          ? metadata.capabilities.canAccept
+                          : ['setReaction', 'votePoll'].includes(form.op)
+                            ? false
+                            : metadata.capabilities.canModerate,
         )
         if (identity?.membershipState === 'active') {
             const preferences = call('getPreferences', {
@@ -977,6 +1084,9 @@ function load(name, siteId, parameters, bases, identity) {
               )
             : []
         view.notes = name === 'ReviewDetail' ? data.notes : []
+        view.context = name === 'ReviewDetail' ? data.context || null : null
+        if (name === 'ReviewDetail' && !view.context)
+            view.forms = view.forms.filter((f) => f.op !== 'escalateReview')
         view.body =
             name === 'ReviewDetail'
                 ? data.post?.body
@@ -984,6 +1094,21 @@ function load(name, siteId, parameters, bases, identity) {
                   ? data[def.body]?.body
                   : null
         if (name === 'MemberDetail' && detail) {
+            // Members act on others' profiles; a mute or block is private to the member who sets it.
+            if (
+                data.viewerPreference &&
+                identity?.membershipState === 'active'
+            ) {
+                view.formValues.setMemberPreference = {
+                    targetHandle: detail.handle,
+                    preference: data.viewerPreference,
+                }
+                view.messageHref =
+                    bases.forum +
+                    '/Messages?participantHandles=' +
+                    encodeURIComponent(detail.handle) +
+                    '#PassConversationsCreateConversation'
+            } else view.forms = []
             // The bio is member-written rich text: show it sanitized, and list the member's visible topics.
             view.details = view.details.filter(
                 ([k]) => !['bio', 'avatarId', 'revision'].includes(k),
@@ -1146,6 +1271,13 @@ function load(name, siteId, parameters, bases, identity) {
                     bases.forum +
                     '/Categories/CategoryDetail?contactListId=' +
                     encodeURIComponent(row.contactListId)
+            if (def.link === 'conversation')
+                row.href =
+                    bases.forum +
+                    '/Messages/ConversationDetail?rootCommEventId=' +
+                    encodeURIComponent(row.rootCommEventId)
+            if (name === 'Conversations' && row.participants)
+                row.snippet = 'With ' + row.participants.join(', ')
             if (def.link === 'draft')
                 row.href =
                     bases.forum +

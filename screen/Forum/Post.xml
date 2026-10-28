@@ -3,6 +3,7 @@
   <pre-actions>
     <script><![CDATA[
     const result=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getPostLocation',input:{siteId:resolvedSiteId,postId}}).call().result
+    if(result.kind==='private'){sri.sendRedirectAndStopRender((passBases.forum || '')+'/Messages/ConversationDetail?rootCommEventId='+encodeURIComponent(result.rootCommEventId)+'&around='+encodeURIComponent(result.postId)+'#post-'+encodeURIComponent(result.postId));return}
     sri.sendRedirectAndStopRender((passBases.forum || '')+'/t/'+encodeURIComponent(result.rootCommEventId)+'/'+encodeURIComponent(result.slug)+'?around='+encodeURIComponent(result.postId)+'#post-'+encodeURIComponent(result.postId))
 ]]></script>
   </pre-actions>

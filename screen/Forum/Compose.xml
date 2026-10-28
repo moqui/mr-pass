@@ -32,7 +32,7 @@
         let draft=ec.web.parameters.draftId?call('getDraft',{draftId:ec.web.parameters.draftId}).draft:null
         if(ec.web.parameters.postId)draft=call('getEditablePost',{postId:ec.web.parameters.postId}).draft
         let categoryId=ec.web.parameters.contactListId || draft?.contactListId || '',replyAllowed=true
-        const root=ec.web.parameters.rootCommEventId || draft?.rootCommEventId;if(root){const topic=call('getTopic',{rootCommEventId:root}).topic;categoryId=topic.category.contactListId;replyAllowed=topic.capabilities.canReply}
+        const root=ec.web.parameters.rootCommEventId || draft?.rootCommEventId;if(root){const topic=call('getTopic',{rootCommEventId:root}).topic;categoryId=topic.category?.contactListId || '';replyAllowed=topic.capabilities.canReply}
         ec.web.sendJsonResponse({recoveryKey:info.recoveryKey,authenticated:info.authenticated,categoryId,draft,replyAllowed,categories:call('findCategories',{}).categoryList.filter(category=>category.capabilities.canStartTopic || category.contactListId===categoryId)})
     ]]></script>
     </actions>
@@ -57,7 +57,7 @@
   <transition name="upload">
     <actions>
       <script><![CDATA[
-        const input={siteId:resolvedSiteId,contactListId:ec.web.parameters.contactListId,file:ec.web.multiPartParameters.file,draftId:ec.web.parameters.draftId || null}
+        const input={siteId:resolvedSiteId,file:ec.web.multiPartParameters.file,...(ec.web.parameters.rootCommEventId?{rootCommEventId:ec.web.parameters.rootCommEventId}:{contactListId:ec.web.parameters.contactListId}),draftId:ec.web.parameters.draftId || null}
         ec.web.sendJsonResponse(ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'stageAttachment',input}).call().result)
     ]]></script>
     </actions>

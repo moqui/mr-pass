@@ -44,8 +44,10 @@
   <pre-actions>
     <script><![CDATA[
         topicMetadata=ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation:'getTopic',input:{siteId:resolvedSiteId,rootCommEventId}}).call().result.topic
-        canonicalUrl=(passBases.forum || '')+'/t/'+encodeURIComponent(rootCommEventId)+'/'+encodeURIComponent(topicMetadata.slug)
-        if(ec.web.request?.method==='GET' && (typeof requestedTopicSlug==='undefined' || requestedTopicSlug!==topicMetadata.slug)) { sri.sendRedirectAndStopRender(canonicalUrl+(ec.web.parameters.around?'?around='+encodeURIComponent(ec.web.parameters.around):''));return }
+        if(topicMetadata.kind==='private'){sri.sendRedirectAndStopRender((passBases.forum || '')+'/Messages/ConversationDetail?rootCommEventId='+encodeURIComponent(topicMetadata.rootCommEventId));return}
+        // A merged topic's old ID redirects to its destination.
+        canonicalUrl=(passBases.forum || '')+'/t/'+encodeURIComponent(topicMetadata.rootCommEventId)+'/'+encodeURIComponent(topicMetadata.slug)
+        if(ec.web.request?.method==='GET' && (typeof requestedTopicSlug==='undefined' || requestedTopicSlug!==topicMetadata.slug || topicMetadata.movedFrom)) { sri.sendRedirectAndStopRender(canonicalUrl+(ec.web.parameters.around?'?around='+encodeURIComponent(ec.web.parameters.around):''));return }
     ]]></script>
   </pre-actions>
   <actions>

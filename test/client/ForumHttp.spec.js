@@ -343,14 +343,17 @@ feature(
                 'Red\nBlue',
             )
             // The previous feature posted moments ago; a retry with the same operation ID waits out the posting interval.
-        page.allowProblems(/429 Too Many Requests/)
-        page.getByRole('button', { name: 'Publish', exact: true }).click()
-        try {
-            page.waitForURL(/\/forum\/t\//, { timeout: 12 })
-        } catch (e) {
+            page.allowProblems(/429 Too Many Requests/)
             page.getByRole('button', { name: 'Publish', exact: true }).click()
-            page.waitForURL(/\/forum\/t\//, { timeout: 30 })
-        }
+            try {
+                page.waitForURL(/\/forum\/t\//, { timeout: 12 })
+            } catch (e) {
+                page.getByRole('button', {
+                    name: 'Publish',
+                    exact: true,
+                }).click()
+                page.waitForURL(/\/forum\/t\//, { timeout: 30 })
+            }
             page.waitFor(
                 () =>
                     Array.from(document.querySelectorAll('button')).some(
@@ -403,6 +406,81 @@ feature(
             enhanced === true
             diff === true
             text.includes('An edit saved from the browser.')
+        },
+    },
+)
+feature(
+    'members exchange a private message in the enhanced conversation view',
+    {
+        when() {
+            const login = (page, user, password) => {
+                page.goto('/account/Login')
+                page.getByLabel('Email or username', { exact: true }).fill(user)
+                page.getByLabel('Password', { exact: true }).fill(password)
+                page.getByRole('button', {
+                    name: 'Sign in',
+                    exact: true,
+                }).click()
+                page.waitForURL('/forum')
+                page.allowProblems(/Blocked script execution in 'about:srcdoc'/)
+            }
+            const sender = browser.newPage()
+            login(sender, 'john.doe', 'moqui')
+            sender.goto('/forum/Messages')
+            sender
+                .getByLabel('To (member handles, comma separated)', {
+                    exact: true,
+                })
+                .fill('reader')
+            sender
+                .getByLabel('Subject', { exact: true })
+                .fill('A private hello')
+            sender
+                .getByLabel('Message', { exact: true })
+                .fill('Only the two of us can read this.')
+            // The previous feature posted as this member moments ago; wait out the posting interval.
+            sender.evaluate(
+                () =>
+                    new Promise((resolve) =>
+                        setTimeout(() => resolve(true), 10500),
+                    ),
+            )
+            sender
+                .getByRole('button', {
+                    name: 'New private message',
+                    exact: true,
+                })
+                .click()
+            sender.waitForURL(/saved=true/, { timeout: 20 })
+            const reader = browser.newPage()
+            login(reader, 'pass.http.reader', 'moqui1!!')
+            reader.goto('/forum/Messages')
+            reader
+                .getByRole('link', { name: 'A private hello', exact: true })
+                .click()
+            reader.waitForURL(/ConversationDetail/, { timeout: 20 })
+            const enhanced = reader.waitFor(
+                () =>
+                    !document.getElementById('pass-ssr-posts') &&
+                    Array.from(document.querySelectorAll('iframe')).some(
+                        (frame) =>
+                            frame.contentDocument?.body?.textContent.includes(
+                                'Only the two of us can read this.',
+                            ),
+                    ),
+                { timeout: 20 },
+            )
+            const url = reader.url(),
+                outsider = session().get(
+                    '/forum/Messages/ConversationDetail' +
+                        url.slice(url.indexOf('?')),
+                )
+            return { enhanced, text: reader.text(), outsider: outsider.status }
+        },
+        then({ enhanced, text, outsider }) {
+            enhanced === true
+            text.includes('Participants: ')
+            outsider !== 200
         },
     },
 )
