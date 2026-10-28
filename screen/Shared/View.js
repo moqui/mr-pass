@@ -1216,8 +1216,14 @@ function load(name, siteId, parameters, bases, identity) {
         }
         view.revision = data.revision
         if (name === 'Policies') {
+            // Plain digits: a number field rejects the grouped form ("100,000") the renderer would show.
             view.formValues.storePolicy = {
-                ...data.policy,
+                ...Object.fromEntries(
+                    Object.entries(data.policy).map(([k, v]) => [
+                        k,
+                        typeof v === 'number' ? String(v) : v,
+                    ]),
+                ),
                 expectedRevision: data.revision,
             }
             view.formValues.storeRule = { active: true, sequenceNum: 0 }

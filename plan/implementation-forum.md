@@ -59,6 +59,8 @@ account settings, notifications, unsubscribe, search and mail settings gained th
 - The Regular trust threshold counts visiting days in total, not within a rolling 100 days.
 - The BOSS moderation mount over the Mantle queue (§13.4) is not built; Comms shows forum state and
   posts through the shared gate.
+- `replyToAddresses` is not kept on the stored EmailMessage (it has no Reply-To field), so sending a
+  stored notice again would use the template's Reply-To. Forum notices are never re-sent that way.
 - Inbound mail was exercised through the email ECA service with constructed header maps, not a
   live gateway, and digest/notice mail through captured mail.
 
@@ -85,7 +87,7 @@ The following checks ran through the existing incremental development build with
 
 | Check | Result and coverage |
 | --- | --- |
-| Stage 2 (Oct 28) | 122/122 service features across 12 specs: the eight S1 specs plus Participation (11), Moderation (12), Conversations (10) and InboundMail (10), with Outbox extended to 12. 14/14 ForumHttp, including poll voting and revision compare in the enhanced stream and a private exchange between two members. 5/5 RemoteHttp with RemoteFixtures in a separate runtime, adding tags, bookmarks and a private message through the remote adapter. 1/1 Scale. Rust tests for `ec.resource.textDiff` and template thread and Reply-To fields. Screen lint with 0 parse failures. |
+| Stage 2 (Oct 28) | 125/125 service features across 12 specs: the eight S1 specs plus Participation (11), Moderation (12), Conversations (11) and InboundMail (11), with Outbox extended to 13. An independent review of the whole S2 diff found ten defects; nine were fixed with checks (strict DMARC/DKIM alignment, no approval of a removed post, site-wide email stops over narrower modes, Comms replies to private conversations through the forum gate, suspended members' conversation lists, no classifier on private messages, trust contributions counted, long sanctions holding promotion, repeat-merge permalinks). 14/14 ForumHttp, including poll voting and revision compare in the enhanced stream and a private exchange between two members. 5/5 RemoteHttp with RemoteFixtures in a separate runtime, adding tags, bookmarks and a private message through the remote adapter. 1/1 Scale. Rust tests for `ec.resource.textDiff` and template thread and Reply-To fields. Screen lint with 0 parse failures. |
 | Review re-run (Oct 27) | 72/72 service features, 12/12 ForumHttp, 4/4 RemoteHttp with RemoteFixtures in a separate runtime, 1/1 Scale, three `public_site` Rust tests, and screen lint with 0 parse failures. |
 | Focused service suite | 62 features across Forum, ForumAccess, Media, PublicIdentity, SsoHandoff, Outbox, Mantle Mailboxes and BOSS InboxMailboxes. Covers policy ceilings/revocation, help threads, operation replay, moderation evidence, last owners, atomic rollback, profile media, marker conversion, exact-version wiki binding and isolated delivery failures. |
 | Local browser suite | 10/10 ForumHttp checks: anonymous HTML/API agreement, host/site substitution, CSRF, phone layout, real rich-text editing and draft resume, concurrent replay/409 edits, keyboard focus, conflict comparison and failed-save recovery. |

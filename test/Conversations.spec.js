@@ -581,3 +581,49 @@ feature(
         },
     },
 )
+feature(
+    'a removed internal participant cannot reply through Comms, and a suspended member lists nothing',
+    {
+        when() {
+            login('john.doe')
+            let reply = ''
+            try {
+                sys(() =>
+                    call('mantle.party.CommunicationServices.create#Message', {
+                        communicationEventTypeId: 'Message',
+                        fromPartyId: party.owner,
+                        rootCommEventId: rootId,
+                        parentCommEventId: rootId,
+                        subject: 'Re: Our secret plan',
+                        body: 'Still here?',
+                    }),
+                )
+                reply = ec.message.hasError()
+                    ? ec.message.getErrorsString()
+                    : 'posted'
+            } catch (e) {
+                reply = String(e.message)
+            }
+            ec.message.clearErrors()
+            sys(() => {
+                const m = ec.entity
+                    .find('mantle.public.PublicSiteParty')
+                    .condition({ siteId, partyId: party.ann })
+                    .one()
+                m.set('state', 'suspended')
+                m.update()
+            })
+            login('pass.pm.ann', 'moqui1!!')
+            const listed = run(F + 'find#Conversations', {
+                siteId,
+                view: 'archived',
+            }).conversationList
+            return { reply, listed }
+        },
+        then({ reply, listed }) {
+            reply !== 'posted'
+            reply.includes('not found')
+            listed.length === 0
+        },
+    },
+)

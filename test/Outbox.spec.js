@@ -713,3 +713,22 @@ feature(
         },
     },
 )
+feature('a site-wide stop wins over a narrower mailing-list mode', {
+    when() {
+        // 'first' chose Every post on the category and then stopped all forum email for the site.
+        capture.clear()
+        post({
+            rootCommEventId: rootId,
+            body: '<p>After the site-wide stop</p>',
+        })
+        call('mantle.forum.DeliveryWorkerServices.dispatch#Outbox', {})
+        return {
+            mailed: capture
+                .getMessages()
+                .some((m) => m.toList.includes('first.notice@example.test')),
+        }
+    },
+    then({ mailed }) {
+        mailed === false
+    },
+})

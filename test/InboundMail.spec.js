@@ -42,21 +42,36 @@ const list = (name, fields) =>
     sys(() => Array.from(ec.entity.find(name).condition(fields).list()))
 let clock = baseTime
 /* One inbound email through the forum's email ECA service. */
-function receive({ to, from, subject, text, messageId, auth = true, extra = {}, parts }) {
+function receive({
+    to,
+    from,
+    subject,
+    text,
+    messageId,
+    auth = true,
+    extra = {},
+    parts,
+}) {
     clock += 20000
     ec.user.setEffectiveTime(clock)
     return call(D + 'process#Inbound', {
         emailMessageId: null,
         headers: {
             'delivered-to': to,
-            'message-id': messageId || '<' + ec.user.randomString(16) + '@sender.test>',
+            'message-id':
+                messageId || '<' + ec.user.randomString(16) + '@sender.test>',
             ...(auth
-                ? { 'authentication-results': 'gw.example.test; dmarc=pass header.from=sender.test' }
+                ? {
+                      'authentication-results':
+                          'gw.example.test; dmarc=pass header.from=sender.test',
+                  }
                 : {}),
             ...extra,
         },
         fields: { from, subject: subject || 'Re: Welcome', toList: [to] },
-        bodyPartList: parts || [{ contentType: 'text/plain; charset=utf-8', contentText: text }],
+        bodyPartList: parts || [
+            { contentType: 'text/plain; charset=utf-8', contentText: text },
+        ],
     }).result
 }
 spec({
@@ -76,7 +91,10 @@ spec({
 feature('routes take registered domains and unique addresses', {
     when() {
         party.owner = ec.user.userAccount.partyId
-        siteId = run(S + 'create#Site', { name: 'Inbound', ownerPartyId: party.owner }).siteId
+        siteId = run(S + 'create#Site', {
+            name: 'Inbound',
+            ownerPartyId: party.owner,
+        }).siteId
         run(S + 'store#Mounts', {
             siteId,
             expectedRevision: 1,
@@ -86,8 +104,15 @@ feature('routes take registered domains and unique addresses', {
             ],
             hosts: [{ hostname: 'inbound.example.test', canonical: true }],
         })
-        run(S + 'update#Site', { siteId, state: 'published', expectedRevision: 2 })
-        categoryId = run(F + 'store#Category', { siteId, name: 'Support' }).contactListId
+        run(S + 'update#Site', {
+            siteId,
+            state: 'published',
+            expectedRevision: 2,
+        })
+        categoryId = run(F + 'store#Category', {
+            siteId,
+            name: 'Support',
+        }).contactListId
         run(F + 'set#CategoryAccess', {
             siteId,
             contactListId: categoryId,
@@ -115,10 +140,24 @@ feature('routes take registered domains and unique addresses', {
             templateId: 'PASS_TEST_INBOUND',
             expectedRevision: 0,
         })
-        const unregistered = failure(D + 'store#Route', { siteId, address: 'support@elsewhere.test' })
-        run(D + 'store#Route', { siteId, address: 'support@lists.example.test', contactListId: categoryId })
-        run(D + 'store#Route', { siteId, address: 'help@lists.example.test', contactListId: categoryId })
-        const duplicate = failure(D + 'store#Route', { siteId, address: 'Support@lists.example.test' })
+        const unregistered = failure(D + 'store#Route', {
+            siteId,
+            address: 'support@elsewhere.test',
+        })
+        run(D + 'store#Route', {
+            siteId,
+            address: 'support@lists.example.test',
+            contactListId: categoryId,
+        })
+        run(D + 'store#Route', {
+            siteId,
+            address: 'help@lists.example.test',
+            contactListId: categoryId,
+        })
+        const duplicate = failure(D + 'store#Route', {
+            siteId,
+            address: 'Support@lists.example.test',
+        })
         sys(() => {
             for (const name of ['ann', 'bob', 'cal']) {
                 party[name] = call('mantle.party.PartyServices.create#Person', {
@@ -183,8 +222,13 @@ feature('a notice carries a scoped reply address and thread identity', {
             operationId: ec.user.randomString(32),
         }).rootCommEventId
         call('mantle.forum.DeliveryWorkerServices.dispatch#Outbox', {})
-        const mail = capture.getMessages().find((m) => m.toList.includes('ann@sender.test'))
-        token = /^(?:support|help)\+([A-Za-z0-9_-]+)@lists\.example\.test$/.exec(mail.replyToList[0])[1]
+        const mail = capture
+            .getMessages()
+            .find((m) => m.toList.includes('ann@sender.test'))
+        token =
+            /^(?:support|help)\+([A-Za-z0-9_-]+)@lists\.example\.test$/.exec(
+                mail.replyToList[0],
+            )[1]
         annMessageId = mail.messageId
         return { mail }
     },
@@ -193,77 +237,89 @@ feature('a notice carries a scoped reply address and thread identity', {
         mail.headers['List-Id'].startsWith(siteId)
     },
 })
-feature('a verified reply posts once, without its quoted history, even through two aliases', {
-    when() {
-        const messageId = '<reply-1@sender.test>'
-        const first = receive({
-            to: 'support+' + token + '@lists.example.test',
-            from: 'Ann <ann@sender.test>',
-            messageId,
-            text: 'Hello from my mail client.\n\nOn Monday, Community wrote:\n> Say hello\n',
-        })
-        const alias = receive({
-            to: 'help@lists.example.test',
-            from: 'ann@sender.test',
-            messageId,
-            text: 'Hello from my mail client.\n\nOn Monday, Community wrote:\n> Say hello\n',
-        })
-        const post = sys(() =>
-            ec.entity
-                .find('mantle.party.communication.CommunicationEvent')
-                .condition('communicationEventId', first.postId || '')
-                .one(),
-        )
-        return { first, alias, body: post?.body, count: list('mantle.forum.ForumInboundReceipt', { siteId }).length }
+feature(
+    'a verified reply posts once, without its quoted history, even through two aliases',
+    {
+        when() {
+            const messageId = '<reply-1@sender.test>'
+            const first = receive({
+                to: 'support+' + token + '@lists.example.test',
+                from: 'Ann <ann@sender.test>',
+                messageId,
+                text: 'Hello from my mail client.\n\nOn Monday, Community wrote:\n> Say hello\n',
+            })
+            const alias = receive({
+                to: 'help@lists.example.test',
+                from: 'ann@sender.test',
+                messageId,
+                text: 'Hello from my mail client.\n\nOn Monday, Community wrote:\n> Say hello\n',
+            })
+            const post = sys(() =>
+                ec.entity
+                    .find('mantle.party.communication.CommunicationEvent')
+                    .condition('communicationEventId', first.postId || '')
+                    .one(),
+            )
+            return {
+                first,
+                alias,
+                body: post?.body,
+                count: list('mantle.forum.ForumInboundReceipt', { siteId })
+                    .length,
+            }
+        },
+        then({ first, alias, body, count }) {
+            first.result === 'pending' || first.result === 'posted'
+            alias.result === 'duplicate'
+            body.includes('Hello from my mail client.')
+            !body.includes('Say hello')
+            count === 1
+        },
     },
-    then({ first, alias, body, count }) {
-        first.result === 'pending' || first.result === 'posted'
-        alias.result === 'duplicate'
-        body.includes('Hello from my mail client.')
-        !body.includes('Say hello')
-        count === 1
+)
+feature(
+    'forged, forwarded, unverified and expired senders are held or refused without a post',
+    {
+        when() {
+            const forged = receive({
+                to: 'support+' + token + '@lists.example.test',
+                from: 'ann@sender.test',
+                auth: false,
+                text: 'Forged',
+            })
+            const forwarded = receive({
+                to: 'support+' + token + '@lists.example.test',
+                from: 'bob@sender.test',
+                text: 'Forwarded',
+            })
+            const unverified = receive({
+                to: 'support@lists.example.test',
+                from: 'cal@sender.test',
+                subject: 'New question',
+                text: 'Unverified',
+            })
+            sys(() =>
+                ec.entity
+                    .find('mantle.forum.ForumReplyToken')
+                    .condition({ siteId, partyId: party.ann })
+                    .updateAll({ expiresAt: new Date(baseTime - 1000) }),
+            )
+            const expired = receive({
+                to: 'support+' + token + '@lists.example.test',
+                from: 'ann@sender.test',
+                text: 'Too late',
+            })
+            return { forged, forwarded, unverified, expired }
+        },
+        then({ forged, forwarded, unverified, expired }) {
+            forged.result === 'held'
+            forwarded.result === 'held'
+            forwarded.reason.includes('another member')
+            unverified.result === 'held'
+            expired.result === 'rejected'
+        },
     },
-})
-feature('forged, forwarded, unverified and expired senders are held or refused without a post', {
-    when() {
-        const forged = receive({
-            to: 'support+' + token + '@lists.example.test',
-            from: 'ann@sender.test',
-            auth: false,
-            text: 'Forged',
-        })
-        const forwarded = receive({
-            to: 'support+' + token + '@lists.example.test',
-            from: 'bob@sender.test',
-            text: 'Forwarded',
-        })
-        const unverified = receive({
-            to: 'support@lists.example.test',
-            from: 'cal@sender.test',
-            subject: 'New question',
-            text: 'Unverified',
-        })
-        sys(() =>
-            ec.entity
-                .find('mantle.forum.ForumReplyToken')
-                .condition({ siteId, partyId: party.ann })
-                .updateAll({ expiresAt: new Date(baseTime - 1000) }),
-        )
-        const expired = receive({
-            to: 'support+' + token + '@lists.example.test',
-            from: 'ann@sender.test',
-            text: 'Too late',
-        })
-        return { forged, forwarded, unverified, expired }
-    },
-    then({ forged, forwarded, unverified, expired }) {
-        forged.result === 'held'
-        forwarded.result === 'held'
-        forwarded.reason.includes('another member')
-        unverified.result === 'held'
-        expired.result === 'rejected'
-    },
-})
+)
 feature('automatic replies and our own mail are never posts', {
     when() {
         return {
@@ -285,62 +341,80 @@ feature('automatic replies and our own mail are never posts', {
         own.result === 'ignored'
     },
 })
-feature('a category address starts a topic under web rules; replies by thread reference find their topic', {
-    when() {
-        const started = receive({
-            to: 'support@lists.example.test',
-            from: 'bob@sender.test',
-            subject: 'Re: Fwd: A new question by email',
-            text: 'How do I start?',
-        })
-        emailTopic = started.postId
-        const threaded = receive({
-            to: 'support@lists.example.test',
-            from: 'ann@sender.test',
-            subject: 'Re: Welcome',
-            text: 'Replying by thread reference',
-            extra: { 'in-reply-to': annMessageId },
-        })
-        const threadedPost = list('mantle.forum.ForumPostState', {
-            communicationEventId: threaded.postId || '',
-        })[0]
-        const root = list('mantle.party.communication.CommunicationEvent', {
-            communicationEventId: emailTopic || '',
-        })[0]
-        return { started, threaded, threadedRoot: threadedPost?.rootCommEventId, root }
+feature(
+    'a category address starts a topic under web rules; replies by thread reference find their topic',
+    {
+        when() {
+            const started = receive({
+                to: 'support@lists.example.test',
+                from: 'bob@sender.test',
+                subject: 'Re: Fwd: A new question by email',
+                text: 'How do I start?',
+            })
+            emailTopic = started.postId
+            const threaded = receive({
+                to: 'support@lists.example.test',
+                from: 'ann@sender.test',
+                subject: 'Re: Welcome',
+                text: 'Replying by thread reference',
+                extra: { 'in-reply-to': annMessageId },
+            })
+            const threadedPost = list('mantle.forum.ForumPostState', {
+                communicationEventId: threaded.postId || '',
+            })[0]
+            const root = list('mantle.party.communication.CommunicationEvent', {
+                communicationEventId: emailTopic || '',
+            })[0]
+            return {
+                started,
+                threaded,
+                threadedRoot: threadedPost?.rootCommEventId,
+                root,
+            }
+        },
+        then({ started, threaded, threadedRoot, root }) {
+            started.result === 'pending'
+            root.subject === 'A new question by email'
+            root.rootCommEventId == null
+            threaded.result === 'pending' || threaded.result === 'posted'
+            threadedRoot === rootId
+        },
     },
-    then({ started, threaded, threadedRoot, root }) {
-        started.result === 'pending'
-        root.subject === 'A new question by email'
-        root.rootCommEventId == null
-        ['pending', 'posted'].includes(threaded.result)
-        threadedRoot === rootId
+)
+feature(
+    'approval of an emailed post sends one notification, and feedback reached its author',
+    {
+        when() {
+            const r = list('mantle.forum.ForumReviewItem', {
+                targetId: emailTopic,
+            })[0]
+            capture.clear()
+            run(M + 'decide#Review', {
+                siteId,
+                reviewId: r.reviewId,
+                decision: 'approved',
+                reason: 'Fine',
+                expectedRevision: r.revision,
+            })
+            call('mantle.forum.DeliveryWorkerServices.dispatch#Outbox', {})
+            call('mantle.forum.DeliveryWorkerServices.dispatch#Outbox', {})
+            const outbox = list('mantle.forum.ForumOutbox', {
+                communicationEventId: emailTopic,
+                eventType: 'post',
+            })
+            return {
+                outbox: outbox.length,
+                toAnn: capture
+                    .getMessages()
+                    .filter((m) => m.toList.includes('ann@sender.test')).length,
+            }
+        },
+        then({ outbox, toAnn }) {
+            outbox === 1
+            toAnn === 1
+        },
     },
-})
-feature('approval of an emailed post sends one notification, and feedback reached its author', {
-    when() {
-        const r = list('mantle.forum.ForumReviewItem', { targetId: emailTopic })[0]
-        capture.clear()
-        run(M + 'decide#Review', {
-            siteId,
-            reviewId: r.reviewId,
-            decision: 'approved',
-            reason: 'Fine',
-            expectedRevision: r.revision,
-        })
-        call('mantle.forum.DeliveryWorkerServices.dispatch#Outbox', {})
-        call('mantle.forum.DeliveryWorkerServices.dispatch#Outbox', {})
-        const outbox = list('mantle.forum.ForumOutbox', { communicationEventId: emailTopic, eventType: 'post' })
-        return {
-            outbox: outbox.length,
-            toAnn: capture.getMessages().filter((m) => m.toList.includes('ann@sender.test')).length,
-        }
-    },
-    then({ outbox, toAnn }) {
-        outbox === 1
-        toAnn === 1
-    },
-})
+)
 feature('an attachment that fails scanning is held and the text still posts', {
     when() {
         const bytes = new Uint8Array(
@@ -352,13 +426,21 @@ feature('an attachment that fails scanning is held and the text still posts', {
             subject: 'Re: Welcome',
             extra: { 'in-reply-to': annMessageId },
             parts: [
-                { contentType: 'text/plain', contentText: 'See the attached file' },
-                { contentType: 'text/plain', filename: 'notes.txt', disposition: 'attachment', contentBytes: bytes },
+                {
+                    contentType: 'text/plain',
+                    contentText: 'See the attached file',
+                },
+                {
+                    contentType: 'text/plain',
+                    filename: 'notes.txt',
+                    disposition: 'attachment',
+                    contentBytes: bytes,
+                },
             ],
         })
     },
     then(out) {
-        ['pending', 'posted'].includes(out.result)
+        out.result === 'pending' || out.result === 'posted'
         out.reason.includes('held for scanning')
     },
 })
@@ -368,12 +450,16 @@ feature('a hard bounce for a forum notice stops email to that member', {
             to: 'support@lists.example.test',
             from: 'MAILER-DAEMON@mx.sender.test',
             subject: 'Undelivered Mail Returned to Sender',
-            extra: { 'content-type': 'multipart/report; report-type=delivery-status' },
+            extra: {
+                'content-type': 'multipart/report; report-type=delivery-status',
+            },
             parts: [
                 { contentType: 'text/plain', contentText: 'Delivery failed.' },
                 {
                     contentType: 'message/delivery-status',
-                    contentText: 'Final-Recipient: rfc822; ann@sender.test\nStatus: 5.1.1\n\nMessage-ID: ' + annMessageId,
+                    contentText:
+                        'Final-Recipient: rfc822; ann@sender.test\nStatus: 5.1.1\n\nMessage-ID: ' +
+                        annMessageId,
                 },
             ],
         })
@@ -414,3 +500,48 @@ feature('the mail screen shows routes and masked inbound outcomes', {
         html.includes('PassMailStoreRoute')
     },
 })
+feature(
+    "another domain's DKIM pass or a failed DMARC never authenticates a sender",
+    {
+        when() {
+            const lookalike = receive({
+                to: 'support@lists.example.test',
+                from: 'bob@sender.test',
+                text: 'Lookalike signer',
+                auth: false,
+                extra: {
+                    'authentication-results':
+                        'gw.example.test; dkim=pass header.d=sender.test.evil.example; dmarc=fail header.from=sender.test',
+                },
+            })
+            const mixed = receive({
+                to: 'support@lists.example.test',
+                from: 'bob@sender.test',
+                text: 'Mixed signatures',
+                auth: false,
+                extra: {
+                    'authentication-results':
+                        'gw.example.test; dkim=fail header.d=sender.test; dkim=pass header.d=attacker.example',
+                },
+            })
+            const aligned = receive({
+                to: 'support@lists.example.test',
+                from: 'bob@sender.test',
+                subject: 'Re: Welcome',
+                text: 'Signed by my domain',
+                auth: false,
+                extra: {
+                    'authentication-results':
+                        'gw.example.test; dkim=pass header.d=sender.test',
+                    'in-reply-to': annMessageId,
+                },
+            })
+            return { lookalike, mixed, aligned }
+        },
+        then({ lookalike, mixed, aligned }) {
+            lookalike.result === 'held'
+            mixed.result === 'held'
+            aligned.result !== 'held'
+        },
+    },
+)
