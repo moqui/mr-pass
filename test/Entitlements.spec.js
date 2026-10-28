@@ -334,6 +334,10 @@ feature(
                 expectedRevision: preview.expectedRevision + 1,
                 confirm: true,
             })
+            // The purchase qualifies the buyer to join only once the category counts subscriptions.
+            const joinAfter = as('ben', () =>
+                failure(S + 'join#Site', { siteId }),
+            )
             const readAfter = as('ben', readsPaid)
             const groups = sys(() =>
                 Array.from(
@@ -355,6 +359,7 @@ feature(
             return {
                 rows,
                 joinBefore,
+                joinAfter,
                 readBefore,
                 preview,
                 badSource,
@@ -366,6 +371,7 @@ feature(
         then({
             rows,
             joinBefore,
+            joinAfter,
             readBefore,
             preview,
             badSource,
@@ -375,7 +381,8 @@ feature(
         }) {
             rows.length === 1
             rows[0].targetId === paidId && !rows[0].revokedAt
-            joinBefore === ''
+            joinBefore.includes('invitation')
+            joinAfter === ''
             !readBefore
             preview.proposedQualifyingSources.join() === 'manual,subscription'
             badSource.includes('Qualifying sources')
@@ -637,3 +644,45 @@ feature(
         },
     },
 )
+feature('a site grant opens only categories that chose their qualifying sources', {
+    when() {
+        const backRoom = run(F + 'store#Category', {
+            siteId,
+            operationId: op(),
+            name: 'Back room',
+        }).contactListId
+        run(F + 'set#CategoryAccess', {
+            siteId,
+            contactListId: backRoom,
+            visibility: 'category',
+            publicationState: 'published',
+            expectedRevision: 1,
+            confirm: true,
+        })
+        run(S + 'set#AccessGrant', {
+            siteId,
+            handle: 'cy',
+            targetType: 'site',
+            reason: 'Let in past closed registration',
+        })
+        const readsBackRoom = () =>
+            failure(F + 'get#Category', { siteId, contactListId: backRoom }) === ''
+        const before = as('cy', readsBackRoom)
+        const c = list('mantle.forum.ForumCategory', { contactListId: backRoom })[0]
+        run(F + 'set#CategoryAccess', {
+            siteId,
+            contactListId: backRoom,
+            visibility: 'category',
+            publicationState: 'published',
+            qualifyingSources: ['manual'],
+            expectedRevision: Number(c.policyRevision),
+            confirm: true,
+        })
+        const after = as('cy', readsBackRoom)
+        return { before, after }
+    },
+    then({ before, after }) {
+        !before
+        after
+    },
+})

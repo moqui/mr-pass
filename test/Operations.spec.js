@@ -13,6 +13,7 @@ let siteId = null,
     categoryId,
     topicIds = [],
     deletedPostId,
+    recentDeletedId,
     exportRunId,
     exportId
 function sys(work) {
@@ -173,6 +174,13 @@ feature('a site with members, topics and old operational data', {
                 body: '<p>Regrettable reply</p>',
             }),
         ).postId
+        recentDeletedId = as('ben', () =>
+            run(F + 'publish#Post', {
+                siteId,
+                rootCommEventId: topicIds[1],
+                body: '<p>Removed only yesterday</p>',
+            }),
+        ).postId
         sys(() => {
             // Old data past a 30-day period, and one recent delivery that must stay.
             const old = at - 60 * DAY
@@ -183,6 +191,16 @@ feature('a site with members, topics and old operational data', {
             st.set('visibility', 'deleted')
             st.set('deletedAt', old)
             st.update()
+            const recent = ec.entity.find('mantle.forum.ForumPostState').condition('communicationEventId', recentDeletedId).one()
+            recent.set('visibility', 'deleted')
+            recent.set('deletedAt', at - DAY)
+            recent.update()
+            const recentEvent = ec.entity
+                .find('mantle.party.communication.CommunicationEvent')
+                .condition('communicationEventId', recentDeletedId)
+                .one()
+            recentEvent.set('entryDate', old)
+            recentEvent.update()
             const event = ec.entity
                 .find('mantle.party.communication.CommunicationEvent')
                 .condition('communicationEventId', deletedPostId)
@@ -203,10 +221,20 @@ feature('a site with members, topics and old operational data', {
                     dueAt,
                     revision: 1,
                 })
+            // An old finished operation run goes; an old run of another worker (which may hold a checkpoint) stays.
+            call('create#mantle.forum.ForumJobRun', {
+                runId: 'OPS_OLD_TRUST',
+                siteId,
+                jobType: 'trust',
+                state: 'complete',
+                createdAt: old,
+                successCount: 1,
+                failedCount: 0,
+            })
             call('create#mantle.forum.ForumJobRun', {
                 runId: 'OPS_OLD_RUN',
                 siteId,
-                jobType: 'trust',
+                jobType: 'op-rebuild-counters',
                 state: 'complete',
                 createdAt: old,
                 successCount: 1,
@@ -317,6 +345,22 @@ feature(
                 oldRun: entity('mantle.forum.ForumJobRun', {
                     runId: 'OPS_OLD_RUN',
                 }),
+                otherWorkerRun: entity('mantle.forum.ForumJobRun', {
+                    runId: 'OPS_OLD_TRUST',
+                }),
+                recent: entity('mantle.forum.ForumPostState', {
+                    communicationEventId: recentDeletedId,
+                }),
+                restore: failure(M + 'apply#TopicAction', {
+                    siteId,
+                    rootCommEventId: topicIds[1],
+                    action: 'restore',
+                    postId: deletedPostId,
+                    reason: 'Bring it back',
+                    expectedRevision: Number(
+                        entity('mantle.forum.ForumTopic', { rootCommEventId: topicIds[1] }).revision,
+                    ),
+                }),
                 invite: entity('mantle.public.PublicSiteInvitation', {
                     invitationId: 'OPS_OLD_INVITE',
                 }),
@@ -337,7 +381,9 @@ feature(
             r.appliedRun.state === 'complete' &&
                 Number(r.appliedRun.successCount) === 4
             !r.oldDelivery && !!r.newDelivery
-            !r.oldRun && !r.invite
+            !r.oldRun && !r.invite && !!r.otherWorkerRun
+            r.recent.visibility === 'deleted' && !r.recent.textRemovedAt
+            r.restore.includes('cannot be restored')
             r.post.visibility === 'deleted' && !!r.post.textRemovedAt
             !r.body
             r.revisions.length > 0 &&

@@ -48,7 +48,7 @@ function base62(hex) {
     return out
 }
 /* A Discourse-shaped dump: COPY blocks, tab-separated, backslash escapes, \N for null. */
-function dump(sha1, firstSubBody) {
+function dump(sha1, firstSubBody, insider = true) {
     const copy = (table, columns, rows) =>
         'COPY public.' + table + ' (' + columns.join(', ') + ') FROM stdin;\n' +
         rows.map((r) => r.join('\t')).join('\n') + (rows.length ? '\n' : '') + '\\.\n'
@@ -71,7 +71,7 @@ function dump(sha1, firstSubBody) {
         ]),
         copy('user_profiles', ['user_id', 'bio_raw'], [['2', 'I build **things**']]),
         copy('groups', ['id', 'name'], [['0', 'everyone'], ['10', 'insiders']]),
-        copy('group_users', ['id', 'group_id', 'user_id'], [['1', '10', '2']]),
+        copy('group_users', ['id', 'group_id', 'user_id'], insider ? [['1', '10', '2']] : []),
         copy('categories', ['id', 'name', 'slug', 'description', 'parent_category_id', 'position', 'read_restricted'], [
             ['3', 'Sub', 'sub', 'A subcategory', '1', '3', 'f'],
             ['1', 'General', 'general', 'General talk', N, '1', 'f'],
@@ -79,7 +79,7 @@ function dump(sha1, firstSubBody) {
         ]),
         copy('category_groups', ['id', 'category_id', 'group_id', 'permission_type'], [['1', '2', '10', '1']]),
         copy('topics', ['id', 'title', 'slug', 'user_id', 'category_id', 'archetype', 'visible', 'closed', 'deleted_at', 'pinned_at', 'created_at', 'bumped_at', 'highest_post_number'], [
-            ['10', 'Hello world', 'hello-world', '2', '1', 'regular', 't', 'f', N, N, '2021-01-01 10:00:00', '2021-01-02 10:00:00', '3'],
+            ['10', 'Hello world', 'hello-world', '2', '1', 'regular', 't', 'f', N, N, '2021-01-01 10:00:00', '2021-01-02 10:00:00', '4'],
             ['11', 'Secret plans', 'secret-plans', '2', '2', 'regular', 't', 'f', N, N, '2021-01-03 10:00:00', '2021-01-03 10:00:00', '1'],
             ['12', 'Sub topic', 'sub-topic', '3', '3', 'regular', 't', 't', N, N, '2021-01-04 10:00:00', '2021-01-04 10:00:00', '1'],
             ['13', 'Private chat', 'private-chat', '1', N, 'private_message', 't', 'f', N, N, '2021-01-05 10:00:00', '2021-01-05 10:00:00', '2'],
@@ -92,11 +92,15 @@ function dump(sha1, firstSubBody) {
             ['104', '12', '3', '1', N, firstSubBody, '1', N, 'f', 'f', '2021-01-04 10:00:00'],
             ['105', '13', '1', '1', N, 'Private hello', '1', N, 'f', 'f', '2021-01-05 10:00:00'],
             ['106', '13', '2', '2', '1', 'Private reply', '1', N, 'f', 'f', '2021-01-05 11:00:00'],
+            // Hidden by the source after flags: it stays hidden.
+            ['107', '10', '3', '4', '1', 'Spammy link', '1', N, 't', 'f', '2021-01-01 12:00:00'],
         ]),
         copy('topic_allowed_users', ['id', 'topic_id', 'user_id'], [['1', '13', '1'], ['2', '13', '2']]),
         copy('uploads', ['id', 'user_id', 'original_filename', 'filesize', 'url', 'sha1'], [
             ['1', '2', 'photo.png', '12', '/uploads/default/original/1X/' + sha1 + '.png', sha1],
             ['2', '3', 'broken.png', '12', '/uploads/default/original/1X/' + 'b'.repeat(40) + '.png', 'c'.repeat(40)],
+            // A URL that tries to leave the archive's uploads tree.
+            ['3', '3', 'escape.txt', '12', '/uploads/default/original/1X/../../../dump.sql', 'd'.repeat(40)],
         ]),
         copy('upload_references', ['id', 'upload_id', 'target_type', 'target_id'], [['1', '1', 'Post', '100'], ['2', '2', 'Post', '101']]),
         copy('post_actions', ['id', 'post_id', 'user_id', 'post_action_type_id', 'deleted_at', 'created_at'], [
@@ -107,7 +111,7 @@ function dump(sha1, firstSubBody) {
         copy('tags', ['id', 'name', 'description'], [['1', 'intro', N]]),
         copy('topic_tags', ['id', 'topic_id', 'tag_id'], [['1', '10', '1']]),
         copy('discourse_solved_solved_topics', ['id', 'topic_id', 'answer_post_id'], [['1', '10', '101']]),
-        copy('polls', ['id', 'post_id', 'name', 'type', 'status', 'results', 'visibility', 'max', 'close_at'], [['1', '104', 'poll', 'regular', 'open', 'always', 'secret', N, N]]),
+        copy('polls', ['id', 'post_id', 'name', 'type', 'status', 'results', 'visibility', 'max', 'close_at'], [['1', '104', 'poll', '0', '0', '0', '0', N, N]]),
         copy('poll_options', ['id', 'poll_id', 'html'], [['1', '1', 'Yes'], ['2', '1', 'No']]),
         copy('poll_votes', ['poll_id', 'poll_option_id', 'user_id'], [['1', '1', '2']]),
         copy('topic_users', ['id', 'topic_id', 'user_id', 'last_read_post_number', 'notification_level'], [['1', '10', '2', '3', '3']]),
@@ -117,7 +121,7 @@ function dump(sha1, firstSubBody) {
     ].join('')
 }
 /* Writes a backup archive into the import directory and returns its name and SHA-256. */
-function archive(name, firstSubBody) {
+function archive(name, firstSubBody, insider = true) {
     return sys(() => {
         const root = String(System.getProperty('pass_import_dir')).replace(/\/$/, '')
         const work = root + '/work-' + name
@@ -125,7 +129,7 @@ function archive(name, firstSubBody) {
         ec.resource.getLocationReference(work + '/photo.png').putText(image)
         const sha1 = ec.resource.digest(work + '/photo.png', 'sha1')
         ec.resource.getLocationReference(work + '/broken.png').putText('not what the sha1 says')
-        ec.resource.getLocationReference(work + '/dump.sql').putText(dump(sha1, firstSubBody))
+        ec.resource.getLocationReference(work + '/dump.sql').putText(dump(sha1, firstSubBody, insider))
         ec.resource.writeTarGz(root + '/' + name, [
             { path: 'dump.sql', location: work + '/dump.sql' },
             { path: 'uploads/default/original/1X/' + sha1 + '.png', location: work + '/photo.png' },
@@ -190,14 +194,15 @@ feature('staging reads the dump; preflight blocks unmapped staff, identities, re
     },
     then({ detail }) {
         detail.import.stage === 'staged'
-        detail.preflight.counts.posts === 7 && detail.preflight.counts.users === 5
+        detail.preflight.counts.posts === 8 && detail.preflight.counts.users === 5
         detail.preflight.counts.post_actions === 2
         detail.preflight.blockers.some((b) => b.type === 'staff' && b.sourceId === '1')
         detail.preflight.blockers.some((b) => b.type === 'identity' && b.sourceId === '4')
         detail.preflight.blockers.some((b) => b.type === 'group' && b.sourceId === '10')
         detail.preflight.blockers.some((b) => b.type === 'feature' && b.sourceId === 'discourse_reactions_reactions')
         !detail.preflight.blockers.some((b) => b.type === 'identity' && b.sourceId === '2')
-        detail.preflight.missingUploads === 0
+        // The upload whose URL tries to leave the archive counts as missing.
+        detail.preflight.missingUploads === 1
     },
 })
 feature('mappings resolve the blockers; an identity joins only the account with the same verified address', {
@@ -262,6 +267,7 @@ feature('the import creates the community in order, names a bad upload and sends
             rootBody: entity('mantle.party.communication.CommunicationEvent', { communicationEventId: hello }).body,
             rootSource: entity('mantle.forum.ForumPostRevision', { communicationEventId: hello, revision: 1 }).sourceText,
             deletedVisibility: entity('mantle.forum.ForumPostState', { communicationEventId: deleted }).visibility,
+            hiddenVisibility: entity('mantle.forum.ForumPostState', { communicationEventId: target('posts', '10:4') }).visibility,
             attachments: list('mantle.forum.ForumAttachment', { communicationEventId: hello }),
             brokenUpload: mapOf('uploads', '2'),
             likes: list('mantle.forum.ForumReaction', { communicationEventId: hello }),
@@ -282,7 +288,9 @@ feature('the import creates the community in order, names a bad upload and sends
     then(r) {
         r.stage === 'imported' && r.importRun.state === 'failed'
         // The bad upload is named, and the attachment that depends on it waits on it; everything else went in.
-        r.failedItems.length === 2
+        r.failedItems.length === 3
+        r.failedItems.some((i) => i.itemId === 'f|3' && i.errorText.includes('not in the archive'))
+        r.hiddenVisibility === 'hidden'
         r.failedItems.some((i) => i.itemId === 'f|2' && i.errorText.includes('SHA-1'))
         r.failedItems.some((i) => i.itemId === 'g|101:2' && i.errorText.includes('Upload 2'))
         r.brokenUpload.state === 'failed' && r.brokenUpload.errorText.includes('Upload 2')
@@ -318,7 +326,7 @@ feature('replaying the same snapshot duplicates nothing; a changed row is flagge
         dispatchAll()
         const topicsAfter = count('mantle.forum.ForumTopic', { siteId })
         const postsAfter = count('mantle.forum.ForumPostState', {})
-        const changed = archive('community-2024-01-03-000000-v3.2.0-20240101000000.tar.gz', 'Sub topic body, corrected')
+        const changed = archive('community-2024-01-03-000000-v3.2.0-20240101000000.tar.gz', 'Sub topic body, corrected', false)
         changedId = run(I + 'register#Import', { siteId, archiveName: changed.name, checksum: changed.checksum }).importId
         run(I + 'stage#Import', { siteId, importId: changedId })
         dispatchAll()
@@ -330,8 +338,13 @@ feature('replaying the same snapshot duplicates nothing; a changed row is flagge
         run(I + 'store#ImportMappings', {
             siteId,
             importId: changedId,
-            mappings: [{ mappingType: 'change', sourceId: 'posts:12:1', decision: 'apply' }],
+            mappings: [
+                { mappingType: 'change', sourceId: 'posts:12:1', decision: 'apply' },
+                { mappingType: 'change', sourceId: 'group_users:10:2', decision: 'apply' },
+            ],
         })
+        const insiders = target('categories', '2')
+        const bobGrant = list('mantle.public.PublicAccessGrant', { siteId, partyId: target('users', '2'), targetId: insiders })[0]
         const post = target('posts', '12:1')
         const second = run(I + 'reconcile#Import', { siteId, importId: changedId })
         const remaining = run(I + 'get#Import', { siteId, importId: changedId }).reconciliation.blockers
@@ -345,6 +358,7 @@ feature('replaying the same snapshot duplicates nothing; a changed row is flagge
             blocked,
             second,
             remaining,
+            bobGrant,
             revision: entity('mantle.forum.ForumPostRevision', { communicationEventId: post, revision: 2 }),
             body: entity('mantle.party.communication.CommunicationEvent', { communicationEventId: post }).body,
         }
@@ -353,6 +367,8 @@ feature('replaying the same snapshot duplicates nothing; a changed row is flagge
         r.topicsAfter === r.topicsBefore && r.postsAfter === r.postsBefore
         r.flagged.state === 'changed'
         r.blocked.some((b) => b.type === 'changed' && b.sourceId === 'posts:12:1')
+        r.blocked.some((b) => b.type === 'removed' && b.sourceId === 'group_users:10:2')
+        !!r.bobGrant.revokedAt
         r.remaining.length === 0
         r.second.reconciliationRevision === r.first.reconciliationRevision + 1
         r.revision.sourceText === 'Sub topic body, corrected' && r.body.includes('corrected')
@@ -365,6 +381,8 @@ feature('activation needs both approvals of this reconciliation, a frozen source
         const unapproved = failure(I + 'activate#Import', { siteId, importId: changedId, sourceFrozen: true, backupReference: 'snap-1', confirm: true })
         run(I + 'approve#Import', { siteId, importId: changedId, role: 'operator', expectedRevision: Number(rev) })
         const operatorOnly = failure(I + 'activate#Import', { siteId, importId: changedId, sourceFrozen: true, backupReference: 'snap-1', confirm: true })
+        // The operator is also an owner of this site, but cannot give the owner's approval too.
+        const samePerson = failure(I + 'approve#Import', { siteId, importId: changedId, role: 'owner', expectedRevision: Number(rev) })
         login('pass.imp.member', 'moqui1!!')
         const memberAsOperator = failure(I + 'approve#Import', { siteId, importId: changedId, role: 'operator', expectedRevision: Number(rev) })
         run(I + 'approve#Import', { siteId, importId: changedId, role: 'owner', expectedRevision: Number(rev) })
@@ -376,6 +394,7 @@ feature('activation needs both approvals of this reconciliation, a frozen source
             unapproved,
             operatorOnly,
             memberAsOperator,
+            samePerson,
             noBackup,
             activated,
             site: entity('mantle.public.PublicSite', { siteId }),
@@ -384,7 +403,8 @@ feature('activation needs both approvals of this reconciliation, a frozen source
     then(r) {
         r.report.topics.sourcePrivate === 1 && r.report.topics.importedPrivate === 1
         r.report.acceptedAnswers.source === 1 && r.report.acceptedAnswers.imported === 1
-        r.report.uploads.failed === 1
+        r.report.uploads.failed === 2
+        r.samePerson.includes('two people')
         r.unapproved.includes('Both the operator and a site owner')
         r.operatorOnly.includes('Both')
         r.memberAsOperator.includes('operator')

@@ -690,3 +690,57 @@ feature(
         },
     },
 )
+feature('a draft never overwrites a page; an article bound to a subscription gates its discussion', {
+    when() {
+        const again = failure(F + 'draft#ArticleFromTopic', {
+            siteId,
+            rootCommEventId: rootId,
+            postIds: [rootId],
+            title: 'Printer start fix',
+            reviewerUsername: 'john.doe',
+        })
+        // Publish the article again and link it to a new discussion without a gate.
+        const version = wiki('get#WikiPageHistory', { wikiPageId }).versionList[0].versionName
+        wiki('set#PublishedVersion', { wikiPageId, publishedVersionName: version })
+        const discussion = as('ana', () =>
+            run(F + 'publish#Post', {
+                siteId,
+                contactListId: supportId,
+                title: 'Open notes on printer care',
+                body: '<p>Notes</p>',
+            }),
+        ).rootCommEventId
+        run(F + 'link#Discussion', {
+            siteId,
+            rootCommEventId: discussion,
+            sourceType: 'article',
+            sourceId: wikiPageId,
+            gate: 'none',
+        })
+        const openRead = as('ben', () => failure(F + 'get#Topic', { siteId, rootCommEventId: discussion }))
+        // Binding the article to a subscription later makes it paid: its discussion follows the article's grants.
+        sys(() => {
+            call('create#mantle.product.subscription.SubscriptionResource', {
+                subscriptionResourceId: 'PASS_ARTICLE',
+                description: 'Paid article',
+            })
+            call('create#mantle.public.PublicSubscriptionBinding', {
+                subscriptionResourceId: 'PASS_ARTICLE',
+                siteId,
+                targetType: 'article',
+                targetId: wikiPageId,
+                createdAt: Date.now(),
+                revision: 1,
+            })
+        })
+        const paidRead = as('ben', () => failure(F + 'get#Topic', { siteId, rootCommEventId: discussion }))
+        const staffRead = failure(F + 'get#Topic', { siteId, rootCommEventId: discussion })
+        return { again, openRead, paidRead, staffRead }
+    },
+    then({ again, openRead, paidRead, staffRead }) {
+        again.includes('already exists')
+        openRead === ''
+        paidRead.includes('not found')
+        staffRead === ''
+    },
+})
