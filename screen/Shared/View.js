@@ -141,6 +141,22 @@ const definitions = {
         forms: [
             form('joinCategory', 'Join category', []),
             form('leaveCategory', 'Leave category', []),
+            form('setPreferences', 'Category notifications', [
+                field('watchLevel', 'Notifications', 'select', [
+                    'Normal',
+                    'Muted',
+                    'Tracking',
+                    'Watching',
+                    'WatchingFirstPost',
+                ]),
+                field('emailMode', 'Email', 'select', [
+                    'Notifications',
+                    'None',
+                    'Digest',
+                    'EveryPost',
+                ]),
+                field('expectedRevision', 'Preference revision', 'hidden'),
+            ]),
         ],
     },
     Search: {
@@ -175,6 +191,7 @@ const definitions = {
                 field('emailMode', 'Email', 'select', [
                     'Notifications',
                     'None',
+                    'Digest',
                 ]),
                 field('expectedRevision', 'Preference revision', 'hidden'),
             ]),
@@ -388,11 +405,23 @@ const definitions = {
                     'Muted',
                     'Tracking',
                     'Watching',
+                    'WatchingFirstPost',
                 ]),
                 field('emailMode', 'Email', 'select', [
                     'Notifications',
                     'None',
+                    'Digest',
+                    'EveryPost',
                 ]),
+                field('digestPeriod', 'Digest frequency', 'select', [
+                    'daily',
+                    'weekly',
+                ]),
+                field(
+                    'includeOwn',
+                    'Include my own posts in mailing-list email',
+                    'checkbox',
+                ),
                 field('expectedRevision', 'Preference revision', 'number'),
             ]),
             form('leaveSite', 'Leave this site', [
@@ -421,7 +450,11 @@ const definitions = {
         read: 'inspectOptOut',
         params: ['token'],
         detail: 'optOut',
-        forms: [form('applyOptOut', 'Stop forum email', [])],
+        forms: [
+            form('applyOptOut', 'Stop forum email', [
+                field('scopeType', 'Stop', 'select', ['', 'site']),
+            ]),
+        ],
     },
     Login: {
         title: 'Sign in',
@@ -890,6 +923,7 @@ function inputFor(op, siteId, parameters) {
         'all',
         'active',
         'locked',
+        'includeOwn',
     ])
         if (k in input)
             input[k] =
@@ -956,6 +990,20 @@ function load(name, siteId, parameters, bases, identity) {
         view.body = StringUtilities.cleanHtml(view.category.rules || '')
         if (!identity?.authenticated || identity.membershipState !== 'active')
             view.forms = []
+        else {
+            const preferences = call('getPreferences', {
+                siteId,
+                scopeType: 'category',
+                scopeId: parameters.contactListId,
+            })
+            view.formValues.setPreferences = {
+                scopeType: 'category',
+                scopeId: parameters.contactListId,
+                watchLevel: preferences.preferences.watchLevel || 'Normal',
+                emailMode: preferences.delivery.emailMode || 'Notifications',
+                expectedRevision: preferences.revision,
+            }
+        }
     }
     if (name === 'Sites' && System.getProperty('pass_backend_url'))
         view.forms = view.forms.filter((form) => form.op !== 'createSite')
@@ -1057,6 +1105,8 @@ function load(name, siteId, parameters, bases, identity) {
             view.formValues.setPreferences = {
                 watchLevel: preferences.preferences.watchLevel || 'Normal',
                 emailMode: preferences.delivery.emailMode || 'Notifications',
+                digestPeriod: preferences.delivery.digestPeriod || 'daily',
+                includeOwn: preferences.delivery.includeOwn === 'Y',
                 expectedRevision: preferences.revision,
             }
             view.formValues.leaveSite = {
@@ -1248,7 +1298,9 @@ function load(name, siteId, parameters, bases, identity) {
             if (def.link === 'post' && row.postId)
                 row.href = bases.forum + '/p/' + encodeURIComponent(row.postId)
             if (name === 'Notifications')
-                row.state = row.read ? 'Read' : 'Unread'
+                row.state =
+                    (row.read ? 'Read' : 'Unread') +
+                    (row.reason ? ' · ' + row.reason.replace('-', ' ') : '')
             // A row action fills its form with this row's ID and revision instead of asking for them.
             const action = rowActions[name]
             if (action && row[action.key])
@@ -1355,6 +1407,13 @@ function save(name, siteId, parameters) {
                 ]),
             ),
         }
+    // An unchecked box posts nothing; on the account form it means own posts stay out of mailing-list email.
+    if (
+        name === 'Settings' &&
+        parameters.formAction === 'setPreferences' &&
+        parameters.includeOwn == null
+    )
+        parameters = { ...parameters, includeOwn: false }
     const form = def.forms?.find((f) => f.op === parameters.formAction)
     if (!form) {
         const e = new Error('Unknown form action')

@@ -146,5 +146,93 @@
         </render-mode>
       </widgets>
     </section>
+    <section name="PassCategoryDetailSetPreferencesSection" condition="view.forms.some(form =&gt; form.op === 'setPreferences')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailSetPreferences" action="${publicPath}/save"><h2>Category notifications</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassCategoryDetailSetPreferences" transition="save" map="Object.assign({},view.formValues['setPreferences'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="setPreferences"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="watchLevel">
+            <default-field title="Notifications">
+              <drop-down allow-empty="false">
+                <option key="Normal" text="Normal"/>
+                <option key="Muted" text="Muted"/>
+                <option key="Tracking" text="Tracking"/>
+                <option key="Watching" text="Watching"/>
+                <option key="WatchingFirstPost" text="WatchingFirstPost"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="emailMode">
+            <default-field title="Email">
+              <drop-down allow-empty="false">
+                <option key="Notifications" text="Notifications"/>
+                <option key="None" text="None"/>
+                <option key="Digest" text="Digest"/>
+                <option key="EveryPost" text="EveryPost"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="expectedRevision">
+            <default-field title="Preference revision">
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Category notifications">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
   </widgets>
 </screen>

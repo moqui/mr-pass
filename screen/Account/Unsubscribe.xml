@@ -72,14 +72,17 @@
               <hidden/>
             </default-field>
           </field>
-          <field name="scopeType">
+          <field name="scopeId">
             <default-field>
               <hidden/>
             </default-field>
           </field>
-          <field name="scopeId">
-            <default-field>
-              <hidden/>
+          <field name="scopeType">
+            <default-field title="Stop">
+              <drop-down allow-empty="false">
+                <option key="" text="Only what this email was about"/>
+                <option key="site" text="All forum email from this site"/>
+              </drop-down>
             </default-field>
           </field>
           <field name="submitAction">

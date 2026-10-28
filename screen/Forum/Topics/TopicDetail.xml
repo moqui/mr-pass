@@ -130,6 +130,7 @@
               <drop-down allow-empty="false">
                 <option key="Notifications" text="Notifications"/>
                 <option key="None" text="None"/>
+                <option key="Digest" text="Digest"/>
               </drop-down>
             </default-field>
           </field>

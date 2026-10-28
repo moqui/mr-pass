@@ -353,6 +353,8 @@ export interface OperationInputs {
         watchLevel?: string
         emailMode?: string
         expectedRevision?: number
+        digestPeriod?: string
+        includeOwn?: boolean
     }
     findDeliveries: {
         siteId: string
@@ -373,6 +375,7 @@ export interface OperationInputs {
     applyOptOut: {
         siteId: string
         token?: string
+        scopeType?: string
     }
     getHealth: {
         siteId: string

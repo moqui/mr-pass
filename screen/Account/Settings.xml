@@ -347,6 +347,7 @@
                 <option key="Muted" text="Muted"/>
                 <option key="Tracking" text="Tracking"/>
                 <option key="Watching" text="Watching"/>
+                <option key="WatchingFirstPost" text="WatchingFirstPost"/>
               </drop-down>
             </default-field>
           </field>
@@ -355,7 +356,24 @@
               <drop-down allow-empty="false">
                 <option key="Notifications" text="Notifications"/>
                 <option key="None" text="None"/>
+                <option key="Digest" text="Digest"/>
+                <option key="EveryPost" text="EveryPost"/>
               </drop-down>
+            </default-field>
+          </field>
+          <field name="digestPeriod">
+            <default-field title="Digest frequency">
+              <drop-down allow-empty="false">
+                <option key="daily" text="daily"/>
+                <option key="weekly" text="weekly"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="includeOwn">
+            <default-field title="Include my own posts in mailing-list email">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
             </default-field>
           </field>
           <field name="expectedRevision">
