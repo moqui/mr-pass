@@ -777,3 +777,29 @@ feature(
         },
     },
 )
+feature('a Comms post into a bound category meets the same rules as the web', {
+    when() {
+        login('pass.mod.bea', 'moqui1!!')
+        ready(party.bea)
+        let blocked = ''
+        try {
+            sys(() =>
+                call('mantle.party.CommunicationServices.create#Message', {
+                    communicationEventTypeId: 'Message',
+                    contactListId: mainId,
+                    fromPartyId: party.bea,
+                    subject: 'From Comms',
+                    body: 'This is forbidden text',
+                }),
+            )
+            blocked = ec.message.hasError() ? ec.message.getErrorsString() : ''
+        } catch (e) {
+            blocked = String(e.message)
+        }
+        ec.message.clearErrors()
+        return { blocked }
+    },
+    then({ blocked }) {
+        blocked.includes('does not allow')
+    },
+})

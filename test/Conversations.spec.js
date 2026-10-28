@@ -538,3 +538,46 @@ feature(
         },
     },
 )
+feature(
+    'Comms shows a private conversation to a current internal participant only',
+    {
+        when() {
+            login('john.doe')
+            const thread = sys(() =>
+                call('mantle.party.CommunicationServices.get#InternalThread', {
+                    rootCommEventId: rootId,
+                }),
+            )
+            ec.message.clearErrors()
+            login('pass.pm.ann', 'moqui1!!')
+            run(F + 'update#Participants', {
+                siteId,
+                rootCommEventId: rootId,
+                targetHandles: ['owner'],
+                expectedRevision: revisionOf(rootId),
+            })
+            login('john.doe')
+            let removed = ''
+            try {
+                const out = sys(() =>
+                    call(
+                        'mantle.party.CommunicationServices.get#InternalThread',
+                        { rootCommEventId: rootId },
+                    ),
+                )
+                removed = ec.message.hasError()
+                    ? ec.message.getErrorsString()
+                    : JSON.stringify(out.messageList || [])
+            } catch (e) {
+                removed = String(e.message)
+            }
+            ec.message.clearErrors()
+            return { thread, removed }
+        },
+        then({ thread, removed }) {
+            thread.forum.kind === 'private'
+            thread.messageList.length >= 1
+            !removed.includes('secret')
+        },
+    },
+)

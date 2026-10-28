@@ -261,3 +261,46 @@ feature(
         },
     },
 )
+feature(
+    'stage 2 reading and private messages work through the remote adapter',
+    {
+        when() {
+            const page = browser.newPage()
+            page.goto('/account/Login')
+            page.getByLabel('Email or username', { exact: true }).fill(
+                'john.doe',
+            )
+            page.getByLabel('Password', { exact: true }).fill('moqui')
+            page.getByRole('button', { name: 'Sign in', exact: true }).click()
+            page.waitForURL('/forum')
+            const tags = page.goto('/forum/Tags').status
+            const bookmarks = page.goto('/forum/Bookmarks').status
+            page.goto('/forum/Messages')
+            page.getByLabel('To (member handles, comma separated)', {
+                exact: true,
+            }).fill('reader')
+            page.getByLabel('Subject', { exact: true }).fill('Remote hello')
+            page.getByLabel('Message', { exact: true }).fill(
+                'Sent through the remote frontend.',
+            )
+            // Earlier features posted as this member; wait out the posting interval.
+            page.evaluate(
+                () =>
+                    new Promise((resolve) =>
+                        setTimeout(() => resolve(true), 10500),
+                    ),
+            )
+            page.getByRole('button', {
+                name: 'New private message',
+                exact: true,
+            }).click()
+            page.waitForURL(/saved=true/, { timeout: 20 })
+            return { tags, bookmarks, text: page.text() }
+        },
+        then({ tags, bookmarks, text }) {
+            tags === 200
+            bookmarks === 200
+            text.includes('Remote hello')
+        },
+    },
+)

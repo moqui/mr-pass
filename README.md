@@ -10,8 +10,11 @@ without loading its entity catalog or copying its Party records. BOSS is not a r
 
 The [Forum design](plan/design-forum.md) defines the stages. See the
 [implementation status and verified checks](plan/implementation-forum.md) and
-[deployment instructions](docs/Deployment.md). S2 participation features and S3 integrations,
-imports, retention/export, and advanced reports remain deferred.
+[deployment instructions](docs/Deployment.md). Stage 2 adds tags, reactions, polls, bookmarks,
+accepted answers, wiki posts and post history; private conversations; trust, content rules,
+classification, timers and move/split/merge; full delivery preferences, digests, and email
+replies and new topics. S3 integrations, imports, retention/export, and advanced reports remain
+deferred.
 
 ## Starting a community
 
@@ -31,7 +34,7 @@ Run from the mr-moqui workspace root with the existing compiler and incremental 
 
 ```sh
 ./moq build -- --features moqui-host/image
-./moq test mr-pass mr-mantle mr-boss --nobuild --spec Forum,ForumAccess,Media,PublicIdentity,SsoHandoff,Outbox,Mailboxes,InboxMailboxes --db snapshot
+./moq test mr-pass mr-mantle mr-boss --nobuild --spec Forum,ForumAccess,Media,PublicIdentity,SsoHandoff,Outbox,Mailboxes,InboxMailboxes,Participation,Moderation,Conversations,InboundMail --db snapshot
 ./moq test-client mr-pass --nobuild --serve --spec ForumHttp
 ./moq test mr-pass --nobuild --spec Scale --db snapshot -D pass_scale_test=true
 ./moq run --nobuild lint --screens

@@ -72,7 +72,7 @@ feature('provision a published HTTP test community', {
         // The browser specs start several topics in one run; an established owner is past the new-member daily cap.
         state.set('trustLevel', 'member')
         state.update()
-        // A second member and public profiles, so the browser specs can exchange private messages.
+        // A second member with a public profile, so the browser specs can exchange private messages.
         const reader = call('mantle.party.PartyServices.create#Person', {
             firstName: 'Forum',
             lastName: 'Reader',
@@ -91,18 +91,15 @@ feature('provision a published HTTP test community', {
             role: 'member',
             revision: 1,
         })
-        for (const [profileParty, handle] of [
-            [partyId, 'host'],
-            [reader, 'reader'],
-        ])
-            call('create#mantle.public.PublicSiteProfile', {
-                siteId,
-                partyId: profileParty,
-                handle,
-                displayName: handle,
-                discoverability: 'members',
-                revision: 1,
-            })
+        // Only the recipient needs a handle; the owner's profile is created by the remote profile check.
+        call('create#mantle.public.PublicSiteProfile', {
+            siteId,
+            partyId: reader,
+            handle: 'reader',
+            displayName: 'reader',
+            discoverability: 'members',
+            revision: 1,
+        })
         return published
     },
     then(result) {

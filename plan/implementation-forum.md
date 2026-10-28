@@ -1,7 +1,8 @@
 # PASS Forum implementation status
 
-Updated October 27, 2026. The [design](design-forum.md) remains the acceptance specification.
-The S1 implementation spans mr-moqui/framework, mr-mantle, and mr-pass. Existing BOSS inbox
+Updated October 28, 2026. The [design](design-forum.md) remains the acceptance specification.
+The S1 and S2 implementations span mr-moqui/framework, mr-mantle, and mr-pass, with Comms
+display changes in mr-boss. Existing BOSS inbox
 regressions run against the shared mailbox changes; BOSS is not a PASS runtime dependency.
 
 ## Implemented foundation
@@ -32,7 +33,34 @@ An October 27 review of the S1 code corrected these before further work. Each ha
 | Delivery and operations | Notices link to the post, opt-out stops the scope that caused the mail, mounts at `/` produce correct URLs, and an interrupted in-app notice retries. Bootstrap runs, account cleanup and opt-out token cleanup isolate and name failures, with the error's first line. The generic REST catalogue `pass.rest.xml` was removed: the `PassApi` servlet is the only route to these services. |
 | Screens | Notifications keep a read state, with an unread view and mark-all. Unsubscribe names what it stops and what it keeps. Member profiles show sanitized bios and the member's topics. Drafts, sanctions and deliveries have row actions that fill their forms. Posts have a Report link, and topic tools start at the current revision. Post headings are author and date. Composing waits for attachment scans. The editor is labelled, invitation links are absolute, and the CSP restricts scripts to the site. |
 
-Local attachment downloads read the stored file into memory (bounded by the 10 MiB upload limit). Remote downloads stream through the frontend. Notification mail does not yet carry thread headers: the framework reserves `References`/`In-Reply-To` for its own fields.
+Local attachment downloads read the stored file into memory (bounded by the 10 MiB upload limit). Remote downloads stream through the frontend. Notification mail carries thread headers since S2 (below).
+
+## Stage 2: full participation
+
+S2 was built in five slices, each with its own spec, then a Comms parity and documentation pass.
+
+| Area | Implementation |
+| --- | --- |
+| Topic participation | Site tags with normalized names, category limits that reveal no restricted category, counts over readable topics only, and merges that keep the old name as an alias. Idempotent reactions (no self-reactions) with counts cached on the post and topic for the Top view by period. Accepted answers in Q&A categories, chosen by the question author or a moderator, independent of closure and cleared when the reply is hidden or deleted. Polls with one ballot per party under the poll lock, choice limits, deadlines, results after voting/always/at close, optional voter names and optional vote changes. Private bookmarks with notes and reminders that become in-app notices. Post history with the framework line diff (`ec.resource.textDiff`), restore as a new revision through the edit path, wiki posts editable by basic-or-higher members, and author soft delete refused when replies depend on the post. |
+| Moderation and trust | Versioned policy sections (posting, trust, moderation, private messages, media) that accept only values at least as strict as the defaults. Trust effects by level for daily topics/replies and per-post links, images and mentions; server-measured reading (topics entered, posts read, reading time, visiting days) feeds a checkpointed promotion job that never passes an owner lock or a recent sanction; owners set and lock levels. Word, pattern and link rules that block, hold for review, flag or censor, with a bounded test and refusal of backtracking patterns. Reports from two or more basic-or-higher members (policy-set) hide a post until staff decide. An after-commit classifier queue that only files review items and tolerates outages. Bulk decisions with per-item results, author appeals as linked review items, pins, unlisting, slow mode, topic timers rechecked when they fire, staff delete/restore, and move, split and merge that take whole reply subtrees, keep post IDs, renumber only the destination and leave a permalink for a merged topic. |
+| Private conversations | Private topics with explicit participants and no category. Only current participants with active membership read them; site staff have no browsing path. Site policy and minimum trust gate new conversations; existing replies follow their own setting. Owners add members with a history confirmation, remove them and name owners; the last owner cannot leave others behind; archive is personal. Members mute or block others, which stops private contact and their notices. Reports on private posts show staff the post and the visible posts on either side; wider context needs a requested escalation approved by a site owner, and every view of private evidence is audited. Internal participants keep Comms receipts, public ones use markers, and private search is a separate opt-in scope. |
+| Delivery preferences | Watch levels Muted, Normal, Tracking, Watching and Watching first post; email modes None, Notifications, Digest and Every post, resolved topic, category, then site, with opt-out suppression winning until the member chooses a mode again. Mentions notify readable members unless they muted the topic or the author; writing in a topic tracks it unless Watching is inherited. Mailing-list mode carries the sanitized post and, when asked, the member's own posts. A digest job prepares each due member's digest of currently readable topics, rechecked again at send, through the same retrying delivery path. Notices record their reason. |
+| Email participation | `send#EmailTemplate` accepts `inReplyTo`, `references` and `replyToAddresses`, so replies thread under the member's earlier mail and carry a scoped reply address: a hashed, expiring token issued to that recipient for that thread. Operator-registered route domains, unique route addresses per category or for replies only. The `ForumInbound` email ECA takes the envelope recipient, requires one verified account address authenticated by the trusted gateway, matches tokens to their recipient, follows thread references, starts topics at category addresses, drops quoted history and signatures, stages and scans attachments, and posts as the sender through the web's gate in its own transaction. One receipt per message identity stops alias copies and replays. Automatic replies and the forum's own mail are ignored, delivery reports mark hard bounces and stop that member's email, members get a safe outcome notice, and staff can retry a failed message from the stored email. |
+| Comms parity | Comms posts into bound categories already went through the forum gate; they now meet the same rules, trust limits, slow mode and review. Comms hides a private conversation from a removed internal participant and shows forum state (community topic or private conversation, answered, pinned) as chips in the Inbox thread header. |
+
+New screens: Tags, Bookmarks, PostHistory, Messages (list and ConversationDetail). Topic detail, compose,
+category detail and settings, policies, member moderation, review queue and detail, member profiles,
+account settings, notifications, unsubscribe, search and mail settings gained the S2 forms above.
+
+### S2 limits
+
+- Private recipients are named members. Expanding an organization or group into a participant
+  snapshot is not built, because PASS has no organization-group recipient source yet.
+- The Regular trust threshold counts visiting days in total, not within a rolling 100 days.
+- The BOSS moderation mount over the Mantle queue (§13.4) is not built; Comms shows forum state and
+  posts through the shared gate.
+- Inbound mail was exercised through the email ECA service with constructed header maps, not a
+  live gateway, and digest/notice mail through captured mail.
 
 ## Screens
 
@@ -57,6 +85,7 @@ The following checks ran through the existing incremental development build with
 
 | Check | Result and coverage |
 | --- | --- |
+| Stage 2 (Oct 28) | 122/122 service features across 12 specs: the eight S1 specs plus Participation (11), Moderation (12), Conversations (10) and InboundMail (10), with Outbox extended to 12. 14/14 ForumHttp, including poll voting and revision compare in the enhanced stream and a private exchange between two members. 5/5 RemoteHttp with RemoteFixtures in a separate runtime, adding tags, bookmarks and a private message through the remote adapter. 1/1 Scale. Rust tests for `ec.resource.textDiff` and template thread and Reply-To fields. Screen lint with 0 parse failures. |
 | Review re-run (Oct 27) | 72/72 service features, 12/12 ForumHttp, 4/4 RemoteHttp with RemoteFixtures in a separate runtime, 1/1 Scale, three `public_site` Rust tests, and screen lint with 0 parse failures. |
 | Focused service suite | 62 features across Forum, ForumAccess, Media, PublicIdentity, SsoHandoff, Outbox, Mantle Mailboxes and BOSS InboxMailboxes. Covers policy ceilings/revocation, help threads, operation replay, moderation evidence, last owners, atomic rollback, profile media, marker conversion, exact-version wiki binding and isolated delivery failures. |
 | Local browser suite | 10/10 ForumHttp checks: anonymous HTML/API agreement, host/site substitution, CSRF, phone layout, real rich-text editing and draft resume, concurrent replay/409 edits, keyboard focus, conflict comparison and failed-save recovery. |
@@ -88,6 +117,4 @@ ordering rather than snapshot isolation across page requests. Search-provider-sp
 and production volume latency need deployment measurements. The tests above are verified cases,
 not a claim that every permutation of the design's cross-site/access/provider matrix has run.
 
-S2/S3 remain deferred: advanced trust/rules, tags/reactions/polls/bookmarks/answers/wiki-posts,
-private conversations, inbound mail/digests, integrations, imports, exports/retention and advanced
-reports. The framework wiki remains the authoring/versioning authority for S1 site pages.
+S3 remains deferred: integrations, imports, exports/retention and advanced reports. The framework wiki remains the authoring/versioning authority for S1 site pages.

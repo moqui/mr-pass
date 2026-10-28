@@ -100,9 +100,35 @@ requires its intended email and a valid invitation token.
 Register comma-separated `pass_sender_addresses` and `pass_mail_template_ids` on the authority.
 The selected template's configured sender must match the registered sender. Configure per-site
 mail settings through the Mail screen. Notification templates receive `title`, `siteId`,
-`rootCommEventId`, `postId`, and `unsubscribeUrl`. Forum email opt-out changes delivery preferences,
-not membership or in-app notifications. First contributions default to two approvals, ten seconds
-between posts, and New contribution limits of three topics/ten replies per day.
+`rootCommEventId`, `postId`, `postUrl`, `reason`, and `unsubscribeUrl`; mailing-list (Every post)
+mail also receives the sanitized post as `body`, and a digest receives `topics` (`title`, `url`).
+Private conversation notices carry only a generic title and link. Forum email opt-out changes
+delivery preferences, not membership or in-app notifications, and may be widened to the whole
+site. Replies thread under the member's earlier mail through In-Reply-To and References.
+Posting policy defaults (two first contributions held for approval, ten seconds between posts,
+trust-level daily and per-post limits) are set per site on the Policies screen, which accepts
+only settings at least as strict as the defaults.
+
+### Inbound email
+
+Register the domains forum route addresses may use in comma-separated `pass_route_domains` on
+the authority. Site owners then add route addresses on the Mail screen: a category address starts
+topics and accepts replies; an address without a category accepts replies only. Each email notice
+carries a reply address with a hashed, expiring token in its plus tag, issued to that recipient for
+that thread. Point the route addresses at a hosted or shared mail account behind the trusted edge
+gateway (`docs/Mail-Inbound.md` in mr-moqui) or at a synced account; the `ForumInbound` email ECA
+handles each stored message. Set the gateway's `smtp_authserv_id` so only its
+`Authentication-Results` are kept: a sender must be one verified account address with DMARC, or
+aligned DKIM, passing there. Nothing creates accounts from mail, and unknown senders get no reply.
+Automatic replies and the forum's own mail are ignored, delivery reports mark hard bounces and
+stop that member's email, and a failed message can be retried from the Mail screen.
+
+### Automated classification
+
+Classification is off by default. To offer it, set `pass_classifier_service` to an internal
+service taking `siteId`, `postId`, `revision`, and `text` and returning `decision` (`review` or
+`ok`), `model`, `version`, and `reason`; owners then enable it on the Policies screen. Results only
+file review items. Keep provider credentials in that service's own configuration.
 
 Set `pass_media_root` to private backend storage and `pass_scanner_service` to an internal service
 accepting `location` and `mimeType`, returning Boolean `clean`. The scanner must inspect actual
@@ -117,8 +143,10 @@ remote downloads use the framework response forwarding facility.
 
 ## Workers and recovery
 
-Seed jobs dispatch outbox delivery and mailbox/tracking conversions each minute and clean expired
-staging each hour. Staged, unfinalized uploads expire after seven days. Framework jobs clean expired
+Seed jobs dispatch outbox delivery, mailbox/tracking conversions, bookmark reminders, topic
+timers and the classifier queue each minute, recompute trust every ten minutes, and prepare digests
+and clean expired staging each hour. A topic timer rechecks its topic's category and its creator's
+moderation access when it fires, and is cancelled otherwise. Staged, unfinalized uploads expire after seven days. Framework jobs clean expired
 account challenges and throttle buckets. Confirm that the normal scheduler is running.
 
 Workers page recipients in batches of 100. Public members receive no per-post recipient rows;
