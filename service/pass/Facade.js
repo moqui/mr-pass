@@ -100,7 +100,10 @@ function call(operation, input) {
         if (method === 'GET' && token) return call(operation, input)
     }
     if (status < 200 || status >= 300)
-        fail(statusKind(status), 'The authority could not complete this request')
+        fail(
+            statusKind(status),
+            'The authority could not complete this request',
+        )
     return response.jsonObject()
 }
 function download(siteId, attachmentId, variant) {
@@ -149,4 +152,42 @@ function download(siteId, attachmentId, variant) {
         skipHeaders: ['set-cookie', 'x-csrf-token', 'moquisessiontoken'],
     })
 }
-;({ call, download, authorityClient, statusKind })
+/* An export or report download: the authority rechecks the requester and the expiry. */
+function downloadExport(siteId, exportId) {
+    const backend = System.getProperty('pass_backend_url')
+    if (!backend) {
+        const result = call('getExport', { siteId, exportId })
+        ec.web.response.setContentType(result.export.mimeType)
+        ec.web.response.setHeader('Cache-Control', 'no-store')
+        ec.web.response.setHeader('X-Content-Type-Options', 'nosniff')
+        ec.web.response.setHeader(
+            'Content-Disposition',
+            'attachment; filename="' +
+                String(result.export.filename).replace(/["\\\r\n]/g, '_') +
+                '"',
+        )
+        const stream = ec.resource
+            .getLocationReference(result.location)
+            .openStream()
+        try {
+            ec.web.response.write(stream.readAllBytes())
+        } finally {
+            stream.close()
+        }
+        return
+    }
+    const client = authorityClient(
+        siteId,
+        'exports/' + encodeURIComponent(exportId),
+        'GET',
+    )
+    if (ec.web.sessionAttributes.passDelegation)
+        client.addHeader(
+            'authorization',
+            'Bearer ' + ec.web.sessionAttributes.passDelegation,
+        )
+    ec.web.response.forward(client.send(), {
+        skipHeaders: ['set-cookie', 'x-csrf-token', 'moquisessiontoken'],
+    })
+}
+;({ call, download, downloadExport, authorityClient, statusKind })

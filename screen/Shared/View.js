@@ -461,6 +461,15 @@ const definitions = {
             form('leaveSite', 'Leave this site', [
                 field('expectedRevision', 'Membership revision', 'number'),
             ]),
+            form('requestPersonalDataAction', 'Export or erase my data', [
+                field('kind', 'Request', 'select', ['export', 'erasure']),
+                text('reason', 'Note (optional)'),
+                field(
+                    'confirm',
+                    'For erasure: I understand my profile is anonymized and my memberships end',
+                    'checkbox',
+                ),
+            ]),
         ],
     },
     Notifications: {
@@ -867,6 +876,35 @@ const definitions = {
                 text('pattern', 'Word, pattern or link domain'),
                 field('body', 'Sample text', 'textarea'),
             ]),
+            form('storeRetentionPolicy', 'Save retention periods', [
+                field(
+                    'deliveryDays',
+                    'Delivery ledger: days to keep (0 keeps)',
+                    'number',
+                ),
+                field(
+                    'inboundDays',
+                    'Inbound mail receipts: days to keep (0 keeps)',
+                    'number',
+                ),
+                field(
+                    'deletedPostDays',
+                    'Text of deleted and rejected posts: days to keep (0 keeps)',
+                    'number',
+                ),
+                field(
+                    'jobDays',
+                    'Finished operation runs: days to keep (0 keeps)',
+                    'number',
+                ),
+                field(
+                    'invitationDays',
+                    'Expired invitations: days to keep (0 keeps)',
+                    'number',
+                ),
+                field('expectedRevision', 'Retention revision', 'number'),
+                text('reason', 'Reason'),
+            ]),
         ],
     },
     Mail: {
@@ -926,6 +964,59 @@ const definitions = {
                     'resume',
                 ]),
                 text('reason', 'Reason'),
+            ]),
+            form('previewOperation', 'Preview an operation', [
+                field('operation', 'Operation', 'select', [
+                    'rebuild-counters',
+                    'retry-deliveries',
+                    'retention',
+                    'export-site',
+                ]),
+                text('contactListId', 'Category (optional)'),
+            ]),
+            form('startOperation', 'Start an operation', [
+                field('operation', 'Operation', 'select', [
+                    'rebuild-counters',
+                    'retry-deliveries',
+                    'retention',
+                    'export-site',
+                ]),
+                text('contactListId', 'Category (optional)'),
+                field('dryRun', 'Retention dry run', 'select', [
+                    'true',
+                    'false',
+                ]),
+                field(
+                    'expectedRevision',
+                    'Retention policy revision from the preview',
+                    'number',
+                ),
+                text('reason', 'Reason'),
+            ]),
+            form('decideDataRequest', 'Decide an erasure request', [
+                text('requestId', 'Request'),
+                field('decision', 'Decision', 'select', [
+                    'approved',
+                    'rejected',
+                ]),
+                text('reason', 'Reason'),
+                field('expectedRevision', 'Request revision', 'number'),
+            ]),
+        ],
+    },
+    Activity: {
+        title: 'Community activity',
+        read: 'getActivity',
+        forms: [
+            form('exportReport', 'Export a report as CSV', [
+                field('report', 'Report', 'select', [
+                    'activity',
+                    'moderation',
+                    'deliveries',
+                ]),
+                text('contactListId', 'Category (optional)'),
+                field('fromDate', 'From', 'datetime'),
+                field('thruDate', 'Until', 'datetime'),
             ]),
         ],
     },
@@ -1002,6 +1093,11 @@ function inputFor(op, siteId, parameters) {
         'fromRevision',
         'toRevision',
         'slowIntervalSeconds',
+        'deliveryDays',
+        'inboundDays',
+        'deletedPostDays',
+        'jobDays',
+        'invitationDays',
     ])
         if (k in input) input[k] = Number(input[k])
     // A browser datetime-local value is local time; send epoch milliseconds.
@@ -1017,6 +1113,8 @@ function inputFor(op, siteId, parameters) {
         'active',
         'locked',
         'includeOwn',
+        'dryRun',
+        'mine',
     ])
         if (k in input)
             input[k] =
@@ -1072,6 +1170,7 @@ function load(name, siteId, parameters, bases, identity) {
             'Policies',
             'Mail',
             'Operations',
+            'Activity',
         ].includes(name)
     ) {
         view.needsLogin = true
@@ -1233,6 +1332,13 @@ function load(name, siteId, parameters, bases, identity) {
             }
             view.entitlements = membership.entitlements || []
             view.subscriptionUrl = membership.subscriptionUrl
+            view.dataRequests = call('findDataRequests', {
+                siteId,
+                mine: true,
+            }).requestList
+            view.exports = call('findExports', { siteId }).exportList.filter(
+                (x) => x.kind === 'personal',
+            )
         }
     }
     if (def.read && (!def.optional || parameters[def.optional])) {
@@ -1370,6 +1476,37 @@ function load(name, siteId, parameters, bases, identity) {
             view.bindings = call('findSubscriptionBindings', {
                 siteId,
             }).bindingList
+        if (name === 'Operations') {
+            view.exports = call('findExports', { siteId }).exportList
+            view.dataRequests = call('findDataRequests', {
+                siteId,
+            }).requestList
+            view.formValues.startOperation = {
+                dryRun: 'true',
+                ...(parameters.operation
+                    ? { operation: parameters.operation }
+                    : {}),
+            }
+        }
+        if (name === 'Policies') {
+            const retention = call('getRetentionPolicy', { siteId })
+            view.formValues.storeRetentionPolicy = {
+                ...Object.fromEntries(
+                    Object.entries(retention.policy).map(([k, v]) => [
+                        k,
+                        String(v),
+                    ]),
+                ),
+                expectedRevision: String(retention.revision),
+            }
+        }
+        if (name === 'Activity') {
+            view.activity = data
+            view.details = []
+            view.exports = call('findExports', { siteId }).exportList.filter(
+                (x) => x.kind !== 'personal' && x.kind !== 'site',
+            )
+        }
         if (name === 'Mail') {
             view.routes = call('findRoutes', { siteId }).routeList
             view.receipts = call('findInboundReceipts', {
@@ -1680,6 +1817,37 @@ function caseReplyPreview(result, parameters, back) {
         '">Return without publishing</a></p></main></html>'
     )
 }
+/* What an operation would touch, with a link back to start it with the revision the preview showed. */
+function operationPreview(result, back) {
+    const encode = (value) => WebUtilities.encodeHtml(String(value ?? ''))
+    const lines = []
+    if (result.topicCount != null) lines.push('Topics: ' + result.topicCount)
+    if (result.deliveryCount != null)
+        lines.push('Failed deliveries to retry: ' + result.deliveryCount)
+    for (const item of Object.values(result.retention || {}))
+        lines.push(
+            item.label +
+                ': ' +
+                (item.days
+                    ? item.count + ' older than ' + item.days + ' days'
+                    : 'kept'),
+        )
+    const params =
+        'operation=' +
+        encodeURIComponent(result.operation) +
+        (result.policyRevision != null
+            ? '&expectedRevision=' + encodeURIComponent(result.policyRevision)
+            : '')
+    return (
+        '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review operation</title><main style="max-width:45rem;margin:2rem auto;padding:1rem;font:1rem/1.6 system-ui"><h1>Review operation</h1><p>' +
+        encode(result.operation) +
+        '</p><ul>' +
+        lines.map((line) => '<li>' + encode(line) + '</li>').join('') +
+        '</ul><p>Retention starts as a dry run; applying it needs the policy revision shown here. Nothing is pruned automatically.</p><a href="' +
+        encode(back + '?' + params + '#PassOperationsStartOperation') +
+        '">Return to start it</a></main></html>'
+    )
+}
 /* The link is pasted into mail, so it is absolute on the site's own host. */
 function invitationResult(result, bases, origin) {
     const encode = (value) => WebUtilities.encodeHtml(String(value || ''))
@@ -1700,4 +1868,12 @@ function invitationResult(result, bases, origin) {
         '">Return to members</a></p></main></html>'
     )
 }
-;({ load, save, inputFor, preview, caseReplyPreview, invitationResult })
+;({
+    load,
+    save,
+    inputFor,
+    preview,
+    caseReplyPreview,
+    operationPreview,
+    invitationResult,
+})

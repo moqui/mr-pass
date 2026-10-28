@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- CC0 1.0 Universal plus Grant of Patent License. See LICENSE.md. -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" require-authentication="false" default-menu-title="Settings">
+  <transition name="downloadExport" method="get" read-only="true">
+    <actions>
+      <script>ec.resource.script('component://mr-pass/service/pass/Facade.js').downloadExport(resolvedSiteId,ec.web.parameters.exportId)</script>
+    </actions>
+    <default-response type="none"/>
+  </transition>
   <transition name="save">
     <actions>
       <script><![CDATA[
@@ -512,6 +518,88 @@
           </field>
           <field name="submitAction">
             <default-field title="Join this community">
+              <submit/>
+            </default-field>
+          </field>
+        </form-single>
+        <render-mode>
+          <text type="html"><![CDATA[</form>]]></text>
+        </render-mode>
+      </widgets>
+    </section>
+    <section name="PassSettingsRequestPersonalDataActionSection" condition="view.forms.some(form =&gt; form.op === 'requestPersonalDataAction')">
+      <widgets>
+        <render-mode>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsRequestPersonalDataAction" action="${publicPath}/save"><h2>Export or erase my data</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+        </render-mode>
+        <form-single name="PassSettingsRequestPersonalDataAction" transition="save" map="Object.assign({},view.formValues['requestPersonalDataAction'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
+          <field name="formAction">
+            <default-field>
+              <hidden default-value="requestPersonalDataAction"/>
+            </default-field>
+          </field>
+          <field name="operationId">
+            <default-field>
+              <hidden default-value="${ec.user.randomString(32)}"/>
+            </default-field>
+          </field>
+          <field name="rootCommEventId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="contactListId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="reviewId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="token">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="returnTo">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeType">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="scopeId">
+            <default-field>
+              <hidden/>
+            </default-field>
+          </field>
+          <field name="kind">
+            <default-field title="Request">
+              <drop-down allow-empty="false">
+                <option key="export" text="export"/>
+                <option key="erasure" text="erasure"/>
+              </drop-down>
+            </default-field>
+          </field>
+          <field name="reason">
+            <default-field title="Note (optional)">
+              <text-line input-type="text"/>
+            </default-field>
+          </field>
+          <field name="confirm">
+            <default-field title="For erasure: I understand my profile is anonymized and my memberships end">
+              <check>
+                <option key="true" text="Confirm"/>
+              </check>
+            </default-field>
+          </field>
+          <field name="submitAction">
+            <default-field title="Export or erase my data">
               <submit/>
             </default-field>
           </field>

@@ -802,6 +802,72 @@ export interface OperationInputs {
         operationId: string
     }
     findModerationScopes: Record<string, never>
+    getRetentionPolicy: {
+        siteId: string
+    }
+    storeRetentionPolicy: {
+        siteId: string
+        deliveryDays?: number
+        inboundDays?: number
+        deletedPostDays?: number
+        jobDays?: number
+        invitationDays?: number
+        expectedRevision?: number
+        reason?: string
+    }
+    previewOperation: {
+        siteId: string
+        operation?: 'rebuild-counters' | 'retry-deliveries' | 'retention' | 'export-site'
+        contactListId?: string
+    }
+    startOperation: {
+        siteId: string
+        operation?: 'rebuild-counters' | 'retry-deliveries' | 'retention' | 'export-site'
+        contactListId?: string
+        dryRun?: boolean
+        expectedRevision?: number
+        reason?: string
+    }
+    requestPersonalDataAction: {
+        siteId: string
+        kind?: 'export' | 'erasure'
+        reason?: string
+        confirm?: boolean
+    }
+    findDataRequests: {
+        siteId: string
+        mine?: boolean
+        limit?: number
+        cursor?: Cursor
+    }
+    decideDataRequest: {
+        siteId: string
+        requestId?: string
+        decision?: 'approved' | 'rejected'
+        reason?: string
+        expectedRevision?: number
+    }
+    findExports: {
+        siteId: string
+    }
+    getExport: {
+        siteId: string
+        exportId?: string
+    }
+    getActivity: {
+        siteId: string
+        contactListId?: string
+        fromDate?: string | number
+        thruDate?: string | number
+        interval?: 'day' | 'week'
+    }
+    exportReport: {
+        siteId: string
+        report?: 'activity' | 'moderation' | 'deliveries'
+        contactListId?: string
+        fromDate?: string | number
+        thruDate?: string | number
+    }
 }
 export type Operation = keyof OperationInputs
 export type Request<O extends Operation> = { operation: O; input: OperationInputs[O] }
