@@ -1,7 +1,7 @@
 # PASS Forum implementation status
 
 Updated October 28, 2026. The [design](design-forum.md) remains the acceptance specification.
-The S1 and S2 implementations span mr-moqui/framework, mr-mantle, and mr-pass, with Comms
+The S1, S2 and S3 implementations span mr-moqui/framework, mr-mantle, and mr-pass, with Comms
 display changes in mr-boss. Existing BOSS inbox
 regressions run against the shared mailbox changes; BOSS is not a PASS runtime dependency.
 
@@ -64,6 +64,42 @@ account settings, notifications, unsubscribe, search and mail settings gained th
 - Inbound mail was exercised through the email ECA service with constructed header maps, not a
   live gateway, and digest/notice mail through captured mail.
 
+## Stage 3: integrations, migration and operations
+
+S3 began by splitting the 8,000-line `Forum.js` into `ForumCore.js` (primitives, access evaluator,
+idempotent writes, audit, shared policy), `Forum.js` (the `execute` entry and member-facing areas)
+and `ForumModeration.js`, with no behaviour change. New areas are modules of their own, each loaded
+once per call with the shared core: `ForumIntegration.js`, `ForumOperations.js` and `ForumImport.js`.
+It was then built in five slices, each with its own spec.
+
+| Area | Implementation |
+| --- | --- |
+| Entitlements | Subscription resource handlers write one `PublicAccessGrant` per subscription period: init and renew update it, restore lifts its revocation, revoke and destroy revoke only that source; replays never duplicate. An operator binds a resource to a site, category or article scope. Categories name the grant sources that qualify (manual, subscription); a qualifying grant reads and posts like a list member, a sanction still wins, and a current grant lets a party join a closed site. Staff grant and end manual access with reasons; subscription grants cannot be edited as manual. Mantle gained `expire#SubscriptionAccess`, which calls each resource's revoke and destroy services once after a subscription ends. No UserGroup is ever added. |
+| Support and discussions | Internal staff who moderate a topic escalate it to a support `Request` with only the selected visible posts as a private plain-text comment; case links are never shown to public users. A public reply from a case needs the staff member's own posting rights and publishes only the previewed sanitized body (hash-bound). Owners link a product (public only while a site store carries it) or an article to one discussion. An article discussion is gated by the article through topic reads, lists, search, feeds and email, until detached with an audience confirmation. Article drafts go to the site's publishing wiki space through the wiki's own access checks, unpublished, with a named internal reviewer. |
+| Comms moderation | BOSS Comms/Moderation lists the open review items of a site or bound category an internal user moderates and decides them through the same Mantle services; public accounts get no scopes there. |
+| Operations | Previewed, checkpointed runs for counter rebuild, delivery retry, retention and site export; a failed item is named while peers continue, cancel stops between items, retry or resume finishes. Retention periods are 0 or 30+ days per class and apply only with the previewed policy revision; deleted and rejected post text becomes a tombstone. Site exports (per-topic files, settings without credentials, manifest with SHA-256, zip) and personal exports expire after seven days and recheck authority at download. Erasure is confirmed by the member, decided by an owner and anonymizes without deleting the Party, posts or audit. CSV reports neutralize formula text. Activity counts readable participation and moderation; private conversations, delivery and capacity only for site staff; incomplete periods and failed runs are flagged. |
+| Discourse migration | Operator-registered archives (name and SHA-256 in `pass_import_dir`) are staged from their COPY blocks into maps keyed by site, table and source id; preflight blocks staff, identity, restricted-group and plugin decisions; decisions carry across a site's imports and an identity maps only to the account with the same verified address. The import runs in dependency order (identities, categories by depth with mapped-group grants, topics, posts from source Markdown sanitized anew, private participants, SHA-1-verified scanned uploads, likes, tags, answers, polls, reading positions, bookmarks, legacy URLs, counters), names failed rows and their dependants, writes no notifications and leaves imported members' email off. A changed source row needs an explicit keep or apply. Reconciliation writes a report; activation needs both approvals of the same revision, a frozen source and a backup. Old URLs resolve after current access checks. |
+
+Framework additions for scripts: `ec.resource.digest`, `gunzip`, `extractArchive` (regular files
+only, no parent paths, size and entry limits), `readLines` (byte-offset windows), `writeTarGz` and
+`markdownHtml`.
+
+New screens: Reports/Activity and Settings/Import; Operations, Policies, Members, Categories, Site
+settings, Account settings and topic pages gained the S3 forms above; BOSS gained Comms/Moderation.
+
+### S3 limits
+
+- Organization (verified-domain) grants are not built; sources are manual and subscription.
+- Paid articles use article-scoped bindings and grants now; the Publishing app that sells them is future.
+- Discourse edit history is counted in reconciliation but only the current text is imported;
+  category watch levels and staff notes are not imported; plugin data is listed for a decision only.
+  A read-only group permission is imported as read and post access.
+- Imports were rehearsed with a synthetic Discourse-shaped backup, not a real production snapshot.
+  Staging expands the archive within the request before its checkpointed run.
+- The remote browser check covers the S1/S2 flows; S3 operations reach the authority through the
+  same schema and routes (identical-copy test) but have no remote browser feature yet.
+- Activity aggregation was not measured on the 10,000-post Scale fixture.
+
 ## Screens
 
 All 27 S1 screen definitions have their functional core in the dedicated public shell:
@@ -87,6 +123,7 @@ The following checks ran through the existing incremental development build with
 
 | Check | Result and coverage |
 | --- | --- |
+| Stage 3 (Oct 28) | 160/160 service features across 18 specs: the S2 suite plus Entitlements (8), Integrations (5), Operations (9), Import (7), Mantle Subscriptions and BOSS CommsModeration (3). 15/15 ForumHttp, adding the owner's walk through every S3 screen and an operation preview. 5/5 RemoteHttp with RemoteFixtures in a separate runtime. 1/1 Scale. A Rust test for the archive, digest, line-window and Markdown helpers. Screen lint with 0 parse failures. BOSS AppStructure reports two failures that predate S3 (placeholder count, Insights Dashboard). |
 | Stage 2 (Oct 28) | 125/125 service features across 12 specs: the eight S1 specs plus Participation (11), Moderation (12), Conversations (11) and InboundMail (11), with Outbox extended to 13. An independent review of the whole S2 diff found ten defects; nine were fixed with checks (strict DMARC/DKIM alignment, no approval of a removed post, site-wide email stops over narrower modes, Comms replies to private conversations through the forum gate, suspended members' conversation lists, no classifier on private messages, trust contributions counted, long sanctions holding promotion, repeat-merge permalinks). 14/14 ForumHttp, including poll voting and revision compare in the enhanced stream and a private exchange between two members. 5/5 RemoteHttp with RemoteFixtures in a separate runtime, adding tags, bookmarks and a private message through the remote adapter. 1/1 Scale. Rust tests for `ec.resource.textDiff` and template thread and Reply-To fields. Screen lint with 0 parse failures. |
 | Review re-run (Oct 27) | 72/72 service features, 12/12 ForumHttp, 4/4 RemoteHttp with RemoteFixtures in a separate runtime, 1/1 Scale, three `public_site` Rust tests, and screen lint with 0 parse failures. |
 | Focused service suite | 62 features across Forum, ForumAccess, Media, PublicIdentity, SsoHandoff, Outbox, Mantle Mailboxes and BOSS InboxMailboxes. Covers policy ceilings/revocation, help threads, operation replay, moderation evidence, last owners, atomic rollback, profile media, marker conversion, exact-version wiki binding and isolated delivery failures. |
@@ -119,4 +156,4 @@ ordering rather than snapshot isolation across page requests. Search-provider-sp
 and production volume latency need deployment measurements. The tests above are verified cases,
 not a claim that every permutation of the design's cross-site/access/provider matrix has run.
 
-S3 remains deferred: integrations, imports, exports/retention and advanced reports. The framework wiki remains the authoring/versioning authority for S1 site pages.
+The framework wiki remains the authoring/versioning authority for site pages and article drafts.

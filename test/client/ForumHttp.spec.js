@@ -675,3 +675,82 @@ feature(
         },
     },
 )
+feature(
+    'the owner reaches the S3 screens: operations, activity, import, grants, privacy and topic links',
+    {
+        when() {
+            const page = browser.newPage({
+                viewport: { width: 1200, height: 900 },
+            })
+            page.goto('/account/Login')
+            page.getByLabel('Email or username', { exact: true }).fill(
+                'john.doe',
+            )
+            page.getByLabel('Password', { exact: true }).fill('moqui')
+            page.getByRole('button', { name: 'Sign in', exact: true }).click()
+            page.waitForURL('/forum')
+            // The rich-text editor's sandboxed preview frame logs this; the other browser features allow it too.
+            page.allowProblems(/Blocked script execution in 'about:srcdoc'/)
+            const visit = (path) => {
+                const nav = page.goto(path)
+                return { status: nav.status, text: page.text() }
+            }
+            const operations = visit('/forum/Settings/Operations')
+            // A preview through the ordinary form: what a counter rebuild would touch.
+            page.evaluate(() => {
+                const form = document.getElementById(
+                    'PassOperationsPreviewOperation',
+                )
+                form.querySelector('select[name="operation"]').value =
+                    'rebuild-counters'
+                form.requestSubmit()
+            })
+            page.waitFor(
+                () => document.body.innerText.includes('Review operation'),
+                { timeout: 30 },
+            )
+            const preview = page.text()
+            const activity = visit('/forum/Reports/Activity?interval=day')
+            const importPage = visit('/forum/Settings/Import')
+            const members = visit('/forum/Settings/Members')
+            const policies = visit('/forum/Settings/Policies')
+            const account = visit('/account/Settings')
+            const topic = visit('/forum')
+            const firstTopic = page.evaluate(() =>
+                Array.from(document.querySelectorAll('a'))
+                    .find((a) => a.getAttribute('href')?.includes('/t/'))
+                    ?.getAttribute('href'),
+            )
+            const topicPage = visit(firstTopic)
+            return {
+                operations,
+                preview,
+                activity,
+                importPage,
+                members,
+                policies,
+                account,
+                topic,
+                topicPage,
+            }
+        },
+        then(r) {
+            r.operations.status === 200 &&
+                r.operations.text.includes('Start an operation')
+            r.operations.text.includes('Preview an operation')
+            r.preview.includes('Topics:')
+            r.activity.status === 200 &&
+                r.activity.text.includes('Participation') &&
+                r.activity.text.includes('Export a report as CSV')
+            r.importPage.status === 200 &&
+                r.importPage.text.includes('Register an archive')
+            r.members.status === 200 && r.members.text.includes('Grant access')
+            r.policies.status === 200 &&
+                r.policies.text.includes('Save retention periods')
+            r.account.status === 200 &&
+                r.account.text.includes('Export or erase my data')
+            r.topicPage.status === 200
+            r.topicPage.text.includes('Link a product or article')
+        },
+    },
+)

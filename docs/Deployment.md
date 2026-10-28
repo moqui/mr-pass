@@ -172,6 +172,31 @@ changes. The stream polls for changes and clears inaccessible content. The S1 se
 authority's database and rechecks policy; legacy indexed mailbox hits are revalidated before
 projection and stale aggregate counts are suppressed.
 
+## Entitlements, operations and imports
+
+Paid access uses Mantle subscriptions. An operator binds a `SubscriptionResource` to a site, category
+or article in Site settings; the binding names the forum's access services on the resource, and a
+resource that already has other services is refused. Order approval then grants access per
+subscription period. Mantle's `expire_SubscriptionAccess` job (every ten minutes) calls each
+resource's revoke and destroy services once after a subscription ends, skipping one a later
+subscription continued, so keep it unpaused. Categories admit subscription grants only when their
+qualifying sources include `subscription`. Set `subscriptionUrl` on the site to link members to the
+page where they manage a subscription; Forum implements no checkout.
+
+`pass_dispatch_operations` (every minute) advances operation runs: counter rebuild, delivery retry,
+retention, site and personal exports, erasure and Discourse import stages. Each item runs in its own
+transaction and each run advances in its own. Retention runs only when a site owner starts it with
+the previewed policy revision; nothing prunes automatically. Exports and reports are written under
+`pass_media_root/exports`, expire after seven days, recheck the requester's authority when
+downloaded, and are removed by the cursor cleanup job. Set `publishingWikiSpaceId` on the site to
+let internal staff draft articles from topics into that wiki space.
+
+Set `pass_import_dir` to an operator-managed directory that holds Discourse backup archives. The
+browser only names a file there and its SHA-256; imports expand into `pass_media_root/imports` and
+run into a disabled site. Activation needs the operator's and a site owner's approval of the same
+reconciliation, a frozen source and a backup reference. Proxies can send old community URLs to
+`<forum mount>/legacy?path=...`; old `/t/slug/id` links redirect on their own.
+
 ## Reproducing the remote check
 
 Start an authority fixture on a dedicated loopback port:
