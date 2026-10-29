@@ -1545,3 +1545,11 @@ Future Commerce and Blog/Publishing documents decide their own complete screen l
 policies and editorial conveniences within §13's fixed data/access contracts. Repository ownership
 is established: this document lives in `mr-pass/plan/`, with BOSS retaining its integration notes
 and shared design references.
+
+## Accounting app contracts (P0, Oct 29, 2026)
+
+Accounting P18 adds two PASS apps: **Billing** (InvoicePay) and **Supplier** (BillUpload on the purchase-order page). They use PublicSiteApp mounts with non-overlapping prefixes and an explicit internal-organization target. The current Forum mount writer only accepts forum/account/members/sites and drops targetId; the future writer must validate and persist the typed target. Navigation, readiness and canonical page URLs must resolve the selected enabled mount rather than assume Forum.
+
+Every operation is declared in PASS Schema/Routes and Mantle PassRoutes, with authority in native Mantle portal and external-access services. Invitations bind the verified recipient and organization capability; public users gain no employee group. Bill evidence uses staged, scanned media finalized into the authorized record only after the submission succeeds.
+
+The default CSP remains `form-action 'self'; frame-ancestors 'none'`. A hosted gateway requires an explicit provider-specific form-action policy or server redirect; no arbitrary destination or return URL is accepted. Gateway returns use validated local paths. TEST_APPROVE and TEST_DECLINE already exist; P18 needs a deterministic durable pending-result/completion fixture and tests for retries, declines, provider returns and CSP. These are contracts only: P0 does not add portal runtime behavior.
