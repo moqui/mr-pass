@@ -8,13 +8,8 @@ The component has a framework-only static dependency. Local deployments load Man
 frontends need only framework, webroot, and PASS; they use one operator-configured Mantle authority
 without loading its entity catalog or copying its Party records. BOSS is not a runtime dependency.
 
-The [Forum design](plan/design-forum.md) defines the stages. See the
-[implementation status and verified checks](plan/implementation-forum.md) and
-[deployment instructions](docs/Deployment.md). Stage 2 adds tags, reactions, polls, bookmarks,
-accepted answers, wiki posts and post history; private conversations; trust, content rules,
-classification, timers and move/split/merge; full delivery preferences, digests, and email
-replies and new topics. S3 integrations, imports, retention/export, and advanced reports remain
-deferred.
+The [Forum design](plan/design-forum.md) defines the stages; what is built and verified, and what is deferred, is in
+[the implementation record](plan/implementation-forum.md). Operators start with [Deployment](docs/Deployment.md).
 
 ## Starting a community
 
