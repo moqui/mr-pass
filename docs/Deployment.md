@@ -116,7 +116,7 @@ the authority. Site owners then add route addresses on the Mail screen: a catego
 topics and accepts replies; an address without a category accepts replies only. Each email notice
 carries a reply address with a hashed, expiring token in its plus tag, issued to that recipient for
 that thread. Point the route addresses at a hosted or shared mail account behind the trusted edge
-gateway (`docs/Mail-Inbound.md` in mr-moqui) or at a synced account; the `ForumInbound` email ECA
+gateway (`docs/interfaces/Mail-Inbound.md` in mr-moqui) or at a synced account; the `ForumInbound` email ECA
 handles each stored message. Set the gateway's `smtp_authserv_id` so only its
 `Authentication-Results` are kept: a sender must be one verified account address with DMARC, or
 aligned DKIM, passing there. Nothing creates accounts from mail, and unknown senders get no reply.
