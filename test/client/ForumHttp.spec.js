@@ -116,7 +116,6 @@ feature(
                 hasEditor = page.evaluate(
                     () => !!document.querySelector('[contenteditable="true"]'),
                 )
-            page.screenshot('composer-ready')
             page.goto('/forum/Drafts')
             const saved = page.text().includes('Browser saved draft')
             page.getByRole('link', {
