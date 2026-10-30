@@ -30,7 +30,8 @@ Run from the mr-moqui workspace root with the existing compiler and incremental 
 ```sh
 ./moq build -- --features moqui-host/image
 ./moq test mr-pass mr-mantle mr-boss --nobuild --spec Forum,ForumAccess,Media,PublicIdentity,SsoHandoff,Outbox,Mailboxes,InboxMailboxes,Participation,Moderation,Conversations,InboundMail,Entitlements,Subscriptions,Integrations,Operations,Import,CommsModeration --db snapshot
-./moq test-client mr-pass --nobuild --serve --spec ForumHttp
+# ForumHttp is slow (over 30 seconds): --slow runs it, only when its browser scenarios are needed
+./moq test-client mr-pass --nobuild --serve --spec ForumHttp --slow
 ./moq test mr-pass --nobuild --spec Scale --db snapshot -D pass_scale_test=true
 ./moq run --nobuild lint --screens
 ```

@@ -1,4 +1,7 @@
 const api = '/rest/s1/pass/v1/sites/PASS_HTTP'
+// 15 features, about 64 seconds (2026-10-30): over 30 seconds, so moqui test-client runs it only with --slow, when its
+// browser scenarios are needed.
+spec({ slow: true })
 feature('anonymous HTML reading and API use the same public projection', {
     when() {
         const s = session()
