@@ -142,7 +142,7 @@ revisions: Mantle `909e43053c67`, BOSS `19af60169f2a`, Discourse `568a006ad8f5`,
 | R7 | Odoo `addons/website_forum/models/forum_forum.py`, `forum_post.py`, `forum_post_vote.py`; `addons/website_forum/views/forum_forum_templates_post.xml`, `forum_forum_templates_moderation.xml`; `addons/website_forum/controllers/website_forum.py` | Adopt category discussion/Q&A intent, answer filtering, accepted-answer affordances and website integration. Optional Q&A mode keeps the same chronological storage and accepted-answer highlight. Omit a separate karma ledger; PASS trust/reactions cover the need. |
 | R8 | Odoo `addons/website_blog/models/website_blog.py`, `controllers/main.py`, `views/website_blog_templates.xml`, `views/website_blog_posts_loop.xml`; `addons/website_blog/__manifest__.py` | Future Publishing: publications, author/teaser/cover, taxonomy, scheduled visibility, archive/search and public-site integration. Full publishing screens deferred, contracts in §13. |
 | R9 | Odoo `addons/website_sale/models/website.py`, `product_public_category.py`, `controllers/cart.py`, `payment.py`, `portal.py`; `addons/website_sale/__manifest__.py`; `addons/website`, `website_mail`, `website_payment`, `auth_signup`, `portal` | Future Commerce: site/store/account binding, public catalog, cart/checkout, portal and content integration. Full Commerce screens deferred. Website-builder parity and general arbitrary page-layout editing are outside this Forum design. |
-| R10 | Framework `runtime/base-component/framework/entity/ResourceEntities.xml`, `service/org/moqui/impl/WikiServices.xml` under that same component; `docs/Mail-Inbound.md`; `runtime/base-component/framework/entity/ChatEntities.xml`; `crates/moqui-core/src/service/remote.rs`; Mantle `entity/ProductDefinitionEntities.xml`, `service/mantle/product/SubscriptionServices.xml` | Reuse wiki versions/reviews, mail ingestion, remote transport and subscription interfaces. Chat reactions/polls are keyed to ChatEvent and cannot be used as forum rows unchanged. |
+| R10 | Framework `runtime/base-component/framework/entity/ResourceEntities.xml`, `service/org/moqui/impl/WikiServices.xml` under that same component; `docs/interfaces/Mail-Inbound.md`; `runtime/base-component/framework/entity/ChatEntities.xml`; `crates/moqui-core/src/service/remote.rs`; Mantle `entity/ProductDefinitionEntities.xml`, `service/mantle/product/SubscriptionServices.xml` | Reuse wiki versions/reviews, mail ingestion, remote transport and subscription interfaces. Chat reactions/polls are keyed to ChatEvent and cannot be used as forum rows unchanged. |
 
 Additional dispositions: Discourse migration is S3 (§18); phpBB import is deferred. Topic voting
 as a separate feature-request ranking system, badges/leaderboards, live chat, events, federation,
@@ -1040,7 +1040,7 @@ retract material already delivered; audience changes prevent subsequent sends an
 
 ### 12.3 Inbound posting
 
-The framework already accepts mail behind a trusted edge gateway (see `docs/Mail-Inbound.md`),
+The framework already accepts mail behind a trusted edge gateway (see `docs/interfaces/Mail-Inbound.md`),
 stores `EmailMessage`/attachments, and runs email ECAs/rules. The gateway handles internet SMTP,
 spam/virus filtering and trusted authentication results. A new forum route handler consumes that
 stored message, not a second SMTP server. Existing hosted/shared accounts or IMAP ingestion can
