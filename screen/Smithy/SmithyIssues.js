@@ -260,6 +260,8 @@ const ISLAND_SCRIPTS = [
     "/js/WebrootPublic.qvt.js"
 ]
 const COMPOSER = "SmithyComposer"
+// an island's own texts in the visitor's language, which a public page has no catalog for
+const {islandMessages} = ec.resource.script("component://webroot/script/IslandMessages.js")
 /* One island's config and, unless another island of the page has them already, the scripts (more: the widgets an island
  * needs, loaded before WebrootPublic.qvt.js mounts it). */
 function islandOf(mount, name, c, siteInfo, context, o = {}) {
@@ -272,6 +274,7 @@ function islandOf(mount, name, c, siteInfo, context, o = {}) {
         quasarLang: "enUS",
         qvt: {build: "runtime", handles: ["static-template", "bundled-qvue"]},
         route: {name: "smithy-" + name.toLowerCase(), basePath: c.base + "/-/island/" + name, title: name, renderModes: ["qvue"]},
+        messages: islandMessages(["component://mr-pass/screen/Smithy/Islands/" + name + ".qvue"]),
         context,
         labels: {loading: o.loading || "Loading", notFound: ""}
     }
@@ -296,6 +299,7 @@ function island(c, siteInfo, f, label, o) {
         quasarLang: "enUS",
         qvt: {build: "runtime", handles: ["static-template", "bundled-qvue"]},
         route: {name: "smithy-composer", basePath: c.base + "/-/island/Composer", title: ec.l10n.localize("Composer"), renderModes: ["qvue"]},
+        messages: islandMessages(["component://mr-pass/screen/Smithy/Islands/Composer.qvue"]),
         context: {formId: f.id, previewOf: f.name, previewUrl: c.base + "/-/do/previewPost", label},
         labels: {loading: "Loading the editor", notFound: ""}
     }

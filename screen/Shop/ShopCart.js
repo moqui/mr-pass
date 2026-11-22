@@ -148,6 +148,10 @@ function island(context, mountId, screen, islandContext) {
             renderModes: ['qvue'],
         },
         context: islandContext,
+        // the island's own texts in the visitor's language, which a public page has no catalog for
+        messages: ec.resource
+            .script('component://webroot/script/IslandMessages.js')
+            .islandMessages(['component://mr-pass/screen/Shop/' + screen + '.qvue']),
         labels: { loading: ec.l10n.localize('Loading'), notFound: '' },
     }
     return (
