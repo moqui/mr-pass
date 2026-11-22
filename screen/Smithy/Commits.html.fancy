@@ -1,4 +1,4 @@
-<h2 class="wrap"><#if view.ref>${ec.resource.expand("Commits  on ${view.ref}", "")}<#else>${ec.l10n.localize("Commits")}</#if><#if view.path> ${ec.resource.expand("in ${view.path}", "")}</#if></h2>
+<h2 class="wrap"><#if view.ref>${ec.resource.expand("Commits on ${view.ref}", "")}<#else>${ec.l10n.localize("Commits")}</#if><#if view.path> ${ec.resource.expand("in ${view.path}", "")}</#if></h2>
 <p><a href="${view.treeHref}">Browse files</a><#if view.newestHref> · <a href="${view.newestHref}">Newest</a></#if></p>
 <section id="SmithyCommitList" aria-label="${ec.l10n.localize("Commits")}"><#if !view.days.length><p class="card">${ec.l10n.localize("No commits to show.")}</p></#if>
 <#list view.days as day><h3>${day.date}</h3><#list day.commits as row><article class="card smithy-row"><p class="wrap"><a href="${row.href}">${row.summary || row.shortId}</a></p><p><small>${row.authorName}<#if row.authorHref> <a href="${row.authorHref}">@${row.authorHandle}</a></#if> · <a href="${row.href}"><code>${row.shortId}</code></a></small></p></article></#list></#list></section>
