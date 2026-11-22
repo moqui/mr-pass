@@ -4,7 +4,7 @@
 <#elseif attempt.state == 'pending'><p><strong>${ec.l10n.localize('Your payment is not confirmed yet.')}</strong></p><p><a href="?attemptId=${encodeURIComponent(attempt.attemptId)}&amp;returnToken=${encodeURIComponent(returnKey)}">${ec.l10n.localize('Check the payment again')}</a></p>
 <#elseif attempt.state == 'declined'><p><strong>${ec.l10n.localize('The payment was declined.')}</strong></p>
 <#else><p><strong>${ec.l10n.localize('The payment did not complete.')}</strong></p></#if></section>
-<#if (!siteInfo.authenticated)><p>${raw(ec.resource.expand('Open the link in your invoice email or <a href="${loginHref}">sign in</a> to see the invoice.', '', {loginHref: passBases.account + '/Login?returnTo=' + encodeURIComponent(publicPath)}))}</p><#else><p>${ec.l10n.localize('Open the link in your invoice email to see the invoice.')}</p></#if>
+<#if (!siteInfo.authenticated)><p>${raw(ec.resource.expand('Open the link in your invoice email or <a href="${loginHref}">sign in</a> to see the invoice.', '', {loginHref: WebUtilities.encodeHtml(passBases.account + '/Login?returnTo=' + encodeURIComponent(publicPath))}))}</p><#else><p>${ec.l10n.localize('Open the link in your invoice email to see the invoice.')}</p></#if>
 <#else><h1>${ec.resource.expand('Invoice ${view.invoice.invoiceId}', '', {view: view})}</h1>
 <#if payError><p role="alert" class="error">${payError}</p></#if>
 <#if shareUrl><section class="card" aria-label="${ec.l10n.localize('Pay link')}"><h2>${ec.l10n.localize('Pay link created')}</h2><p>${ec.l10n.localize('Share it with the person who pays; it is shown once.')}</p><p class="wrap"><a href="${shareUrl}">${shareUrl}</a></p></section></#if>

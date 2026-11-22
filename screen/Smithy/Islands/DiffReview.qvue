@@ -37,7 +37,7 @@
                 <input type="hidden" name="operationId" :value="composer.operationId" />
                 <input type="hidden" name="sourceFormat" value="markdown" />
                 <label
-                    >{{ t('Comment on line ${line} of ${path}').replace('${line}', composer.line).replace('${path}', composer.path) }}
+                    >{{ t('Comment on line ${line} of ${path}').split('${line}').join(composer.line).split('${path}').join(composer.path) }}
                     <textarea ref="body" name="body" rows="3" maxlength="100000" required></textarea>
                 </label>
                 <p><small>Markdown.</small></p>
@@ -144,7 +144,7 @@ module.exports = {
             const response = await fetch(base + '/' + String(path).split('/').map(encodeURIComponent).join('/'))
             if (response.status === 404 && absent) return ''
             if (!response.ok)
-                throw new Error(this.t('This file cannot be shown side by side: its text was not read (${status}).').replace('${status}', String(response.status)))
+                throw new Error(this.t('This file cannot be shown side by side: its text was not read (${status}).').split('${status}').join(String(response.status)))
             if (Number(response.headers.get('content-length') || 0) > MAX_SIDE)
                 throw new Error(this.t('This file is too large to show side by side.'))
             const text = await response.text()

@@ -61,7 +61,7 @@
                 >{{ t('Title') }}<input v-model="draft.title" maxlength="250" required
             /></label>
             <p v-if="selectedCategory">
-                {{ t('Audience: ${audience}.').replace('${audience}', audience(selectedCategory.visibility)) }}
+                {{ t('Audience: ${audience}.').split('${audience}').join(audience(selectedCategory.visibility)) }}
             </p>
             <p v-if="!canPublish && !scansPending">
                 {{ t('Posting is currently unavailable here. Your draft can still be saved.') }}

@@ -130,9 +130,10 @@ function apply(app, path, logoUrl) {
     if (response) {
         response.setHeader('Cache-Control', policy.cacheControl)
         // a page a cache may keep is the answer to a request with no cookie only: once a visitor has a session (signing
-        // in), neither the browser's cache nor a shared one answers with the anonymous page
+        // in), neither the browser's cache nor a shared one answers with the anonymous page; the anonymous page is in the
+        // language the browser asks for, so a cache keeps one per Accept-Language
         if (String(policy.cacheControl).startsWith('public'))
-            response.setHeader('Vary', 'Cookie')
+            response.setHeader('Vary', 'Cookie, Accept-Language')
         response.setHeader('Referrer-Policy', 'same-origin')
         response.setHeader('Content-Security-Policy', csp(policy))
     }

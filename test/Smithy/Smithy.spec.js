@@ -750,7 +750,7 @@ feature("raw serves a file as plain text or a download, never as a page: its typ
         // public for a minute only for a request with no session cookie and no signed-in user
         cache === "public, max-age=60"
         // and that answer is for a request with no cookie: after a sign-in the browser asks again
-        vary === "Cookie"
+        vary === "Cookie, Accept-Language"
         sessionCache === "no-store"
     }
 })
