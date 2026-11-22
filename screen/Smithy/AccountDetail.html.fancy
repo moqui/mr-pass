@@ -1,6 +1,6 @@
 <h1 class="wrap">${view.displayName} <small>@${view.handle}</small></h1>
 <#if view.bio><section class="card" id="SmithyAccountBio"><p class="smithy-pre">${view.bio}</p></section></#if>
 <h2>Repositories</h2>
-<section id="SmithyRepositoryList" aria-label="Repositories"><#if !view.repositories.length><p class="card">No repositories to show.</p></#if>
+<section id="SmithyRepositoryList" aria-label="Repositories"><#if !view.repositories.length><p class="card">${ec.l10n.localize("No repositories to show.")}</p></#if>
 ${raw(ec.resource.template('component://mr-pass/screen/Smithy/RepositoryRows.html.fancy', {rows: view.repositories}))}</section>
-<#if view.moreHref><p><a href="${view.moreHref}">More repositories</a></p></#if>
+<#if view.moreHref><p><a href="${view.moreHref}">${ec.l10n.localize("More repositories")}</a></p></#if>

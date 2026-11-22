@@ -1,5 +1,5 @@
 <template>
-    <section aria-label="Topic posts">
+    <section :aria-label="t('Topic posts')">
         <p role="status" aria-live="polite">{{ status }}</p>
         <article
             v-for="post in posts"
@@ -12,18 +12,18 @@
                 {{
                     post.author.displayName ||
                     post.author.handle ||
-                    'Community member'
+                    t('Community member')
                 }}
                 · {{ formatDate(post.entryDate) }}
             </p>
-            <p v-if="post.accepted"><strong>Accepted answer</strong></p>
-            <p v-if="post.wiki">Wiki post: eligible members may improve it</p>
-            <nav aria-label="Post actions" class="post-actions">
-                <a :href="forumBase + '/p/' + post.postId">Link to this post</a>
+            <p v-if="post.accepted"><strong>{{ t('Accepted answer') }}</strong></p>
+            <p v-if="post.wiki">{{ t('Wiki post: eligible members may improve it') }}</p>
+            <nav :aria-label="t('Post actions')" class="post-actions">
+                <a :href="forumBase + '/p/' + post.postId">{{ t('Link to this post') }}</a>
                 <a
                     v-if="post.capabilities.canEdit"
                     :href="forumBase + '/Compose?postId=' + post.postId"
-                    >Edit post</a
+                    >{{ t('Edit post') }}</a
                 >
                 <a
                     v-if="post.hasHistory"
@@ -32,7 +32,7 @@
                         '/Topics/PostHistory?postId=' +
                         encodeURIComponent(post.postId)
                     "
-                    >History</a
+                    >{{ t('History') }}</a
                 >
                 <a
                     v-if="topic.canFlag"
@@ -41,7 +41,7 @@
                         encodeURIComponent(post.postId) +
                         '#PassTopicDetailFlagPost'
                     "
-                    >Report</a
+                    >{{ t('Report a post') }}</a
                 >
                 <a
                     v-if="topic.signedIn"
@@ -50,7 +50,7 @@
                         encodeURIComponent(post.postId) +
                         '#PassTopicDetailStoreBookmark'
                     "
-                    >Bookmark</a
+                    >{{ t('Bookmark') }}</a
                 >
                 <a
                     v-if="
@@ -64,17 +64,17 @@
                         encodeURIComponent(post.postId) +
                         '#PassTopicDetailAcceptAnswer'
                     "
-                    >Accept answer</a
+                    >{{ t('Accept answer') }}</a
                 >
                 <span v-if="post.capabilities.canRelease"
-                    >Held as possible spam; not delivered</span
+                    >{{ t('Held as possible spam; not delivered') }}</span
                 >
                 <button
                     v-if="post.capabilities.canRelease"
                     type="button"
                     @click="release(post)"
                 >
-                    Release
+                    {{ t('Release the message') }}
                 </button>
                 <a
                     v-if="post.capabilities.canDelete"
@@ -85,13 +85,13 @@
                         post.revision +
                         '#PassTopicDetailDeletePost'
                     "
-                    >Delete</a
+                    >{{ t('Delete') }}</a
                 >
             </nav>
             <p v-if="post.collapsed">
-                This message is held as possible spam, and its text is hidden.
+                {{ t('This message is held as possible spam, and its text is hidden.') }}
                 <button type="button" @click="showHeld(post)">
-                    Show the message
+                    {{ t('Show the message') }}
                 </button>
             </p>
             <m-html-view
@@ -102,12 +102,12 @@
             <section
                 v-if="post.pollId && polls[post.pollId]"
                 class="poll"
-                aria-label="Poll"
+                :aria-label="t('Poll')"
             >
                 <h3>{{ polls[post.pollId].question }}</h3>
                 <fieldset v-if="polls[post.pollId].canVote">
                     <legend>
-                        Choose up to {{ polls[post.pollId].maxChoices }}
+                        {{ t('Choose up to ${count}').replace('${count}', polls[post.pollId].maxChoices) }}
                     </legend>
                     <label
                         v-for="option in polls[post.pollId].options"
@@ -125,7 +125,7 @@
                         {{ option.label }}</label
                     >
                     <button type="button" @click="vote(post.pollId)">
-                        Vote
+                        {{ t('Vote') }}
                     </button>
                 </fieldset>
                 <ul v-if="polls[post.pollId].voterCount != null">
@@ -139,7 +139,7 @@
                         >
                     </li>
                 </ul>
-                <p v-else>Results appear after you vote.</p>
+                <p v-else>{{ t('Results appear after you vote.') }}</p>
             </section>
             <div
                 v-if="
@@ -147,7 +147,7 @@
                     Object.keys(post.reactions || {}).length
                 "
                 class="reactions"
-                aria-label="Reactions"
+                :aria-label="t('Reactions')"
             >
                 <template v-for="key in reactionKeys" :key="key">
                     <button
@@ -175,7 +175,7 @@
                             '/download?variant=thumbnail&amp;attachmentId=' +
                             encodeURIComponent(attachment.attachmentId)
                         "
-                        :alt="attachment.altText || 'Attached image'"
+                        :alt="attachment.altText || t('Attached image')"
                         loading="lazy"
                     /><a
                         :href="
@@ -188,7 +188,7 @@
                 </li>
             </ul>
         </article>
-        <a v-if="nextCursor" :href="nextUrl">Next page</a>
+        <a v-if="nextCursor" :href="nextUrl">{{ t('Next page') }}</a>
     </section>
 </template>
 <script>
@@ -226,7 +226,7 @@ module.exports = {
             this.poll = setInterval(() => this.load(true), 15000)
         } catch (e) {
             this.status =
-                'Enhanced reading is unavailable. The server-rendered posts remain below.'
+                this.t('Enhanced reading is unavailable. The server-rendered posts remain below.')
         }
     },
     computed: {
@@ -242,6 +242,7 @@ module.exports = {
         if (this.observer) this.observer.disconnect()
     },
     methods: {
+        t(text) { return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text },
         formatDate(value) {
             return new Date(
                 Number.isFinite(Number(value)) ? Number(value) : String(value),
@@ -266,11 +267,11 @@ module.exports = {
             ) {
                 this.posts = []
                 this.status =
-                    'Your access changed. Sign in or return to the topic list.'
+                    this.t('Your access changed. Sign in or return to the topic list.')
                 clearInterval(this.poll)
                 return
             }
-            if (!response.ok) throw new Error('Topic unavailable')
+            if (!response.ok) throw new Error(this.t('Topic unavailable'))
             const data = await response.json()
             // Reapply the current projection even if an external membership change missed a generation update.
             this.posts = data.postList
@@ -303,7 +304,7 @@ module.exports = {
                     moquiSessionToken: moqui.sessionToken,
                 }),
             })
-            if (!response.ok) throw new Error('Action failed')
+            if (!response.ok) throw new Error(this.t('Action failed'))
             return response.json()
         },
         // a held message's text, shown when the participant asks for it
@@ -321,7 +322,7 @@ module.exports = {
                 })
                 await this.load(true)
             } catch (e) {
-                this.status = 'The message was not released. Try again.'
+                this.status = this.t('The message was not released. Try again.')
             }
         },
         async react(post, key) {
@@ -334,7 +335,7 @@ module.exports = {
                 })
                 await this.load(true)
             } catch (e) {
-                this.status = 'Your reaction was not saved. Try again.'
+                this.status = this.t('Your reaction was not saved. Try again.')
             }
         },
         async vote(pollId) {
@@ -344,9 +345,9 @@ module.exports = {
             try {
                 await this.act({ formAction: 'votePoll', pollId, optionIds })
                 await this.load(true)
-                this.status = 'Your vote was recorded.'
+                this.status = this.t('Your vote was recorded.')
             } catch (e) {
-                this.status = 'Your vote was not recorded. Try again.'
+                this.status = this.t('Your vote was not recorded. Try again.')
             }
         },
         observe() {
@@ -407,7 +408,7 @@ module.exports = {
                 if (response.ok) this.marker = (await response.json()).marker
             } catch (e) {
                 this.status =
-                    'Reading position will retry when the connection returns.'
+                    this.t('Reading position will retry when the connection returns.')
             } finally {
                 this.busy = false
             }

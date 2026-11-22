@@ -1,9 +1,9 @@
 <#if view.subgroups.length><section id="SmithySubgroups" aria-label="Subgroups"><h2>Subgroups</h2>
 ${raw(ec.resource.template('component://mr-pass/screen/Smithy/GroupRows.html.fancy', {rows: view.subgroups}))}</section></#if>
 <h2>Repositories</h2>
-<#if view.newRepositoryHref || view.newSubgroupHref><p id="SmithyGroupNew"><#if view.newRepositoryHref><a href="${view.newRepositoryHref}">New repository</a></#if><#if view.newRepositoryHref && view.newSubgroupHref> · </#if><#if view.newSubgroupHref><a href="${view.newSubgroupHref}">New subgroup</a></#if></p></#if>
+<#if view.newRepositoryHref || view.newSubgroupHref><p id="SmithyGroupNew"><#if view.newRepositoryHref><a href="${view.newRepositoryHref}">New repository</a></#if><#if view.newRepositoryHref && view.newSubgroupHref> · </#if><#if view.newSubgroupHref><a href="${view.newSubgroupHref}">${ec.l10n.localize("New subgroup")}</a></#if></p></#if>
 <form method="get" action="${view.action}" class="card" role="search" id="SmithyRepositoryFind"><label>Filter <input type="search" name="q" value="${view.q}" maxlength="100"></label>
-<label>Sort by <select name="sort"><option value="name"<#if view.sort == 'name'> selected</#if>>Name</option><option value="pushed"<#if view.sort == 'pushed'> selected</#if>>Last push</option></select></label><button>Show</button></form>
-<section id="SmithyRepositoryList" aria-label="Repositories"><#if !view.repositories.length><p class="card">No repositories to show.</p></#if>
+<label>${ec.l10n.localize("Sort by")} <select name="sort"><option value="name"<#if view.sort == 'name'> selected</#if>>Name</option><option value="pushed"<#if view.sort == 'pushed'> selected</#if>>${ec.l10n.localize("Last push")}</option></select></label><button>Show</button></form>
+<section id="SmithyRepositoryList" aria-label="Repositories"><#if !view.repositories.length><p class="card">${ec.l10n.localize("No repositories to show.")}</p></#if>
 ${raw(ec.resource.template('component://mr-pass/screen/Smithy/RepositoryRows.html.fancy', {rows: view.repositories}))}</section>
-<#if view.moreHref><p><a href="${view.moreHref}">More repositories</a></p></#if>
+<#if view.moreHref><p><a href="${view.moreHref}">${ec.l10n.localize("More repositories")}</a></p></#if>

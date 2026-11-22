@@ -1,12 +1,12 @@
-<#if failure><h1>Help</h1><p role="alert" class="error">${failure.message}</p>
-<#else><h1>Help from ${view.organizationName}</h1>
-<#if view.hoursNotice><p class="card" role="status">${view.hoursNotice.message}. You can still send us your request now.</p></#if>
-<form method="get" id="HelpSearch" class="card" role="search" action="${publicPath}"><label>Search our help <input type="search" name="q" value="${query || ''}" maxlength="200" aria-describedby="HelpSearchHint"></label><p id="HelpSearchHint"><small>Type a few words about your question.</small></p><button>Search</button></form>
-<section class="card" id="HelpResults" aria-live="polite"><h2><#if query>Answers for “${query}”<#else>Help articles</#if></h2>
+<#if failure><h1>${ec.l10n.localize("Help")}</h1><p role="alert" class="error">${failure.message}</p>
+<#else><h1>${ec.resource.expand("Help from ${view.organizationName}", "", {view: view})}</h1>
+<#if view.hoursNotice><p class="card" role="status">${ec.resource.expand("${view.hoursNotice.message}. You can still send us your request now.", "", {view: view})}</p></#if>
+<form method="get" id="HelpSearch" class="card" role="search" action="${publicPath}"><label>${ec.l10n.localize("Search our help")} <input type="search" name="q" value="${query || ''}" maxlength="200" aria-describedby="HelpSearchHint"></label><p id="HelpSearchHint"><small>${ec.l10n.localize("Type a few words about your question.")}</small></p><button>${ec.l10n.localize("Search")}</button></form>
+<section class="card" id="HelpResults" aria-live="polite"><h2><#if query>${ec.resource.expand("Answers for “${query}”", "", {query: query})}<#else>${ec.l10n.localize("Help articles")}</#if></h2>
 <#if view.articleList.length><ul><#list view.articleList as row><li><a href="${passBases.support}/CustomerArticle?wikiPageId=${encodeURIComponent(row.wikiPageId)}">${row.title}</a></li></#list></ul>
-<#else><p>No article matches<#if query> “${query}”</#if>. Our team can help you directly.</p></#if></section>
-<section class="card" aria-label="Contact support"><h2>Still need help?</h2>
-<#if view.capabilities.canCreateCase><p><a href="${passBases.support}/NewCustomerCase">Contact support</a></p></#if>
-<#if view.capabilities.canSeeCases><p><a href="${passBases.support}/MyCases">My cases</a> · <a href="${passBases.support}/MyReturns">My returns</a></p></#if>
-<#if !view.signedIn><p><a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath || '')}">Sign in</a> to contact us and follow your requests and returns.</p>
-<#elseif !view.capabilities.canSeeCases><p>Your account is not linked to a customer of ${view.organizationName}. Use the invitation we sent you, or reply to one of our emails.</p></#if></section></#if>
+<#else><p><#if query>${ec.resource.expand("No article matches “${query}”. Our team can help you directly.", "", {query: query})}<#else>${ec.l10n.localize("No article matches. Our team can help you directly.")}</#if></p></#if></section>
+<section class="card" aria-label="${ec.l10n.localize("Contact support")}"><h2>${ec.l10n.localize("Still need help?")}</h2>
+<#if view.capabilities.canCreateCase><p><a href="${passBases.support}/NewCustomerCase">${ec.l10n.localize("Contact support")}</a></p></#if>
+<#if view.capabilities.canSeeCases><p><a href="${passBases.support}/MyCases">${ec.l10n.localize("My cases")}</a> · <a href="${passBases.support}/MyReturns">${ec.l10n.localize("My returns")}</a></p></#if>
+<#if !view.signedIn><p><a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath || '')}">${ec.l10n.localize("Sign in")}</a> ${ec.l10n.localize("to contact us and follow your requests and returns.")}</p>
+<#elseif !view.capabilities.canSeeCases><p>${ec.resource.expand("Your account is not linked to a customer of ${view.organizationName}. Use the invitation we sent you, or reply to one of our emails.", "", {view: view})}</p></#if></section></#if>

@@ -25,7 +25,7 @@
     <section name="PassSitesCreateSiteSection" condition="view.forms.some(form =&gt; form.op === 'createSite')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSitesCreateSite" action="${publicPath}/save"><h2>Create disabled site</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSitesCreateSite" action="${publicPath}/save"><h2>${ec.l10n.localize('Create disabled site')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSitesCreateSite" transition="save" map="Object.assign({},view.formValues['createSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

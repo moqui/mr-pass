@@ -66,10 +66,10 @@ function moderation(siteId, groupId, repositoryId, bases, path, moderationPath) 
     }
 }
 const REASONS = [
-    ["spam", "Spam or advertising"],
-    ["abuse", "Abuse or harassment"],
-    ["malware", "Malware or a way to harm its users"],
-    ["illegal", "Something illegal"],
+    ["spam", ec.l10n.localize("Spam or advertising")],
+    ["abuse", ec.l10n.localize("Abuse or harassment")],
+    ["malware", ec.l10n.localize("Malware or a way to harm its users")],
+    ["illegal", ec.l10n.localize("Something illegal")],
     ["other", "Something else"]
 ]
 /* Report (design §12.3), at -/moderation/report: a confirmed viewer reports the group or the repository to the
@@ -156,9 +156,9 @@ function reviewTarget(target, bases, siteId) {
 }
 
 const LIST_MODES = [
-    ["discussion", "Discussion: topics and replies"],
-    ["qa", "Questions and answers"],
-    ["list", "Mailing list: mail to its address is a post, and its mail carries the list's own headers"]
+    ["discussion", ec.l10n.localize("Discussion: topics and replies")],
+    ["qa", ec.l10n.localize("Questions and answers")],
+    ["list", ec.l10n.localize("Mailing list: mail to its address is a post, and its mail carries the list's own headers")]
 ]
 const visibilityText = value =>
     ({public: "anyone, signed in or not", members: "every member of this site", private: "only those given a role"})[value] ||
@@ -234,18 +234,18 @@ function securityAddress(c, shell, siteId, siteInfo) {
                   maxlength: 255,
                   required: true,
                   placeholder: "security@example.org",
-                  hint: "An address of a domain this site receives mail for."
+                  hint: ec.l10n.localize("An address of a domain this site receives mail for.")
               })}${select(
                   f,
                   "repositoryId",
-                  "File the reports in",
+                  ec.l10n.localize("File the reports in"),
                   repositories.map(r => [r.repositoryId, r.repositoryPath]),
                   {value: chosen}
               )}${
                   staff
-                      ? check("enabled", "Receive reports at this address", route ? route.enabled : true)
+                      ? check("enabled", ec.l10n.localize("Receive reports at this address"), route ? route.enabled : true)
                       : h`${route?.enabled ? hidden("enabled", "true") : ""}<p><small>A moderator of the site turns a new or changed address on.</small></p>`
-              }${submit("Save address")}`
+              }${submit(ec.l10n.localize("Save address"))}`
             : h`<p>Turn issues on in a repository of this group first: the reports are filed there.</p></form>`
     }`
 }
@@ -284,7 +284,7 @@ function listSettings(c, scope, siteId, siteInfo, self) {
                   maxlength: 255,
                   placeholder: "dev@lists.example.org",
                   hint: "Mail to it starts a topic here, and a reply by mail is a post. Its domain must be one this site receives mail for (Deployment, Mailing lists)."
-              })}${check("active", "Receive mail at this address", route ? route.enabled === "Y" || route.enabled === true : true)}${submit("Save address")}${isList ? held : ""}`
+              })}${check("active", "Receive mail at this address", route ? route.enabled === "Y" || route.enabled === true : true)}${submit(ec.l10n.localize("Save address"))}${isList ? held : ""}`
           ]
         : [
               h`<section class="card" id="SmithyListMode"><h2>Mailing list</h2><p>${
@@ -302,13 +302,13 @@ function listSettings(c, scope, siteId, siteInfo, self) {
  * run (?importId=, where the start's answer leads) shows its progress and what was not carried. Starting the same archive
  * again resumes it: nothing is made twice. */
 const REPORT = [
-    ["messages", "Messages read"],
-    ["topics", "Topics made"],
-    ["replies", "Replies made"],
-    ["duplicates", "Already there"],
-    ["attachments", "Attachments left out"],
-    ["unknownCharset", "In a character set that could not be read"],
-    ["tooLong", "Too long"],
+    ["messages", ec.l10n.localize("Messages read")],
+    ["topics", ec.l10n.localize("Topics made")],
+    ["replies", ec.l10n.localize("Replies made")],
+    ["duplicates", ec.l10n.localize("Already there")],
+    ["attachments", ec.l10n.localize("Attachments left out")],
+    ["unknownCharset", ec.l10n.localize("In a character set that could not be read")],
+    ["tooLong", ec.l10n.localize("Too long")],
     ["empty", "Empty"],
     ["unreadable", "Unreadable"],
     ["failed", "Failed"]

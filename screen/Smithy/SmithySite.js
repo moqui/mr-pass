@@ -24,7 +24,7 @@ const KINDS = [
     ["issue", "Issues"],
     ["mergeRequest", "Merge requests"],
     ["docs", "Docs"],
-    ["topic", "Forum topics"]
+    ["topic", ec.l10n.localize("Forum topics")]
 ]
 const kindText = kind => KINDS.find(([key]) => key === kind)?.[1] || kind
 /* The place a search is narrowed to (?in=<group or repository path>): {groupId or repositoryId, path, kind}, or null. */
@@ -142,7 +142,7 @@ function docs(shell, refPath, bases, siteInfo, self) {
     const editHref = c.signedIn && !r.archived ? rooted(found.editPath) : null
     return {
         html: h`<div class="smithy-docs"><nav class="card smithy-toc smithy-wide" aria-label="Contents" id="SmithyDocsContents"><h2>Contents</h2>${contents}</nav><div>${searchBox}<details class="card smithy-toc smithy-narrow" id="SmithyDocsDrawer"><summary>Contents</summary>${contents}</details><p class="wrap">${picker}${
-            editHref ? h` · <a href="${editHref}" id="SmithyDocsEdit">Edit this page</a>` : ""
+            editHref ? h` · <a href="${editHref}" id="SmithyDocsEdit">${ec.l10n.localize("Edit this page")}</a>` : ""
         } · <a href="${u.blob(ref, root + "/" + page)}">Source</a></p>${
             headings.length
                 ? h`<details class="card" id="SmithyDocsHeadings"><summary>On this page</summary><ul>${headings.map(
@@ -447,8 +447,8 @@ function landingSettings(shell, c) {
 // ===== Site settings: Redirects (design §11 SiteSettings, §13.6) =====
 const SOURCES = [
     ["manual", "By hand"],
-    ["site", "The old site"],
-    ["forum", "The old forum"],
+    ["site", ec.l10n.localize("The old site")],
+    ["forum", ec.l10n.localize("The old forum")],
     ["github", "GitHub"]
 ]
 const sourceText = source => SOURCES.find(([key]) => key === source)?.[1] || source || ""
@@ -488,13 +488,13 @@ function redirects(siteId, c, head, root) {
         row =>
             h`<li class="wrap smithy-row" id="SmithyRedirect_${row.redirectId}"><code>${row.oldHost ? row.oldHost : ""}${row.oldPath}</code> → <code>${row.targetPath}</code> <small>${sourceText(row.source)}${
                 row.note ? " · " + row.note : ""
-            } · <a href="${root}${query({delete: row.redirectId, old: row.oldPath})}">Delete</a></small></li>`
+            } · <a href="${root}${query({delete: row.redirectId, old: row.oldPath})}">${ec.l10n.localize("Delete")}</a></small></li>`
     )
     const add = formOf(c, "storeRedirect")
     const load = formOf(c, "importRedirects")
     return {
         html: h`${head}<p>An old address of this site, or of a site it replaces, that no page takes now leads to its target with a permanent redirect (301), so old links and search results still land where they should.</p>${find}<section class="card" id="SmithyRedirectList" aria-label="Redirects">${
-            rows.length ? h`<ul>${rows}</ul>` : h`<p>${q || source ? "No redirect matches." : "No redirects yet."}</p>`
+            rows.length ? h`<ul>${rows}</ul>` : h`<p>${q || source ? ec.l10n.localize("No redirect matches.") : "No redirects yet."}</p>`
         }${found.nextCursor ? h`<p><a href="${root}${query({q, source, cursor: found.nextCursor})}">More redirects</a></p>` : ""}</section>${open(c, add, {
             title: "Add a redirect"
         })}${hidden("operationId", portal.operationId())}${input(add, "oldPath", "Old address", {

@@ -18,11 +18,11 @@
         registerPath=String(publicPath).replace(/\/RegistrationRelay$/,'/Register')
         reference=ref && reg.referencePattern.test(ref)?ref:''
         const reach=reference?reg.reachOf(resolvedSiteId,reference,null):null
-        if(!reach || reach.key)failure={kind:'NotFound',message:'This payment page is not available. Open your registration from the link in your email.'}
+        if(!reach || reach.key)failure={kind:'NotFound',message:ec.l10n.localize("This payment page is not available. Open your registration from the link in your email.")}
         else{
             const found=reg.call('getRegistrationPaymentForm',resolvedSiteId,reach,{})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This payment page is not available.'}:found.error
-            else if(!/^https:\/\//.test(String(found.result.form?.formUrl || '')))failure={kind:'Unavailable',message:'The payment page cannot be opened now.'}
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This payment page is not available.")}:found.error
+            else if(!/^https:\/\//.test(String(found.result.form?.formUrl || '')))failure={kind:'Unavailable',message:ec.l10n.localize("The payment page cannot be opened now.")}
             else{form=found.result.form;fieldList=Object.entries(form.fields || {}).map(([name,value])=>({name:String(name),value:String(value)}))}
         }
     ]]></script>

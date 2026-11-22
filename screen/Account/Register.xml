@@ -27,7 +27,7 @@
     <section name="PassRegisterBeginRegistrationSection" condition="view.forms.some(form =&gt; form.op === 'beginRegistration')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassRegisterBeginRegistration" action="${publicPath}/save"><h2>Send verification</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassRegisterBeginRegistration" action="${publicPath}/save"><h2>${ec.l10n.localize('Send verification')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassRegisterBeginRegistration" transition="save" map="Object.assign({},view.formValues['beginRegistration'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -99,7 +99,7 @@
     <section name="PassRegisterVerifyRegistrationSection" condition="view.forms.some(form =&gt; form.op === 'verifyRegistration')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassRegisterVerifyRegistration" action="${publicPath}/save"><h2>Verify address</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassRegisterVerifyRegistration" action="${publicPath}/save"><h2>${ec.l10n.localize('Verify address')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassRegisterVerifyRegistration" transition="save" map="Object.assign({},view.formValues['verifyRegistration'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -166,7 +166,7 @@
     <section name="PassRegisterJoinSiteSection" condition="view.forms.some(form =&gt; form.op === 'joinSite')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassRegisterJoinSite" action="${publicPath}/save"><h2>Join this site</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassRegisterJoinSite" action="${publicPath}/save"><h2>${ec.l10n.localize('Join this site')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassRegisterJoinSite" transition="save" map="Object.assign({},view.formValues['joinSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

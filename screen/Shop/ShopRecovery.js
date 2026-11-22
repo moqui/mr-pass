@@ -31,14 +31,27 @@ const keptToken = (siteId) => {
 const drop = (siteId) => session()?.remove(linkKey(siteId))
 function notAvailable(context) {
     const { esc, page } = account()
+    const title = ec.l10n.localize('Your cart')
     return page(
         context,
-        'Your cart',
-        '<h1>Your cart</h1><p role="alert" id="RecoveryNotAvailable">This cart link is no longer available. It may have been used already, or it expired.</p><p><a href="' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1><p role="alert" id="RecoveryNotAvailable">' +
+            esc(
+                ec.l10n.localize(
+                    'This cart link is no longer available. It may have been used already, or it expired.',
+                ),
+            ) +
+            '</p><p><a href="' +
             esc(base(context) + '/Cart') +
-            '">Open your cart</a> · <a href="' +
+            '">' +
+            esc(ec.l10n.localize('Open your cart')) +
+            '</a> · <a href="' +
             esc(base(context) + '/') +
-            '">Continue shopping</a></p>',
+            '">' +
+            esc(ec.l10n.localize('Continue shopping')) +
+            '</a></p>',
     )
 }
 /* Recover: with recoveryToken (or r), the token kept and the page opened without it; else the sign-in prompt or the Open my cart form. */
@@ -56,25 +69,38 @@ function render(context) {
     if (!ec.user.userId)
         return page(
             context,
-            'Your cart',
-            '<h1>Your saved cart</h1><div id="RecoverySignIn">' +
-                signIn(context, '/Recover').replace(
-                    'to see your purchases',
-                    'to open the cart you saved',
+            ec.l10n.localize('Your cart'),
+            '<h1>' +
+                esc(ec.l10n.localize('Your saved cart')) +
+                '</h1><div id="RecoverySignIn">' +
+                signIn(
+                    context,
+                    '/Recover',
+                    '<a href="${href}">Sign in</a> to open the cart you saved.',
                 ) +
                 '</div>',
         )
     return page(
         context,
-        'Your cart',
-        '<h1>Your saved cart</h1>' +
+        ec.l10n.localize('Your cart'),
+        '<h1>' +
+            esc(ec.l10n.localize('Your saved cart')) +
+            '</h1>' +
             takeNotice(siteId) +
-            '<p>Open the cart you left. Its prices are checked again, and anything that cannot be bought now is named.</p>' +
+            '<p>' +
+            esc(
+                ec.l10n.localize(
+                    'Open the cart you left. Its prices are checked again, and anything that cannot be bought now is named.',
+                ),
+            ) +
+            '</p>' +
             '<form method="post" id="RecoverCart" action="' +
             esc(base(context) + '/Recover/restore') +
             '">' +
             formToken() +
-            '<button type="submit">Open my cart</button></form>',
+            '<button type="submit">' +
+            esc(ec.l10n.localize('Open my cart')) +
+            '</button></form>',
     )
 }
 /* Recover/restore: recoverCart with the kept token; the cart's new capability kept, the cart page opened with the notice. */
@@ -99,11 +125,13 @@ function restore(context) {
     const missing = found.result.unavailableItems || []
     carts().notify(siteId, {
         kind: 'ok',
-        text:
-            'Your cart is back, at today’s prices.' +
-            (missing.length
-                ? ' Not available now: ' + missing.join(', ') + '.'
-                : ''),
+        text: missing.length
+            ? ec.resource.expand(
+                  'Your cart is back, at today’s prices. Not available now: ${names}.',
+                  '',
+                  { names: missing.join(', ') },
+              )
+            : ec.l10n.localize('Your cart is back, at today’s prices.'),
     })
     response?.sendRedirect(base(context) + '/Cart')
 }

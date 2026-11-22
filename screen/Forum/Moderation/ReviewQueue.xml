@@ -25,7 +25,7 @@
     <section name="PassReviewQueueDecideReviewsSection" condition="view.rows.length &gt; 0 &amp;&amp; view.forms.some(form =&gt; form.op === 'decideReviews')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassReviewQueueDecideReviews" action="${publicPath}/save"><h2>Decide selected reviews</h2><p>Every selected item gets the same decision; each one is checked and recorded on its own.</p><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassReviewQueueDecideReviews" action="${publicPath}/save"><h2>${ec.l10n.localize("Decide selected reviews")}</h2><p>${ec.l10n.localize("Every selected item gets the same decision; each one is checked and recorded on its own.")}</p><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassReviewQueueDecideReviews" transition="save" skip-start="true" skip-end="true">
           <field name="formAction">

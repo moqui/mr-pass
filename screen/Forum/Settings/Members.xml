@@ -26,7 +26,7 @@
     <section name="PassMembersSetMembershipSection" condition="view.forms.some(form =&gt; form.op === 'setMembership')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMembersSetMembership" action="${publicPath}/save"><h2>Change membership</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersSetMembership" action="${publicPath}/save"><h2>${ec.l10n.localize("Change membership")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMembersSetMembership" transition="save" map="Object.assign({},view.formValues['setMembership'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -113,7 +113,7 @@
     <section name="PassMembersCreateInvitationSection" condition="view.forms.some(form =&gt; form.op === 'createInvitation')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMembersCreateInvitation" action="${publicPath}/save"><h2>Create invitation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersCreateInvitation" action="${publicPath}/save"><h2>${ec.l10n.localize("Create invitation")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMembersCreateInvitation" transition="save" map="Object.assign({},view.formValues['createInvitation'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -180,7 +180,7 @@
     <section name="PassMembersSetCategoryMemberSection" condition="view.forms.some(form =&gt; form.op === 'setCategoryMember')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMembersSetCategoryMember" action="${publicPath}/save"><h2>Change category membership or role</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersSetCategoryMember" action="${publicPath}/save"><h2>${ec.l10n.localize("Change category membership or role")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMembersSetCategoryMember" transition="save" map="Object.assign({},view.formValues['setCategoryMember'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -274,7 +274,7 @@
     <section name="PassMembersSetAccessGrantSection" condition="view.forms.some(form =&gt; form.op === 'setAccessGrant')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMembersSetAccessGrant" action="${publicPath}/save"><h2>Grant access</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersSetAccessGrant" action="${publicPath}/save"><h2>${ec.l10n.localize("Grant access")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMembersSetAccessGrant" transition="save" map="Object.assign({},view.formValues['setAccessGrant'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -364,7 +364,7 @@
     <section name="PassMembersEndAccessGrantSection" condition="view.forms.some(form =&gt; form.op === 'endAccessGrant')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMembersEndAccessGrant" action="${publicPath}/save"><h2>End a manual grant</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMembersEndAccessGrant" action="${publicPath}/save"><h2>${ec.l10n.localize("End a manual grant")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMembersEndAccessGrant" transition="save" map="Object.assign({},view.formValues['endAccessGrant'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

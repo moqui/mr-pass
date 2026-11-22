@@ -66,7 +66,7 @@ const box = (f, name, label, checked, value) => {
 /* The sections of a repository's issues: the list, Labels and Milestones. */
 const sections = (iu, current) =>
     tabsOf(
-        "Issue sections",
+        ec.l10n.localize("Issue sections"),
         [
             ["issues", "Issues", iu.list],
             ["labels", "Labels", iu.labels],
@@ -154,7 +154,7 @@ function listBody(c, path, filters, found, o) {
     }<label>Author <input name="author" value="${s.author}" maxlength="39" placeholder="handle"></label><label>Assignee <input name="assignee" value="${s.assignee}" maxlength="39" placeholder="handle"></label>${select(
         none,
         "sort",
-        "Sort by",
+        ec.l10n.localize("Sort by"),
         [
             ["created", "Newest"],
             ["activity", "Last activity"]
@@ -180,7 +180,7 @@ function issues(shell, bases, siteInfo, self) {
     const filters = filtersOf(owner)
     const found = need("findIssues", {siteId, repositoryId, ...filters.input})
     return {
-        html: h`${sections(iu, "issues")}<p id="SmithyNewIssueLink"><a href="${iu.fresh}">New issue</a></p>${listBody(c, iu.list, filters, found, {
+        html: h`${sections(iu, "issues")}<p id="SmithyNewIssueLink"><a href="${iu.fresh}">${ec.l10n.localize("New issue")}</a></p>${listBody(c, iu.list, filters, found, {
             owner,
             labels: maybe("findLabels", {siteId, repositoryId})?.labelList || [],
             milestones: maybe("findMilestones", {siteId, repositoryId, state: "all"})?.milestoneList || []
@@ -229,14 +229,14 @@ function groupIssues(shell, bases, siteInfo, self) {
                 ? h`<form method="get" action="${path}" class="card" id="SmithyGroupNewIssue">${select(
                       formOf(c, ""),
                       "newIn",
-                      "New issue in",
+                      ec.l10n.localize("New issue in"),
                       repositories.map(r => [r.repositoryId, r.repositoryPath]),
                       {value: shell.group.issueRepositoryId || repositories[0].repositoryId}
                   )}${
                       listed.nextCursor || repositoryQuery
                           ? h`<label>Find a repository <input type="search" name="rq" value="${repositoryQuery || ""}" maxlength="100"></label>`
                           : ""
-                  }<p><button name="go" value="1">New issue</button>${
+                  }<p><button name="go" value="1">${ec.l10n.localize("New issue")}</button>${
                       listed.nextCursor || repositoryQuery ? h` <button>Find</button>` : ""
                   }</p></form>`
                 : repositoryQuery
@@ -295,7 +295,7 @@ function island(c, siteInfo, f, label, o) {
         quasar: {dark: "auto"},
         quasarLang: "enUS",
         qvt: {build: "runtime", handles: ["static-template", "bundled-qvue"]},
-        route: {name: "smithy-composer", basePath: c.base + "/-/island/Composer", title: "Composer", renderModes: ["qvue"]},
+        route: {name: "smithy-composer", basePath: c.base + "/-/island/Composer", title: ec.l10n.localize("Composer"), renderModes: ["qvue"]},
         context: {formId: f.id, previewOf: f.name, previewUrl: c.base + "/-/do/previewPost", label},
         labels: {loading: "Loading the editor", notFound: ""}
     }
@@ -337,7 +337,7 @@ function newIssue(shell, bases, siteInfo, self) {
     const repositoryId = shell.repository.repositoryId
     const iu = urlsOf(c.base, shell.repository.repositoryPath)
     const caps = shell.capabilities
-    const head = h`${sections(iu, "issues")}<h2>New issue</h2>`
+    const head = h`${sections(iu, "issues")}<h2>${ec.l10n.localize("New issue")}</h2>`
     const closed = gate(c, c.signedIn ? caps.confirmed : null)
     if (closed) return {html: h`${head}${closed}`.html}
     if (shell.repository.archived || caps.canFileIssue === false)
@@ -364,7 +364,7 @@ function newIssue(shell, bases, siteInfo, self) {
                       f,
                       "assigneeHandles",
                       "Assignees",
-                      {maxlength: 400, hint: "Handles, separated by commas."}
+                      {maxlength: 400, hint: ec.l10n.localize("Handles, separated by commas.")}
                   )}${milestones.length ? select(f, "milestoneId", "Milestone", [["", "None"], ...milestones.map(m => [m.milestoneId, m.name])]) : ""}`
                 : ""
         }${textButtons(c, f, "Create issue")}${island(c, siteInfo, f, "Text")}`.html
@@ -373,10 +373,10 @@ function newIssue(shell, bases, siteInfo, self) {
 
 const REACTIONS = ["like", "thanks", "insightful", "agree", "laugh"]
 const WATCH = [
-    ["Normal", "Normal: when you are mentioned or answered"],
-    ["Watching", "Watching: every comment"],
-    ["Tracking", "Tracking: a count of new comments"],
-    ["Muted", "Muted: nothing"]
+    ["Normal", ec.l10n.localize("Normal: when you are mentioned or answered")],
+    ["Watching", ec.l10n.localize("Watching: every comment")],
+    ["Tracking", ec.l10n.localize("Tracking: a count of new comments")],
+    ["Muted", ec.l10n.localize("Muted: nothing")]
 ]
 /* One post of the conversation: the author, the day, its marks (edited, waiting for review, Owners only), the body, the
  * reactions as buttons for who may react, and Edit and Report by capability. A state change is one line. */
@@ -622,7 +622,7 @@ function issueDetail(shell, issueNumber, bases, siteInfo, self, asked) {
                 "Milestone",
                 m?.name ? h`<a href="${iu.milestone(m.milestoneId)}">${m.name}</a>${m.dueDate ? " · due " + dateText(m.dueDate) : ""}` : "None",
                 triage
-                    ? h`${open(c, f, {plain: true})}${key}${select(f, "milestoneId", "Milestone", choices, {value: m?.milestoneId || ""})}${submit("Save milestone")}`
+                    ? h`${open(c, f, {plain: true})}${key}${select(f, "milestoneId", "Milestone", choices, {value: m?.milestoneId || ""})}${submit(ec.l10n.localize("Save milestone"))}`
                     : null
             )
         )
@@ -714,7 +714,7 @@ function labels(shell, bases, siteInfo, self) {
             // a label of the organization's (not this repository's project's own) is changed in Projects, not here
             const own = edits && label.editable !== false
             return h`<article class="card smithy-row" id="SmithyLabel_${label.labelId}"><h3 class="wrap">${labelChip(label)}</h3><p><small>${label.description ? label.description + " · " : ""}<a href="${iu.list}${query({label: label.labelId})}">${Number(label.openIssueCount) || 0} open</a>${
-                own ? h` · <a href="${iu.labels}${query({delete: label.labelId})}" aria-label="Delete ${label.name}">Delete</a>` : ""
+                own ? h` · <a href="${iu.labels}${query({delete: label.labelId})}" aria-label="Delete ${label.name}">${ec.l10n.localize("Delete")}</a>` : ""
             }</small></p>${
                 own
                     ? h`<details${attributes({open: !!f.error})}><summary>Edit</summary>${open(c, f, {plain: true})}${hidden("repositoryId", repositoryId)}${hidden("labelId", label.labelId)}${hidden(
@@ -771,7 +771,7 @@ function milestones(shell, milestoneId, bases, siteInfo, self) {
                 found.issueList?.length ? issueRows(c, found.issueList, false) : h`<p class="card">No issues in this milestone.</p>`
             }</section>${found.nextCursor ? h`<p><a href="${iu.milestone(milestoneId)}${query({cursor: found.nextCursor})}">More issues</a></p>` : ""}${
                 edits
-                    ? h`${open(c, f, {title: "Edit this milestone"})}${hidden("repositoryId", repositoryId)}${hidden("milestoneId", m.milestoneId)}${hidden("expectedRevision", m.revision)}${fields(f, m)}${submit("Save milestone")}`
+                    ? h`${open(c, f, {title: ec.l10n.localize("Edit this milestone")})}${hidden("repositoryId", repositoryId)}${hidden("milestoneId", m.milestoneId)}${hidden("expectedRevision", m.revision)}${fields(f, m)}${submit(ec.l10n.localize("Save milestone"))}`
                     : ""
             }`.html
         }
@@ -790,7 +790,7 @@ function milestones(shell, milestoneId, bases, siteInfo, self) {
             closed.length ? h`<h3>Closed</h3>${closed}` : ""
         }</section>${
             edits
-                ? h`${open(c, fresh, {title: "New milestone"})}${hidden("repositoryId", repositoryId)}${hidden("milestoneId", "")}${hidden("operationId", portal.operationId())}${fields(fresh, {})}${submit("Add milestone")}`
+                ? h`${open(c, fresh, {title: "New milestone"})}${hidden("repositoryId", repositoryId)}${hidden("milestoneId", "")}${hidden("operationId", portal.operationId())}${fields(fresh, {})}${submit(ec.l10n.localize("Add milestone"))}`
                 : ""
         }`.html
     }

@@ -16,7 +16,7 @@
       <script><![CDATA[
         const url=ec.resource.script('component://mr-pass/screen/Shared/View.js').legacyUrl(resolvedSiteId,String(ec.web.parameters.path || ''),passBases,forumScope)
         if(url) ec.web.response.sendRedirect(url)
-        else {ec.web.response.setStatus(404);ec.web.response.setContentType('text/plain');ec.web.response.write('Not found')}
+        else {ec.web.response.setStatus(404);ec.web.response.setContentType('text/plain');ec.web.response.write(ec.l10n.localize('Not found'))}
     ]]></script>
     </actions>
     <default-response type="none"/>
@@ -28,7 +28,7 @@
     <section name="PassForumScopeNav" condition="forumScope">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<nav aria-label="Forum" class="card smithy-tabs" id="PassForumScopeNav"><a href="${forumScope.base}">Topics</a><a href="${forumScope.base}/Categories">Categories</a><a href="${forumScope.base}/Tags">Tags</a><a href="${forumScope.base}/Search">Search</a><#if siteInfo.authenticated && !passPublicPage><a href="${forumScope.base}/Compose">New topic</a></#if><#if forumScope.canModerate><a href="${forumScope.moderationBase}">Moderation</a></#if><a href="${forumScope.base}/feed">RSS</a></nav>]]></text>
+          <text type="html"><![CDATA[<nav aria-label="${ec.l10n.localize('Forum')}" class="card smithy-tabs" id="PassForumScopeNav"><a href="${forumScope.base}">${ec.l10n.localize('Topics')}</a><a href="${forumScope.base}/Categories">${ec.l10n.localize('Categories')}</a><a href="${forumScope.base}/Tags">${ec.l10n.localize('Tags')}</a><a href="${forumScope.base}/Search">${ec.l10n.localize('Search')}</a><#if siteInfo.authenticated && !passPublicPage><a href="${forumScope.base}/Compose">${ec.l10n.localize('New topic')}</a></#if><#if forumScope.canModerate><a href="${forumScope.moderationBase}">${ec.l10n.localize('Moderation')}</a></#if><a href="${forumScope.base}/feed">${ec.l10n.localize('RSS')}</a></nav>]]></text>
         </render-mode>
       </widgets>
     </section>

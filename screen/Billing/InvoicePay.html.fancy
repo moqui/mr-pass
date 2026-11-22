@@ -1,20 +1,20 @@
 <#if failure><h1>Invoice</h1><p role="alert" class="error">${failure.message}</p><#if failure.kind == 'AuthenticationRequired' || !siteInfo.authenticated><p><a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath)}">Sign in</a></p></#if>
 <#elseif stateOnly><h1>Payment</h1><section class="card" id="PaymentResult" aria-live="polite"><h2>Payment</h2>
-<#if attempt.state == 'paid'><p><strong>Payment received.</strong></p>
-<#elseif attempt.state == 'pending'><p><strong>Your payment is not confirmed yet.</strong></p><p><a href="?attemptId=${encodeURIComponent(attempt.attemptId)}&amp;returnToken=${encodeURIComponent(returnKey)}">Check the payment again</a></p>
-<#elseif attempt.state == 'declined'><p><strong>The payment was declined.</strong></p>
-<#else><p><strong>The payment did not complete.</strong></p></#if></section>
-<p>Open the link in your invoice email<#if !siteInfo.authenticated> or <a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath)}">sign in</a></#if> to see the invoice.</p>
-<#else><h1>Invoice ${view.invoice.invoiceId}</h1>
+<#if attempt.state == 'paid'><p><strong>${ec.l10n.localize('Payment received.')}</strong></p>
+<#elseif attempt.state == 'pending'><p><strong>${ec.l10n.localize('Your payment is not confirmed yet.')}</strong></p><p><a href="?attemptId=${encodeURIComponent(attempt.attemptId)}&amp;returnToken=${encodeURIComponent(returnKey)}">${ec.l10n.localize('Check the payment again')}</a></p>
+<#elseif attempt.state == 'declined'><p><strong>${ec.l10n.localize('The payment was declined.')}</strong></p>
+<#else><p><strong>${ec.l10n.localize('The payment did not complete.')}</strong></p></#if></section>
+<#if (!siteInfo.authenticated)><p>${raw(ec.resource.expand('Open the link in your invoice email or <a href="${loginHref}">sign in</a> to see the invoice.', '', {loginHref: passBases.account + '/Login?returnTo=' + encodeURIComponent(publicPath)}))}</p><#else><p>${ec.l10n.localize('Open the link in your invoice email to see the invoice.')}</p></#if>
+<#else><h1>${ec.resource.expand('Invoice ${view.invoice.invoiceId}', '', {view: view})}</h1>
 <#if payError><p role="alert" class="error">${payError}</p></#if>
-<#if shareUrl><section class="card" aria-label="Pay link"><h2>Pay link created</h2><p>Share it with the person who pays; it is shown once.</p><p class="wrap"><a href="${shareUrl}">${shareUrl}</a></p></section></#if>
+<#if shareUrl><section class="card" aria-label="${ec.l10n.localize('Pay link')}"><h2>${ec.l10n.localize('Pay link created')}</h2><p>${ec.l10n.localize('Share it with the person who pays; it is shown once.')}</p><p class="wrap"><a href="${shareUrl}">${shareUrl}</a></p></section></#if>
 <#if attempt><section class="card" id="PaymentResult" aria-live="polite"><h2>Payment</h2>
-<#if attempt.state == 'paid'><p><strong>Payment received.</strong> ${attempt.amountText} on ${attempt.dateText || ''}. Reference ${attempt.reference}.</p>
-<#elseif attempt.state == 'pending'><p><strong>Your payment of ${attempt.amountText} is not confirmed yet.</strong></p><#if attempt.nextAction == 'continue'><p><a href="${attempt.redirectUrl}">Continue to the payment page</a></p></#if><p><a href="?attemptId=${encodeURIComponent(attempt.attemptId)}<#if returnKey>&amp;returnToken=${encodeURIComponent(returnKey)}</#if><#if token>&amp;token=${encodeURIComponent(token)}<#elseif !returnKey>&amp;invoiceId=${encodeURIComponent(view.invoice.invoiceId)}</#if>">Check the payment again</a></p>
-<#elseif attempt.state == 'declined'><p><strong>The payment was declined.</strong> You can try again with another card.</p>
-<#else><p><strong>The payment did not complete.</strong> You can try again.</p></#if></section></#if>
-<section class="card" id="PublicInvoice" aria-label="Invoice"><p><strong>${view.invoice.fromName}</strong> to ${view.invoice.toName}</p>
+<#if attempt.state == 'paid'><p><strong>${ec.l10n.localize('Payment received.')}</strong> ${attempt.amountText} on ${attempt.dateText || ''}. Reference ${attempt.reference}.</p>
+<#elseif attempt.state == 'pending'><p><strong>${ec.resource.expand('Your payment of ${attempt.amountText} is not confirmed yet.', '', {attempt: attempt})}</strong></p><#if attempt.nextAction == 'continue'><p><a href="${attempt.redirectUrl}">${ec.l10n.localize('Continue to the payment page')}</a></p></#if><p><a href="?attemptId=${encodeURIComponent(attempt.attemptId)}<#if returnKey>&amp;returnToken=${encodeURIComponent(returnKey)}</#if><#if token>&amp;token=${encodeURIComponent(token)}<#elseif !returnKey>&amp;invoiceId=${encodeURIComponent(view.invoice.invoiceId)}</#if>">${ec.l10n.localize('Check the payment again')}</a></p>
+<#elseif attempt.state == 'declined'><p><strong>${ec.l10n.localize('The payment was declined.')}</strong> ${ec.l10n.localize('You can try again with another card.')}</p>
+<#else><p><strong>${ec.l10n.localize('The payment did not complete.')}</strong> ${ec.l10n.localize('You can try again.')}</p></#if></section></#if>
+<section class="card" id="PublicInvoice" aria-label="Invoice"><p><strong>${view.invoice.fromName}</strong> ${ec.resource.expand('to ${view.invoice.toName}', '', {view: view})}</p>
 <dl><dt>Issued</dt><dd>${view.invoice.invoiceDateText || ''}</dd><#if view.invoice.dueDateText><dt>Due</dt><dd>${view.invoice.dueDateText}</dd></#if><dt>Status</dt><dd>${view.invoice.statusText}</dd></dl>
 <div class="table-wrap"><table class="lines"><caption>Lines</caption><thead><tr><th scope="col">Description</th><th scope="col">Qty</th><th scope="col">Price</th><th scope="col">Amount</th></tr></thead><tbody><#list view.invoice.lines as line><tr><td>${line.description}</td><td>${line.quantity}</td><td>${line.amountText}</td><td>${line.totalText}</td></tr></#list></tbody></table></div>
 <dl><dt>Total</dt><dd>${view.invoice.totalText}</dd><dt>Paid</dt><dd>${view.invoice.paidText}</dd><dt>Due</dt><dd><strong>${view.invoice.dueText}</strong></dd></dl></section>
-<#if !view.capabilities.canPay && view.invoice.statusText != 'Paid'><p>Online payment is not available for this invoice; pay as the invoice says.</p></#if></#if>
+<#if !view.capabilities.canPay && view.invoice.statusText != 'Paid'><p>${ec.l10n.localize('Online payment is not available for this invoice; pay as the invoice says.')}</p></#if></#if>

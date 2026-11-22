@@ -194,7 +194,9 @@ function page(siteId, hostname, token) {
         try {
             components[name] = { html: component.html(context, preview.view) }
         } catch (error) {
-            components[name] = { error: 'not available in a preview' }
+            components[name] = {
+                error: ec.l10n.localize('not available in a preview'),
+            }
         }
     }
     const rendered = ec.resource.theme.render(

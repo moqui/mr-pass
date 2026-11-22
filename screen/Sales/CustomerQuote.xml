@@ -43,10 +43,10 @@
         token=asked.token;orderId=asked.orderId
         flash=sales.take()
         view=null;failure=null
-        if(!token && !orderId)failure={kind:'NotFound',message:'Open the quote from the link in our email, or from My quotes.'}
+        if(!token && !orderId)failure={kind:'NotFound',message:ec.l10n.localize("Open the quote from the link in our email, or from My quotes.")}
         else{
             const found=sales.portal.attempt('getSalesQuote',{siteId:resolvedSiteId,token,orderId})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This quote is not available. The link may have expired or been replaced, or the quote is not one of yours. Your sales contact can send you a new link.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This quote is not available. The link may have expired or been replaced, or the quote is not one of yours. Your sales contact can send you a new link.")}:found.error
             else view=found.result
         }
         quoteQuery=token?'token='+encodeURIComponent(token):'orderId='+encodeURIComponent(orderId || '')

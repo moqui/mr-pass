@@ -1,12 +1,12 @@
 <#if smithyHome><h1 class="wrap">${smithyGroup.group.name}</h1><#if smithyGroup.flash.notice><p role="status" class="card" id="SmithyNotice">${smithyGroup.flash.notice}</p></#if></#if>
 <div class="smithy-landing"><div>
-<#if overviewView.landingHtml><article class="card wrap smithy-body" id="SmithyLanding">${raw(overviewView.landingHtml)}<#if overviewView.editHref || overviewView.sourceHref><p><small><#if overviewView.sourceHref><a href="${overviewView.sourceHref}">Source</a></#if><#if overviewView.editHref> · <a href="${overviewView.editHref}" id="SmithyLandingEdit">Edit this page</a></#if></small></p></#if></article></#if>
+<#if overviewView.landingHtml><article class="card wrap smithy-body" id="SmithyLanding">${raw(overviewView.landingHtml)}<#if overviewView.editHref || overviewView.sourceHref><p><small><#if overviewView.sourceHref><a href="${overviewView.sourceHref}">Source</a></#if><#if overviewView.editHref> · <a href="${overviewView.editHref}" id="SmithyLandingEdit">${ec.l10n.localize("Edit this page")}</a></#if></small></p></#if></article></#if>
 <#if overviewView.description><section class="card" id="SmithyGroupAbout"><p class="smithy-pre">${overviewView.description}</p></section></#if>
-<#if overviewView.pinned.length><section id="SmithyPinned" aria-label="Pinned repositories"><h2>Pinned repositories</h2>
+<#if overviewView.pinned.length><section id="SmithyPinned" aria-label="${ec.l10n.localize("Pinned repositories")}"><h2>${ec.l10n.localize("Pinned repositories")}</h2>
 ${raw(ec.resource.template('component://mr-pass/screen/Smithy/RepositoryRows.html.fancy', {rows: overviewView.pinned}))}</section></#if>
 <#if overviewView.subgroups.length><section id="SmithySubgroups" aria-label="Subgroups"><h2>Subgroups</h2>
 ${raw(ec.resource.template('component://mr-pass/screen/Smithy/GroupRows.html.fancy', {rows: overviewView.subgroups}))}</section></#if>
-<p><a href="${overviewView.repositoriesHref}">All repositories</a></p>
+<p><a href="${overviewView.repositoriesHref}">${ec.l10n.localize("All repositories")}</a></p>
 </div><div class="smithy-side">
 <#if overviewView.latestRelease><section class="card" id="SmithyLatestRelease" aria-label="Latest release"><h2>Latest release</h2><p class="wrap"><#if overviewView.latestRelease.href><a href="${overviewView.latestRelease.href}">${overviewView.latestRelease.repositoryPath} ${overviewView.latestRelease.name}</a><#else>${overviewView.latestRelease.repositoryPath} ${overviewView.latestRelease.name}</#if><#if overviewView.latestRelease.date> <small>${overviewView.latestRelease.date}</small></#if></p></section></#if>
 <#if overviewView.news.length><section class="card" id="SmithyNews" aria-label="News"><h2>News</h2><ul><#list overviewView.news as topic><li class="wrap"><#if topic.href><a href="${topic.href}">${topic.title}</a><#else>${topic.title}</#if><#if topic.date> <small>${topic.date}</small></#if></li></#list></ul></section></#if>

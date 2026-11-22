@@ -14,10 +14,10 @@
         token=asked.token;orderId=asked.orderId
         flash=sales.take()
         view=null;failure=null
-        if(!token && !orderId)failure={kind:'NotFound',message:'Open the quote from the link in our email, or from My quotes.'}
+        if(!token && !orderId)failure={kind:'NotFound',message:ec.l10n.localize("Open the quote from the link in our email, or from My quotes.")}
         else{
             const found=sales.portal.attempt('getSalesQuoteResponse',{siteId:resolvedSiteId,token,orderId})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This receipt is not available. The link may have expired or been replaced. Your sales contact can help.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This receipt is not available. The link may have expired or been replaced. Your sales contact can help.")}:found.error
             else view=found.result
         }
         quoteQuery=token?'token='+encodeURIComponent(token):'orderId='+encodeURIComponent(orderId || '')

@@ -25,7 +25,7 @@
     <section name="PassConversationsCreateConversationSection" condition="view.forms.some(form =&gt; form.op === 'createConversation')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassConversationsCreateConversation" action="${publicPath}/save"><h2>New private message</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassConversationsCreateConversation" action="${publicPath}/save"><h2>${ec.l10n.localize("New private message")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassConversationsCreateConversation" transition="save" map="Object.assign({},view.formValues['createConversation'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

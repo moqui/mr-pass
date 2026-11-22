@@ -32,7 +32,7 @@
     <section name="PassActivityExportReportSection" condition="view.forms.some(form =&gt; form.op === 'exportReport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassActivityExportReport" action="${publicPath}/save"><h2>Export a report as CSV</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassActivityExportReport" action="${publicPath}/save"><h2>${ec.l10n.localize("Export a report as CSV")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassActivityExportReport" transition="save" map="Object.assign({},view.formValues['exportReport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

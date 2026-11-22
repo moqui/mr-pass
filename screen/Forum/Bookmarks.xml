@@ -25,7 +25,7 @@
     <section name="PassBookmarksStoreBookmarkSection" condition="view.forms.some(form =&gt; form.op === 'storeBookmark')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassBookmarksStoreBookmark" action="${publicPath}/save"><h2>Edit bookmark</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassBookmarksStoreBookmark" action="${publicPath}/save"><h2>${ec.l10n.localize("Edit bookmark")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassBookmarksStoreBookmark" transition="save" map="Object.assign({},view.formValues['storeBookmark'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -107,7 +107,7 @@
     <section name="PassBookmarksRemoveBookmarkSection" condition="view.forms.some(form =&gt; form.op === 'removeBookmark')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassBookmarksRemoveBookmark" action="${publicPath}/save"><h2>Remove bookmark</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassBookmarksRemoveBookmark" action="${publicPath}/save"><h2>${ec.l10n.localize("Remove bookmark")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassBookmarksRemoveBookmark" transition="save" map="Object.assign({},view.formValues['removeBookmark'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

@@ -42,7 +42,7 @@
         const out=portal.attempt('reportDropShipDelivery',{siteId:resolvedSiteId,token,orderId,operationId:p.operationId,
             trackingCode:p.trackingCode || null,shippedDate:p.shippedDate || null,note:p.note || null,lines},{newTransaction:true})
         if(out.error)ec.web.sessionAttributes.passOrderError=out.error.message
-        else ec.web.sessionAttributes.passOrderNotice='Delivery reported. The buyer confirms it.'
+        else ec.web.sessionAttributes.passOrderNotice=ec.l10n.localize("Delivery reported. The buyer confirms it.")
         ec.web.response.sendRedirect(base+query({token,orderId}))
     ]]></script>
     </actions>
@@ -58,7 +58,7 @@
         if(orderNotice)ec.web.sessionAttributes.remove('passOrderNotice')
         view=null;failure=null
         const orderId=token ? null : p.orderId || null
-        if(!token && !orderId)failure={kind:'NotFound',message:'Open the link the buyer sent with the purchase order.'}
+        if(!token && !orderId)failure={kind:'NotFound',message:ec.l10n.localize("Open the link the buyer sent with the purchase order.")}
         else{
             const found=portal.attempt('getPublishedPurchaseOrder',{siteId:resolvedSiteId,token,orderId})
             if(found.error)failure=found.error

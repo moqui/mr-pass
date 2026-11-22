@@ -1,11 +1,11 @@
-<#if failure><h1>Subscribe</h1><p role="alert" class="error">${failure.message}</p>
-<#elseif receipt><h1>Check your email</h1><section class="card" id="SubscriptionReceipt" role="status"><p>${receipt}</p><p><a href="${publicPath}<#if listId>?list=${encodeURIComponent(listId)}</#if>">Back</a></p></section>
-<#else><h1>Subscribe to ${view.organizationName}</h1>
+<#if failure><h1>${ec.l10n.localize("Subscribe")}</h1><p role="alert" class="error">${failure.message}</p>
+<#elseif receipt><h1>${ec.l10n.localize("Check your email")}</h1><section class="card" id="SubscriptionReceipt" role="status"><p>${receipt}</p><p><a href="${publicPath}<#if listId>?list=${encodeURIComponent(listId)}</#if>">${ec.l10n.localize("Back")}</a></p></section>
+<#else><h1>${ec.resource.expand("Subscribe to ${view.organizationName}", "", {view: view})}</h1>
 <#if flash.error><p role="alert" class="error" id="SubscribeError">${flash.error}</p></#if>
 <form method="post" id="SubscriptionRequest" class="card" action="${publicPath}/request"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${requestOperationId}"><#if listId><input type="hidden" name="list" value="${listId}"></#if>
-<fieldset><legend>What you want to receive</legend><#list view.topics as t><label><input type="checkbox" name="contactListId" value="${t.contactListId}"> ${t.name} <small>(${t.channelText})</small></label><#if t.description><p><small>${t.description}</small></p></#if></#list></fieldset>
-<label>Your email address <input type="email" name="emailAddress" maxlength="254" required autocomplete="email"<#if flash.field == 'emailAddress'> aria-invalid="true" aria-describedby="SubscribeError"</#if>></label>
-<label>Your name (optional) <input name="displayName" maxlength="100" autocomplete="name"></label>
+<fieldset><legend>${ec.l10n.localize("What you want to receive")}</legend><#list view.topics as t><label><input type="checkbox" name="contactListId" value="${t.contactListId}"> ${t.name} <small>(${t.channelText})</small></label><#if t.description><p><small>${t.description}</small></p></#if></#list></fieldset>
+<label>${ec.l10n.localize("Your email address")} <input type="email" name="emailAddress" maxlength="254" required autocomplete="email"<#if flash.field == 'emailAddress'> aria-invalid="true" aria-describedby="SubscribeError"</#if>></label>
+<label>${ec.l10n.localize("Your name (optional)")} <input name="displayName" maxlength="100" autocomplete="name"></label>
 <label><input type="checkbox" name="consent" value="Y" required> <#list view.topics as t>${t.consentText} </#list></label>
-<p><small>We send one message to this address first; nothing more until you confirm from it. You can unsubscribe from any message.</small></p>
-<p><button>Subscribe</button></p></form></#if>
+<p><small>${ec.l10n.localize("We send one message to this address first; nothing more until you confirm from it. You can unsubscribe from any message.")}</small></p>
+<p><button>${ec.l10n.localize("Subscribe")}</button></p></form></#if>

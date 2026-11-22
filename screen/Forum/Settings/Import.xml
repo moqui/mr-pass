@@ -31,7 +31,7 @@
     <section name="PassImportRegisterImportSection" condition="view.forms.some(form =&gt; form.op === 'registerImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportRegisterImport" action="${publicPath}/save"><h2>Register an archive (operator)</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportRegisterImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Register an archive (operator)")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportRegisterImport" transition="save" map="Object.assign({},view.formValues['registerImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -108,7 +108,7 @@
     <section name="PassImportStageImportSection" condition="view.forms.some(form =&gt; form.op === 'stageImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportStageImport" action="${publicPath}/save"><h2>Stage and preflight the archive</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportStageImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Stage and preflight the archive")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportStageImport" transition="save" map="Object.assign({},view.formValues['stageImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -175,7 +175,7 @@
     <section name="PassImportStoreImportMappingsSection" condition="view.forms.some(form =&gt; form.op === 'storeImportMappings')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportStoreImportMappings" action="${publicPath}/save"><h2>Record a decision</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportStoreImportMappings" action="${publicPath}/save"><h2>${ec.l10n.localize("Record a decision")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportStoreImportMappings" transition="save" map="Object.assign({},view.formValues['storeImportMappings'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -287,7 +287,7 @@
     <section name="PassImportRunImportSection" condition="view.forms.some(form =&gt; form.op === 'runImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportRunImport" action="${publicPath}/save"><h2>Run the import</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportRunImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Run the import")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportRunImport" transition="save" map="Object.assign({},view.formValues['runImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -359,7 +359,7 @@
     <section name="PassImportReconcileImportSection" condition="view.forms.some(form =&gt; form.op === 'reconcileImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportReconcileImport" action="${publicPath}/save"><h2>Reconcile</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportReconcileImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Reconcile")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportReconcileImport" transition="save" map="Object.assign({},view.formValues['reconcileImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -426,7 +426,7 @@
     <section name="PassImportApproveImportSection" condition="view.forms.some(form =&gt; form.op === 'approveImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportApproveImport" action="${publicPath}/save"><h2>Approve the reconciliation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportApproveImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Approve the reconciliation")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportApproveImport" transition="save" map="Object.assign({},view.formValues['approveImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -511,7 +511,7 @@
     <section name="PassImportActivateImportSection" condition="view.forms.some(form =&gt; form.op === 'activateImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportActivateImport" action="${publicPath}/save"><h2>Activate the imported community</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportActivateImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Activate the imported community")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportActivateImport" transition="save" map="Object.assign({},view.formValues['activateImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -597,7 +597,7 @@
     <section name="PassImportCancelImportSection" condition="view.forms.some(form =&gt; form.op === 'cancelImport')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassImportCancelImport" action="${publicPath}/save"><h2>Cancel the import</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassImportCancelImport" action="${publicPath}/save"><h2>${ec.l10n.localize("Cancel the import")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassImportCancelImport" transition="save" map="Object.assign({},view.formValues['cancelImport'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

@@ -148,7 +148,7 @@ function island(context, mountId, screen, islandContext) {
             renderModes: ['qvue'],
         },
         context: islandContext,
-        labels: { loading: 'Loading', notFound: '' },
+        labels: { loading: ec.l10n.localize('Loading'), notFound: '' },
     }
     return (
         '<script type="application/json" data-moqui-island="' +
@@ -193,23 +193,35 @@ function purchaseHtml(context, view) {
     const form =
         '<form class="shop-purchase" method="post" action="' +
         escapeText(base(context) + '/Cart/add') +
-        '" aria-label="Choose your purchase">' +
+        '" aria-label="' +
+        escapeText(ec.l10n.localize('Choose your purchase')) +
+        '">' +
         tokenField() +
         '<input type="hidden" name="productId" value="' +
         escapeText(product.id || '') +
         '">' +
         (variants.length
-            ? '<label>Option <select name="variantId" required><option value="">Choose an option</option>' +
+            ? '<label>' +
+              escapeText(ec.l10n.localize('Option')) +
+              ' <select name="variantId" required><option value="">' +
+              escapeText(ec.l10n.localize('Choose an option')) +
+              '</option>' +
               options +
               '</select></label>'
             : '') +
-        '<label>Quantity <input type="number" name="quantity" min="1" max="999" step="1" inputmode="numeric" value="' +
+        '<label>' +
+        escapeText(ec.l10n.localize('Quantity')) +
+        ' <input type="number" name="quantity" min="1" max="999" step="1" inputmode="numeric" value="' +
         escapeText(String(product.quantity || 1)) +
         '"></label><button type="submit" formaction="' +
         escapeText(base(context) + '/Cart/quote') +
-        '" formnovalidate>Show price</button>' +
+        '" formnovalidate>' +
+        escapeText(ec.l10n.localize('Show price')) +
+        '</button>' +
         (purchasable
-            ? '<button type="submit" class="shop-add">Add to cart</button>'
+            ? '<button type="submit" class="shop-add">' +
+              escapeText(ec.l10n.localize('Add to cart')) +
+              '</button>'
             : '') +
         '<p class="shop-quote" id="ShopQuote" aria-live="polite">' +
         escapeText(quote.label || '') +
@@ -217,7 +229,9 @@ function purchaseHtml(context, view) {
         noticeHtml(notice) +
         '<p class="shop-cart-link"><a href="' +
         escapeText(base(context) + '/Cart') +
-        '">View cart</a></p></form>'
+        '">' +
+        escapeText(ec.l10n.localize('View cart')) +
+        '</a></p></form>'
     return (
         '<div id="ShopPurchase">' +
         form +
@@ -265,9 +279,13 @@ function cartHtml(context, cartView, notice) {
     const parts = [noticeHtml(notice)]
     if (!cart.items.length) {
         parts.push(
-            '<p class="shop-cart-empty" id="ShopCartEmpty">Your cart is empty.</p><p><a href="' +
+            '<p class="shop-cart-empty" id="ShopCartEmpty">' +
+                escapeText(ec.l10n.localize('Your cart is empty.')) +
+                '</p><p><a href="' +
                 escapeText(base(context) + '/') +
-                '">Continue shopping</a></p>',
+                '">' +
+                escapeText(ec.l10n.localize('Continue shopping')) +
+                '</a></p>',
         )
         return (
             '<div class="shop-cart" id="ShopCart">' + parts.join('') + '</div>'
@@ -292,15 +310,24 @@ function cartHtml(context, cartView, notice) {
                             ? ' <small>' + escapeText(item.options) + '</small>'
                             : '') +
                         '</p><p>' +
-                        escapeText(item.unitPrice.display) +
-                        ' each' +
+                        escapeText(
+                            ec.resource.expand('${price} each', '', {
+                                price: item.unitPrice.display,
+                            }),
+                        ) +
                         (item.availability && item.available
                             ? ' · ' + escapeText(item.availability.label)
                             : '') +
                         '</p>' +
                         (item.available
                             ? ''
-                            : '<p class="shop-cart-unavailable" role="alert">This item cannot be bought now. Remove it to check out.</p>') +
+                            : '<p class="shop-cart-unavailable" role="alert">' +
+                              escapeText(
+                                  ec.l10n.localize(
+                                      'This item cannot be bought now. Remove it to check out.',
+                                  ),
+                              ) +
+                              '</p>') +
                         item.adjustments
                             .map(
                                 (adjustment) =>
@@ -316,15 +343,23 @@ function cartHtml(context, cartView, notice) {
                         '" class="shop-cart-quantity">' +
                         changeFields(cart) +
                         hidden('orderItemSeqId', item.orderItemSeqId) +
-                        '<label>Quantity <input type="number" name="quantity" min="0" max="999" step="1" inputmode="numeric" value="' +
+                        '<label>' +
+                        escapeText(ec.l10n.localize('Quantity')) +
+                        ' <input type="number" name="quantity" min="0" max="999" step="1" inputmode="numeric" value="' +
                         escapeText(item.quantity) +
-                        '"></label><button type="submit">Update</button></form><form method="post" action="' +
+                        '"></label><button type="submit">' +
+                        escapeText(ec.l10n.localize('Update')) +
+                        '</button></form><form method="post" action="' +
                         action('remove') +
                         '" class="shop-cart-remove">' +
                         changeFields(cart) +
                         hidden('orderItemSeqId', item.orderItemSeqId) +
-                        '<button type="submit">Remove ' +
-                        escapeText(item.name) +
+                        '<button type="submit">' +
+                        escapeText(
+                            ec.resource.expand('Remove ${name}', '', {
+                                name: item.name,
+                            }),
+                        ) +
                         '</button></form><p class="shop-cart-line-total">' +
                         escapeText(item.total.display) +
                         '</p></li>',
@@ -333,7 +368,9 @@ function cartHtml(context, cartView, notice) {
             '</ul>',
     )
     parts.push(
-        '<section class="shop-cart-codes" aria-label="Promotion codes">' +
+        '<section class="shop-cart-codes" aria-label="' +
+            escapeText(ec.l10n.localize('Promotion codes')) +
+            '">' +
             cart.promoCodes
                 .map(
                     (code) =>
@@ -345,8 +382,12 @@ function cartHtml(context, cartView, notice) {
                         '<p>' +
                         escapeText(code.code) +
                         (code.label ? ': ' + escapeText(code.label) : '') +
-                        ' <button type="submit">Remove code ' +
-                        escapeText(code.code) +
+                        ' <button type="submit">' +
+                        escapeText(
+                            ec.resource.expand('Remove code ${code}', '', {
+                                code: code.code,
+                            }),
+                        ) +
                         '</button></p></form>',
                 )
                 .join('') +
@@ -354,29 +395,45 @@ function cartHtml(context, cartView, notice) {
             action('applyCode') +
             '">' +
             changeFields(cart) +
-            '<label>Promotion code <input type="text" name="promoCode" maxlength="40" autocomplete="off"></label><button type="submit">Apply</button></form></section>',
+            '<label>' +
+            escapeText(ec.l10n.localize('Promotion code')) +
+            ' <input type="text" name="promoCode" maxlength="40" autocomplete="off"></label><button type="submit">' +
+            escapeText(ec.l10n.localize('Apply')) +
+            '</button></form></section>',
     )
     const totals = cart.totals
     parts.push(
-        '<dl class="shop-cart-totals" id="ShopCartTotals" aria-live="polite"><dt>Items</dt><dd>' +
+        '<dl class="shop-cart-totals" id="ShopCartTotals" aria-live="polite"><dt>' +
+            escapeText(ec.l10n.localize('Items')) +
+            '</dt><dd>' +
             escapeText(totals.items.display) +
             '</dd>' +
             (totals.discounts.amount && Number(totals.discounts.amount) !== 0
-                ? '<dt>Discounts</dt><dd>' +
+                ? '<dt>' +
+                  escapeText(ec.l10n.localize('Discounts')) +
+                  '</dt><dd>' +
                   escapeText(totals.discounts.display) +
                   '</dd>'
                 : '') +
-            '<dt>Shipping</dt><dd>' +
+            '<dt>' +
+            escapeText(ec.l10n.localize('Shipping cost')) +
+            '</dt><dd>' +
             escapeText(
                 totals.shipping
                     ? totals.shipping.display
-                    : 'Calculated at checkout',
+                    : ec.l10n.localize('Calculated at checkout'),
             ) +
-            '</dd><dt>Tax</dt><dd>' +
+            '</dd><dt>' +
+            escapeText(ec.l10n.localize('Tax')) +
+            '</dt><dd>' +
             escapeText(
-                totals.tax ? totals.tax.display : 'Calculated at checkout',
+                totals.tax
+                    ? totals.tax.display
+                    : ec.l10n.localize('Calculated at checkout'),
             ) +
-            '</dd><dt>Estimated total</dt><dd id="ShopCartTotal">' +
+            '</dd><dt>' +
+            escapeText(ec.l10n.localize('Estimated total')) +
+            '</dt><dd id="ShopCartTotal">' +
             escapeText(totals.total.display) +
             '</dd></dl>',
     )
@@ -389,12 +446,16 @@ function cartHtml(context, cartView, notice) {
         cart.checkoutPending
             ? '<p class="shop-checkout-note"><a href="' +
                   escapeText(base(context) + '/Checkout') +
-                  '">Your checkout is in progress</a></p>'
+                  '">' +
+                  escapeText(ec.l10n.localize('Your checkout is in progress')) +
+                  '</a></p>'
             : '<form method="post" class="shop-begin-checkout" action="' +
                   escapeText(base(context) + '/Checkout/begin') +
                   '">' +
                   tokenField() +
-                  '<button type="submit">Check out</button></form>',
+                  '<button type="submit">' +
+                  escapeText(ec.l10n.localize('Check out')) +
+                  '</button></form>',
     )
     return '<div class="shop-cart" id="ShopCart">' + parts.join('') + '</div>'
 }
@@ -547,11 +608,20 @@ function add(context) {
     respond(
         context,
         found,
-        'Added ' +
-            (added ? added.name : 'the item') +
-            ' to your cart. Your cart has ' +
-            (found.result?.summary?.itemCount ?? 0) +
-            ' items.',
+        added
+            ? ec.resource.expand(
+                  'Added ${name} to your cart. Your cart has ${count} items.',
+                  '',
+                  {
+                      name: added.name,
+                      count: found.result?.summary?.itemCount ?? 0,
+                  },
+              )
+            : ec.resource.expand(
+                  'Added the item to your cart. Your cart has ${count} items.',
+                  '',
+                  { count: found.result?.summary?.itemCount ?? 0 },
+              ),
         found.error
             ? productPath(context, chosen.productId) +
                   (chosen.variantId || chosen.quantity
@@ -629,7 +699,9 @@ function update(context) {
     respond(
         context,
         found,
-        String(quantity) === '0' ? 'Removed the item.' : 'Updated your cart.',
+        String(quantity) === '0'
+            ? ec.l10n.localize('Removed the item.')
+            : ec.l10n.localize('Updated your cart.'),
     )
 }
 function remove(context) {
@@ -640,7 +712,9 @@ function remove(context) {
     respond(
         context,
         found,
-        'Removed the item. Add it again from its page to put it back.',
+        ec.l10n.localize(
+            'Removed the item. Add it again from its page to put it back.',
+        ),
     )
 }
 function applyCode(context) {
@@ -648,14 +722,14 @@ function applyCode(context) {
         ...changeInput(),
         promoCode: param('promoCode'),
     })
-    respond(context, found, 'Applied the code to your cart.')
+    respond(context, found, ec.l10n.localize('Applied the code to your cart.'))
 }
 function removeCode(context) {
     const found = call(context, 'removePromoCode', {
         ...changeInput(),
         promoCode: param('promoCode'),
     })
-    respond(context, found, 'Removed the code.')
+    respond(context, found, ec.l10n.localize('Removed the code.'))
 }
 /* Cart/state (the islands): the cart as JSON, and the session's form token for the island's posts (a page a shared cache
  * keeps has none, and the session may have started with the island's own first request; same-origin only). */
@@ -719,13 +793,15 @@ function signedIn(siteId, token, siteInfo) {
         if (result?.merged)
             notify(siteId, {
                 kind: 'ok',
-                text:
-                    'We added the items from this browser to your cart.' +
-                    (result.unavailableItems?.length
-                        ? ' Not available now: ' +
-                          result.unavailableItems.join(', ') +
-                          '.'
-                        : ''),
+                text: result.unavailableItems?.length
+                    ? ec.resource.expand(
+                          'We added the items from this browser to your cart. Not available now: ${names}.',
+                          '',
+                          { names: result.unavailableItems.join(', ') },
+                      )
+                    : ec.l10n.localize(
+                          'We added the items from this browser to your cart.',
+                      ),
             })
         return result
     } catch (error) {

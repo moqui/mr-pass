@@ -10,7 +10,7 @@
             :file-name="fileName"
             min-height="24rem"
             max-height="80vh"
-            aria-label="Text of the file"
+            :aria-label="t('Text of the file')"
         ></m-code-editor>
     </div>
 </template>
@@ -43,6 +43,9 @@ module.exports = {
         text(value) {
             if (this.area) this.area.value = value || ''
         },
+    },
+    methods: {
+        t(text) { return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text },
     },
 }
 </script>

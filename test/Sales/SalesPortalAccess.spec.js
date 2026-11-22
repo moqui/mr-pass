@@ -158,7 +158,7 @@ feature(
             page.html.includes("No invoice yet")
             !page.html.includes("<form") && !page.html.includes("Request cancellation")
             ;[forged, byQuoteLink].every(html => html.includes("This order is not available") && !html.includes("Account a"))
-            list.includes("Sign in to see your company's orders")
+            list.includes("Sign in to see your company&#39;s orders")
         }
     }
 )

@@ -27,7 +27,7 @@
         flash=support.take()
         const found=support.portal.attempt('getCustomerArticle',{siteId:resolvedSiteId,wikiPageId})
         view=found.result || null
-        failure=found.error ? (found.error.kind==='NotFound' ? {kind:'NotFound',message:'This article is not available.'} : found.error) : null
+        failure=found.error ? (found.error.kind==='NotFound' ? {kind:'NotFound',message:ec.l10n.localize("This article is not available.")} : found.error) : null
     ]]></script>
   </actions>
   <widgets>

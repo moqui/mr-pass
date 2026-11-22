@@ -65,14 +65,14 @@ const MISSING_TEXT = {
 }
 /* Why a file is not edited on its page, in words. */
 const NOT_EDITABLE = {
-    notBranch: "A file is edited on a branch, not on a tag or a commit.",
-    archived: "This repository is archived: nothing in it is changed.",
-    mirror: "This repository is a mirror of another one: it is changed there.",
-    lfs: "This file is kept in Git LFS: change it with git.",
-    tooLarge: "This file is too large to edit on its page: change it with git.",
-    binary: "This is a binary file: it is replaced by an upload, or with git."
+    notBranch: ec.l10n.localize("A file is edited on a branch, not on a tag or a commit."),
+    archived: ec.l10n.localize("This repository is archived: nothing in it is changed."),
+    mirror: ec.l10n.localize("This repository is a mirror of another one: it is changed there."),
+    lfs: ec.l10n.localize("This file is kept in Git LFS: change it with git."),
+    tooLarge: ec.l10n.localize("This file is too large to edit on its page: change it with git."),
+    binary: ec.l10n.localize("This is a binary file: it is replaced by an upload, or with git.")
 }
-const AGREEMENT_TEXT = {signed: "Agreement signed", unsigned: "Agreement not signed", pending: "Agreement waits for a bot's operator"}
+const AGREEMENT_TEXT = {signed: ec.l10n.localize("Agreement signed"), unsigned: ec.l10n.localize("Agreement not signed"), pending: ec.l10n.localize("Agreement waits for a bot's operator")}
 /* A link only to an https address (a status's target is written by whoever reports it). */
 const httpsOf = url => (/^https:\/\//.test(String(url || "")) ? String(url) : null)
 /* The source of a merge request as the pages write it: the fork's path before its branch, or "pushed for review". */
@@ -130,7 +130,7 @@ function mergeRequests(shell, bases, siteInfo, self) {
         } · ${Number(m.commentCount) || 0} ${Number(m.commentCount) === 1 ? "comment" : "comments"}</small></p></article>`
     })
     return {
-        html: h`<h2>Merge requests</h2><p id="SmithyNewMergeRequestLink"><a href="${ru.fresh}">New merge request</a></p><nav aria-label="Merge request states" class="card smithy-tabs" id="SmithyMergeRequestStates">${tab("open", "Open", counts.open)}${tab("merged", "Merged", counts.merged)}${tab("closed", "Closed", counts.closed)}</nav><form method="get" action="${ru.list}" class="card" role="search" id="SmithyMergeRequestFind"><label>Search <input type="search" name="q" value="${s.q}" maxlength="200"></label><label>Author <input name="author" value="${s.author}" maxlength="39" placeholder="handle"></label><label>Reviewer <input name="reviewer" value="${s.reviewer}" maxlength="39" placeholder="handle"></label><label>Target branch <input name="target" value="${s.target}" maxlength="250"></label>${select(
+        html: h`<h2>Merge requests</h2><p id="SmithyNewMergeRequestLink"><a href="${ru.fresh}">${ec.l10n.localize("New merge request")}</a></p><nav aria-label="Merge request states" class="card smithy-tabs" id="SmithyMergeRequestStates">${tab("open", "Open", counts.open)}${tab("merged", "Merged", counts.merged)}${tab("closed", "Closed", counts.closed)}</nav><form method="get" action="${ru.list}" class="card" role="search" id="SmithyMergeRequestFind"><label>Search <input type="search" name="q" value="${s.q}" maxlength="200"></label><label>Author <input name="author" value="${s.author}" maxlength="39" placeholder="handle"></label><label>Reviewer <input name="reviewer" value="${s.reviewer}" maxlength="39" placeholder="handle"></label><label>Target branch <input name="target" value="${s.target}" maxlength="250"></label>${select(
             formOf(c, ""),
             "state",
             "Show",
@@ -164,7 +164,7 @@ function newMergeRequest(shell, bases, siteInfo, self) {
     const repository = shell.repository
     const ru = urlsOf(c.base, repository.repositoryPath)
     const caps = shell.capabilities
-    const head = h`<h2>New merge request</h2>`
+    const head = h`<h2>${ec.l10n.localize("New merge request")}</h2>`
     const closed = gate(c, c.signedIn ? caps.confirmed : null)
     if (closed) return {html: h`${head}${closed}`.html}
     if (repository.archived) return {html: h`${head}<p class="card" id="SmithyNoAccess">This repository is archived: no merge request is opened in it.</p>`.html}
@@ -231,7 +231,7 @@ function newMergeRequest(shell, bases, siteInfo, self) {
                           .replace(/^Moqui-User-Id: .*$/gm, "")
                           .trim() : ""
         })}${issuePages.box(f, "draft", "Draft: not ready to merge yet", false)}${
-            caps.canReview ? input(f, "reviewerHandles", "Reviewers", {maxlength: 400, hint: "Handles, separated by commas."}) : ""
+            caps.canReview ? input(f, "reviewerHandles", "Reviewers", {maxlength: 400, hint: ec.l10n.localize("Handles, separated by commas.")}) : ""
         }${textButtons(c, f, "Open merge request")}${issuePages.island(c, siteInfo, f, "Description")}`.html
     }
 }
@@ -288,7 +288,9 @@ function blockersOf(found) {
     const out = []
     if (m.state === "draft") out.push("It is a draft.")
     if (m.mergeable === false)
-        out.push("It does not merge cleanly" + ((m.conflictPaths || []).length ? ": conflicts in " + m.conflictPaths.join(", ") + "." : "."))
+        out.push((m.conflictPaths || []).length
+            ? ec.resource.expand("It does not merge cleanly: conflicts in ${paths}.", "", {paths: m.conflictPaths.join(", ")})
+            : ec.l10n.localize("It does not merge cleanly."))
     for (const reason of found.missingList || []) out.push(String(reason?.text || reason?.context || reason))
     return out
 }
@@ -329,7 +331,7 @@ function agreementBox(c, shell, request) {
                   missing.length
                       ? h`<ul id="SmithyAgreementMissing">${missing.map(
                             item =>
-                                h`<li class="wrap">${item.handle ? "@" + item.handle : item.name || (item.commitId ? "An author" : "This merge request")}${item.commitId ? h` <small>(commit <code>${String(item.commitId).slice(0, 8)}</code>)</small>` : ""}: ${
+                                h`<li class="wrap">${item.handle ? "@" + item.handle : item.name || (item.commitId ? ec.l10n.localize("An author") : ec.l10n.localize("This merge request"))}${item.commitId ? h` <small>(commit <code>${String(item.commitId).slice(0, 8)}</code>)</small>` : ""}: ${
                                     listOf(item.missing)
                                         .map(word => MISSING_TEXT[word] || word)
                                         .join("; ") || "has not signed"
@@ -341,10 +343,10 @@ function agreementBox(c, shell, request) {
         state === "pending"
             ? h`<p id="SmithyBotOperator">${
                   agreement.botOperatorConfirmed
-                      ? "The bot's operator is confirmed."
+                      ? ec.l10n.localize("The bot's operator is confirmed.")
                       : agreement.botOperatorDeclared
-                        ? "The bot's operator has said it signed. A Maintainer confirms it."
-                        : "The author is a bot: its operator, who has signed, says so here, and a Maintainer confirms it."
+                        ? ec.l10n.localize("The bot's operator has said it signed. A Maintainer confirms it.")
+                        : ec.l10n.localize("The author is a bot: its operator, who has signed, says so here, and a Maintainer confirms it.")
               }</p>`
             : ""
     }${
@@ -551,7 +553,7 @@ function overview(shell, request, bases, siteInfo, self, asked) {
                       : null
               })}<label>Message <input name="message" maxlength="2000" placeholder="The default message"></label>${
                   ownBranch ? check("deleteSourceBranch", "Delete the source branch " + m.sourceRef + " after the merge", !!m.deleteSourceBranch) : ""
-              }<p><button>Merge…</button></p>${hint("You are asked to confirm on the next page.")}</form>`
+              }<p><button>Merge…</button></p>${hint(ec.l10n.localize("You are asked to confirm on the next page."))}</form>`
             : h`<p id="SmithyMergeWho">${shell.capabilities.signedIn ? "Merging to " + m.targetRef + " is for " + (rules.mergeRole === "developer" ? "a Developer" : "a Maintainer") + " of this repository or a higher role." : "A member with the role for it merges this."}</p>`
         blocks.push(
             h`<section class="card" id="SmithyMergeBox" aria-label="Merge"><p><strong>Merge</strong> ${
@@ -567,7 +569,7 @@ function overview(shell, request, bases, siteInfo, self, asked) {
     const issues = found.linkedIssues || []
     if (issues.length)
         blocks.push(
-            h`<section class="card" id="SmithyMergeRequestIssues" aria-label="Linked issues"><p><strong>Issues</strong></p>${issues.map(
+            h`<section class="card" id="SmithyMergeRequestIssues" aria-label="${ec.l10n.localize("Linked issues")}"><p><strong>Issues</strong></p>${issues.map(
                 issue =>
                     h`<p class="wrap"><a href="${ru.u.section("issues")}/${issue.issueNumber}">#${issue.issueNumber}</a> ${issue.title || ""}${issue.state === "closed" ? h` <small class="smithy-chip">Closed</small>` : ""}</p>`
             )}</section>`
@@ -620,7 +622,7 @@ function commits(shell, request, bases, siteInfo, self) {
         }</small></p></article>`
     })
     return {
-        html: h`<section id="SmithyMergeRequestCommits" aria-label="Commits">${rows.length ? rows : h`<p class="card">No commits to show.</p>`}</section>`.html
+        html: h`<section id="SmithyMergeRequestCommits" aria-label="${ec.l10n.localize("Commits")}">${rows.length ? rows : h`<p class="card">${ec.l10n.localize("No commits to show.")}</p>`}</section>`.html
     }
 }
 /* MergeRequestChecks (design §9): every status of the head by context, the required ones marked, and (DG5) the head's
@@ -677,9 +679,9 @@ function partsHtml(piece, href) {
 const grouped = count => String(count).replace(/\B(?=([0-9]{3})+(?![0-9]))/g, ",")
 function omitted(file, onePath, aloneHref, viewHref) {
     const changed = (Number(file.insertions) || 0) + (Number(file.deletions) || 0)
-    const view = viewHref ? h` <a href="${viewHref}">View file</a>` : ""
+    const view = viewHref ? h` <a href="${viewHref}">${ec.l10n.localize("View file")}</a>` : ""
     if (file.tooLarge) return h`<p class="smithy-omitted">This file is too large to diff.${view}</p>`
-    if (!changed) return h`<p class="smithy-omitted">No text changes to show.</p>`
+    if (!changed) return h`<p class="smithy-omitted">${ec.l10n.localize("No text changes to show.")}</p>`
     if (!onePath) return h`<p class="smithy-omitted">Large diff: ${grouped(changed)} changed lines are not shown here. <a class="smithy-btn" href="${aloneHref}">Load diff</a>${view}</p>`
     return h`<p class="smithy-omitted">This diff is too large to show (${grouped(changed)} changed lines).${view}</p>`
 }
@@ -827,11 +829,11 @@ function changes(shell, request, bases, siteInfo, self, asked) {
                     )
                 )
               : file.binary
-                ? h`<p>Binary file.</p>`
+                ? h`<p>${ec.l10n.localize("Binary file.")}</p>`
                 : omitted(file, onePath, keep({path: file.path}) + "#file-" + index, fileHref ? u.blob(found.headCommitId, file.path) : null)
         return h`<section class="card smithy-file" id="file-${index}"><details open><summary><h3 class="wrap">${file.oldPath && file.oldPath !== file.path ? file.oldPath + " → " : ""}${file.path} <small>${status(file)}</small> ${new Markup(
             diff.statHtml(file.insertions, file.deletions)
-        )} <span data-smithy-tools="${index}"></span>${fileHref ? h` <a class="smithy-viewfile" href="${u.blob(found.headCommitId, file.path)}">View file</a>` : ""}</h3></summary>${above.map(thread =>
+        )} <span data-smithy-tools="${index}"></span>${fileHref ? h` <a class="smithy-viewfile" href="${u.blob(found.headCommitId, file.path)}">${ec.l10n.localize("View file")}</a>` : ""}</h3></summary>${above.map(thread =>
             threadHtml(c, o, thread)
         )}${parts}${body}${parts}</details></section>`
     })
@@ -852,9 +854,9 @@ function changes(shell, request, bases, siteInfo, self, asked) {
         h`<a href="${self + query({path: onePath, view: value})}"${attributes({"aria-current": (value === "split") === split ? "true" : null})}>${label}</a>`
     const threadCount = file => threads.filter(thread => thread.path === file.path && !thread.resolved).length
     return {
-        html: h`<section id="SmithyChanges" aria-label="Changed files"><div class="smithy-difftools"><h3>${count} ${count === 1 ? "file" : "files"} changed <small>+${Number(found.insertions) || 0} −${Number(found.deletions) || 0}</small></h3><nav aria-label="Diff view" class="smithy-seg">${viewLink(null, "Unified")}${viewLink("split", "Split")}</nav></div>${
-            found.truncated && !onePath ? h`<p class="card">This change is large; only part of its diff is shown.</p>` : ""
-        }${onePath ? h`<p><a href="${self + query({view: split ? "split" : null})}">Show every file</a></p>` : ""}<div class="smithy-review"><nav aria-label="Files" class="smithy-filetree"><ul class="card" id="SmithyFileList">${(found.fileList || []).map(
+        html: h`<section id="SmithyChanges" aria-label="${ec.l10n.localize("Changed files")}"><div class="smithy-difftools"><h3>${count === 1 ? ec.resource.expand("${count} file changed", "", {count: count}) : ec.resource.expand("${count} files changed", "", {count: count})} <small>+${Number(found.insertions) || 0} −${Number(found.deletions) || 0}</small></h3><nav aria-label="${ec.l10n.localize("Diff view")}" class="smithy-seg">${viewLink(null, "Unified")}${viewLink("split", "Split")}</nav></div>${
+            found.truncated && !onePath ? h`<p class="card">${ec.l10n.localize("This change is large; only part of its diff is shown.")}</p>` : ""
+        }${onePath ? h`<p><a href="${self + query({view: split ? "split" : null})}">${ec.l10n.localize("Show every file")}</a></p>` : ""}<div class="smithy-review"><nav aria-label="Files" class="smithy-filetree"><ul class="card" id="SmithyFileList">${(found.fileList || []).map(
             (file, i) =>
                 h`<li class="wrap"><a href="${onePath && file.path !== onePath ? self + query({path: file.path, view: split ? "split" : null}) : ""}#file-${i + 1}" title="${file.path}"><span class="st st-${String(status(file)).toLowerCase()}" aria-hidden="true"></span>${file.path}</a> <small>${status(file)} +${Number(file.insertions) || 0} −${Number(file.deletions) || 0}${
                     threadCount(file) ? h` · ${threadCount(file)} ${threadCount(file) === 1 ? "thread" : "threads"}` : ""
@@ -922,16 +924,15 @@ function fork(shell, bases, siteInfo, self) {
         })}${input(f, "name", "Name", {value: repository.name || "", maxlength: 255})}${select(f, "visibility", "Visibility", forms.visibilities(ceiling), {
             value: ceiling,
             hint: "A fork is no wider than its parent or its namespace."
-        })}<p><button>Fork</button> <a href="${u.root}">Cancel</a></p></form><p><a href="${u.section("forks")}">Forks of this repository</a></p>`.html
+        })}<p><button>${ec.l10n.localize("Fork")}</button> <a href="${u.root}">Cancel</a></p></form><p><a href="${u.section("forks")}">Forks of this repository</a></p>`.html
     }
 }
 
 const ACTIONS = {edit: "update", new: "create", upload: "upload", delete: "delete"}
 const DESTINATION_TEXT = {
-    branch: (ctx, d) => "Commit to " + (d.branchName || ctx.ref?.name || "the branch") + ".",
-    newBranch: ctx =>
-        "Commit to a new branch and open a merge request to " + (ctx.ref?.name || "the branch") + (ctx.protected ? ", which is protected." : "."),
-    proposal: ctx => "Propose the change: it is kept with a merge request to " + (ctx.ref?.name || "the branch") + ", which opens at once. No fork is needed."
+    branch: (ctx, d) => ec.resource.expand("Commit to ${branch}.", "", {branch: d.branchName || ctx.ref?.name || ec.l10n.localize("the branch")}),
+    newBranch: ctx => ec.resource.expand(ctx.protected ? "Commit to a new branch and open a merge request to ${branch}, which is protected." : "Commit to a new branch and open a merge request to ${branch}.", "", {branch: ctx.ref?.name || ec.l10n.localize("the branch")}),
+    proposal: ctx => ec.resource.expand("Propose the change: it is kept with a merge request to ${branch}, which opens at once. No fork is needed.", "", {branch: ctx.ref?.name || ec.l10n.localize("the branch")})
 }
 /* A block of text for a page, with its lines numbered by nothing: escaped, in a scrolling box. */
 const textBox = (id, title, text) => h`<section class="card" id="${id}"><h3>${title}</h3><pre class="smithy-code"><code>${text}</code></pre></section>`
@@ -946,7 +947,7 @@ function edit(shell, refPath, editAction, bases, siteInfo, self) {
     const repository = shell.repository
     const u = smithy.urls(c.base, repository.repositoryPath)
     const action = Object.hasOwn(ACTIONS, editAction) ? editAction : fail()
-    const title = {edit: "Edit", new: "New file", upload: "Upload a file", delete: "Delete"}[action]
+    const title = {edit: "Edit", new: "New file", upload: ec.l10n.localize("Upload a file"), delete: "Delete"}[action]
     const closed = gate(c, c.signedIn ? shell.capabilities.confirmed : null)
     if (closed) return {html: h`<h2>${title}</h2>${closed}`.html}
     const ctx = need("getEditContext", {siteId, repositoryId: repository.repositoryId, refPath, editAction: ACTIONS[action]})
@@ -1021,7 +1022,7 @@ function edit(shell, refPath, editAction, bases, siteInfo, self) {
                 ? maybe("getEditContext", {siteId, repositoryId: repository.repositoryId, refPath: branch + "/" + newPath, editAction: "update"})
                 : null
         const taken = f.error && ["nameTaken", "fileChanged"].includes(refused?.reason) && (final === "create" || final === "upload")
-        if (taken) f.error = {...f.error, message: final === "upload" ? "A file is at that path now. Commit again to replace it, or choose another path." : "A file is at that path. Choose another path."}
+        if (taken) f.error = {...f.error, message: final === "upload" ? ec.l10n.localize("A file is at that path now. Commit again to replace it, or choose another path.") : ec.l10n.localize("A file is at that path. Choose another path.")}
         // the blob the save starts from: the file as it is now after a refusal that it changed (a delete asks again so),
         // the file an upload replaces, else what the edit began with
         const baseBlobId =
@@ -1088,9 +1089,9 @@ function edit(shell, refPath, editAction, bases, siteInfo, self) {
 }
 
 const SETTINGS = [
-    ["inherit", "Inherit: as the group above says"],
-    ["off", "Off: no agreement is required"],
-    ["required", "Required: every author signs the file"]
+    ["inherit", ec.l10n.localize("Inherit: as the group above says")],
+    ["off", ec.l10n.localize("Off: no agreement is required")],
+    ["required", ec.l10n.localize("Required: every author signs the file")]
 ]
 /* The Agreement tab of a group's or a repository's Settings (design §9.4, §11), for an Owner: inherit, off or required, the
  * file's path, what is in effect and where it comes from, and the branch rules the change touches. target is {groupId} or
@@ -1112,7 +1113,7 @@ function agreementSettings(target, name, head, bases, siteInfo, self, flash, con
             closed ||
             h`${open(c, f, {title: "Agreement"})}${Object.entries(id).map(([field, value]) => hidden(field, value))}${hidden("expectedRevision", found.revision)}${select(f, "setting", "Contributor agreement", SETTINGS, {
                 value: found.setting || "inherit"
-            })}${input(f, "agreementPath", "The file", {value: found.agreementPath || "AUTHORS.md", required: true, maxlength: 250, hint: "Its path in the repository. It must be there before the agreement is required."})}${submit("Save")}`
+            })}${input(f, "agreementPath", "The file", {value: found.agreementPath || "AUTHORS.md", required: true, maxlength: 250, hint: ec.l10n.localize("Its path in the repository. It must be there before the agreement is required.")})}${submit("Save")}`
         }`.html
     }
 }

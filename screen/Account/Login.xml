@@ -101,7 +101,7 @@
     <section name="PassLoginRequestRecoverySection" condition="view.forms.some(form =&gt; form.op === 'requestRecovery')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassLoginRequestRecovery" action="${publicPath}/save"><h2>Send recovery instructions</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassLoginRequestRecovery" action="${publicPath}/save"><h2>${ec.l10n.localize('Send recovery instructions')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassLoginRequestRecovery" transition="save" map="Object.assign({},view.formValues['requestRecovery'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -168,7 +168,7 @@
     <section name="PassLoginStartSsoSection" condition="view.forms.some(form =&gt; form.op === 'startSso')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassLoginStartSso" action="${publicPath}/save"><h2>Sign in with your provider</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassLoginStartSso" action="${publicPath}/save"><h2>${ec.l10n.localize('Sign in with your provider')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassLoginStartSso" transition="save" map="Object.assign({},view.formValues['startSso'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

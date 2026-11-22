@@ -15,58 +15,58 @@
                         <a v-if="item.url" :href="item.url">{{ item.name }}</a><span v-else>{{ item.name }}</span>
                         <small v-if="item.options"> {{ item.options }}</small>
                     </p>
-                    <p>{{ item.unitPrice.display }} each<span v-if="item.available && item.availability"> · {{ item.availability.label }}</span></p>
+                    <p>{{ fill(t('${price} each'), { price: item.unitPrice.display }) }}<span v-if="item.available && item.availability"> · {{ item.availability.label }}</span></p>
                     <p v-if="!item.available" class="shop-cart-unavailable" role="alert">
-                        This item cannot be bought now. Remove it to check out.
+                        {{ t('This item cannot be bought now. Remove it to check out.') }}
                     </p>
                     <p v-for="(adjustment, index) in item.adjustments" :key="index" class="shop-cart-adjustment">
                         {{ adjustment.label }} {{ adjustment.amount.display }}
                     </p>
                     <form class="shop-cart-quantity" @submit.prevent="change('update', { orderItemSeqId: item.orderItemSeqId, quantity: quantities[item.orderItemSeqId] })">
                         <label
-                            >Quantity
+                            >{{ t('Quantity') }}
                             <input v-model="quantities[item.orderItemSeqId]" type="number" min="0" max="999" step="1" inputmode="numeric" />
                         </label>
-                        <button type="submit" :disabled="busy">Update</button>
+                        <button type="submit" :disabled="busy">{{ t('Update') }}</button>
                     </form>
-                    <button type="button" :disabled="busy" @click="change('remove', { orderItemSeqId: item.orderItemSeqId })">Remove {{ item.name }}</button>
+                    <button type="button" :disabled="busy" @click="change('remove', { orderItemSeqId: item.orderItemSeqId })">{{ fill(t('Remove ${name}'), { name: item.name }) }}</button>
                     <p class="shop-cart-line-total">{{ item.total.display }}</p>
                 </li>
             </ul>
-            <section class="shop-cart-codes" aria-label="Promotion codes">
+            <section class="shop-cart-codes" :aria-label="t('Promotion codes')">
                 <p v-for="code in cart.promoCodes" :key="code.code">
                     {{ code.code }}<span v-if="code.label">: {{ code.label }}</span>
-                    <button type="button" :disabled="busy" @click="change('removeCode', { promoCode: code.code })">Remove code {{ code.code }}</button>
+                    <button type="button" :disabled="busy" @click="change('removeCode', { promoCode: code.code })">{{ fill(t('Remove code ${code}'), { code: code.code }) }}</button>
                 </p>
                 <form @submit.prevent="applyCode">
-                    <label>Promotion code <input v-model="promoCode" type="text" maxlength="40" autocomplete="off" /></label>
-                    <button type="submit" :disabled="busy">Apply</button>
+                    <label>{{ t('Promotion code') }} <input v-model="promoCode" type="text" maxlength="40" autocomplete="off" /></label>
+                    <button type="submit" :disabled="busy">{{ t('Apply') }}</button>
                 </form>
             </section>
             <dl class="shop-cart-totals" id="ShopCartTotals" aria-live="polite">
-                <dt>Items</dt>
+                <dt>{{ t('Items') }}</dt>
                 <dd>{{ cart.totals.items.display }}</dd>
                 <template v-if="Number(cart.totals.discounts.amount) !== 0">
-                    <dt>Discounts</dt>
+                    <dt>{{ t('Discounts') }}</dt>
                     <dd>{{ cart.totals.discounts.display }}</dd>
                 </template>
-                <dt>Shipping</dt>
-                <dd>{{ cart.totals.shipping ? cart.totals.shipping.display : 'Calculated at checkout' }}</dd>
-                <dt>Tax</dt>
-                <dd>{{ cart.totals.tax ? cart.totals.tax.display : 'Calculated at checkout' }}</dd>
-                <dt>Estimated total</dt>
+                <dt>{{ t('Shipping cost') }}</dt>
+                <dd>{{ cart.totals.shipping ? cart.totals.shipping.display : t('Calculated at checkout') }}</dd>
+                <dt>{{ t('Tax') }}</dt>
+                <dd>{{ cart.totals.tax ? cart.totals.tax.display : t('Calculated at checkout') }}</dd>
+                <dt>{{ t('Estimated total') }}</dt>
                 <dd id="ShopCartTotal">{{ cart.totals.total.display }}</dd>
             </dl>
             <p v-for="(notice, index) in cart.notices" :key="'n' + index" class="shop-cart-notice">{{ notice.text }}</p>
-            <p v-if="cart.checkoutPending" class="shop-checkout-note"><a :href="context.actionBase.replace(/Cart\/$/, 'Checkout')">Your checkout is in progress</a></p>
+            <p v-if="cart.checkoutPending" class="shop-checkout-note"><a :href="context.actionBase.replace(/Cart\/$/, 'Checkout')">{{ t('Your checkout is in progress') }}</a></p>
             <form v-else method="post" class="shop-begin-checkout" :action="context.actionBase.replace(/Cart\/$/, 'Checkout/begin')">
                 <input type="hidden" name="moquiSessionToken" :value="token" />
-                <button type="submit">Check out</button>
+                <button type="submit">{{ t('Check out') }}</button>
             </form>
         </template>
         <template v-else-if="cart">
-            <p class="shop-cart-empty" id="ShopCartEmpty">Your cart is empty.</p>
-            <p><a :href="context.shopUrl">Continue shopping</a></p>
+            <p class="shop-cart-empty" id="ShopCartEmpty">{{ t('Your cart is empty.') }}</p>
+            <p><a :href="context.shopUrl">{{ t('Continue shopping') }}</a></p>
         </template>
     </div>
 </template>
@@ -88,6 +88,14 @@ module.exports = {
         await this.load()
     },
     methods: {
+        t(text) {
+            return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text
+        },
+        fill(text, values) {
+            let out = text
+            for (const key of Object.keys(values)) out = out.split('${' + key + '}').join(String(values[key]))
+            return out
+        },
         show(cart) {
             this.cart = cart
             const quantities = {}
@@ -109,7 +117,7 @@ module.exports = {
                 }
             } catch (error) {
                 this.error = true
-                this.message = 'Your cart could not be read. Reload the page.'
+                this.message = this.t('Your cart could not be read. Reload the page.')
             }
         },
         operationId() {
@@ -146,7 +154,7 @@ module.exports = {
                 } else if (data.error.reason === 'staleRevision') await this.load()
             } catch (error) {
                 this.error = true
-                this.message = 'Your cart was not changed. Try again.'
+                this.message = this.t('Your cart was not changed. Try again.')
             } finally {
                 this.busy = false
             }

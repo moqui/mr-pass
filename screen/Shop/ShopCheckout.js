@@ -188,39 +188,39 @@ function addressFields(prefix, address) {
         prefix ? prefix + name.charAt(0).toUpperCase() + name.slice(1) : name
     const a = address || {}
     return (
-        field('Name', n('toName'), a.toName, ' autocomplete="name"') +
+        field(ec.l10n.localize('Name'), n('toName'), a.toName, ' autocomplete="name"') +
         field(
-            'Street address',
+            ec.l10n.localize('Street address'),
             n('address1'),
             a.address1,
             ' autocomplete="address-line1"' + required,
         ) +
         field(
-            'Apartment, suite',
+            ec.l10n.localize('Apartment, suite'),
             n('address2'),
             a.address2,
             ' autocomplete="address-line2"',
         ) +
         field(
-            'City',
+            ec.l10n.localize('City'),
             n('city'),
             a.city,
             ' autocomplete="address-level2"' + required,
         ) +
         field(
-            'State or province',
+            ec.l10n.localize('State or province'),
             n('stateProvinceGeoId'),
             a.stateProvinceGeoId,
             ' autocomplete="address-level1"',
         ) +
         field(
-            'Postal code',
+            ec.l10n.localize('Postal code'),
             n('postalCode'),
             a.postalCode,
             ' autocomplete="postal-code"' + required,
         ) +
         field(
-            'Country',
+            ec.l10n.localize('Country'),
             n('countryGeoId'),
             a.countryGeoId || 'USA',
             ' autocomplete="country"',
@@ -243,20 +243,22 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
         parts.push('<p class="shop-cart-notice">' + esc(item.text) + '</p>')
     // Contact
     parts.push(
-        '<section class="shop-checkout-step" id="CheckoutContact" aria-labelledby="CheckoutContactTitle"><h2 id="CheckoutContactTitle">Contact</h2><form method="post" action="' +
+        '<section class="shop-checkout-step" id="CheckoutContact" aria-labelledby="CheckoutContactTitle"><h2 id="CheckoutContactTitle">' +
+            esc(ec.l10n.localize('Contact')) +
+            '</h2><form method="post" action="' +
             action('contact') +
             '">' +
             changeFields(c) +
             (c.contact.fromAccount
                 ? '<p>' + esc(c.contact.emailAddress) + '</p>'
                 : field(
-                      'Email',
+                      ec.l10n.localize('Email'),
                       'emailAddress',
                       c.contact.emailAddress,
                       ' type="email" autocomplete="email" required',
                   )) +
             field(
-                'Name',
+                ec.l10n.localize('Name'),
                 'name',
                 c.contact.name,
                 ' autocomplete="name" required',
@@ -264,20 +266,25 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
             (c.contact.phoneMode === 'hidden'
                 ? ''
                 : field(
-                      'Phone' +
-                          (c.contact.phoneMode === 'required'
-                              ? ''
-                              : ' (optional)'),
+                      ec.l10n.localize(
+                          c.contact.phoneMode === 'required'
+                              ? 'Phone'
+                              : 'Phone (optional)',
+                      ),
                       'phone',
                       c.contact.phone,
                       ' type="tel" autocomplete="tel"',
                   )) +
-            '<button type="submit">Save contact</button></form></section>',
+            '<button type="submit">' +
+            esc(ec.l10n.localize('Save contact')) +
+            '</button></form></section>',
     )
     // Addresses
     if (c.addresses.needed)
         parts.push(
-            '<section class="shop-checkout-step" id="CheckoutAddresses" aria-labelledby="CheckoutAddressesTitle"><h2 id="CheckoutAddressesTitle">Delivery address</h2>' +
+            '<section class="shop-checkout-step" id="CheckoutAddresses" aria-labelledby="CheckoutAddressesTitle"><h2 id="CheckoutAddressesTitle">' +
+                esc(ec.l10n.localize('Delivery address')) +
+                '</h2>' +
                 (c.addresses.shipping
                     ? '<p>' + esc(c.addresses.shipping.text) + '</p>'
                     : '') +
@@ -287,9 +294,17 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
                       '">' +
                       changeFields(c) +
                       hidden('useSuggestion', 'true') +
-                      '<p>The carrier suggests: ' +
-                      esc(c.addresses.suggestion.text) +
-                      '</p><button type="submit">Use the suggested address</button></form>'
+                      '<p>' +
+                      esc(
+                          ec.resource.expand(
+                              'The carrier suggests: ${suggestion}',
+                              '',
+                              { suggestion: c.addresses.suggestion.text },
+                          ),
+                      ) +
+                      '</p><button type="submit">' +
+                      esc(ec.l10n.localize('Use the suggested address')) +
+                      '</button></form>'
                     : '') +
                 '<form method="post" action="' +
                 action('addresses') +
@@ -298,22 +313,38 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
                 addressFields('', c.addresses.shipping) +
                 '<label><input type="checkbox" name="billingSame" value="true"' +
                 (c.addresses.billingSame ? ' checked' : '') +
-                '> Billing address is the same</label><fieldset><legend>Billing address (when different)</legend>' +
+                '> ' +
+                esc(ec.l10n.localize('Billing address is the same')) +
+                '</label><fieldset><legend>' +
+                esc(ec.l10n.localize('Billing address (when different)')) +
+                '</legend>' +
                 addressFields('billing', c.addresses.billing) +
-                '</fieldset><button type="submit">Save address</button></form></section>',
+                '</fieldset><button type="submit">' +
+                esc(ec.l10n.localize('Save address')) +
+                '</button></form></section>',
         )
     // Delivery
     if (c.delivery.needed)
         parts.push(
-            '<section class="shop-checkout-step" id="CheckoutDelivery" aria-labelledby="CheckoutDeliveryTitle"><h2 id="CheckoutDeliveryTitle">Delivery</h2>' +
+            '<section class="shop-checkout-step" id="CheckoutDelivery" aria-labelledby="CheckoutDeliveryTitle"><h2 id="CheckoutDeliveryTitle">' +
+                esc(ec.l10n.localize('Delivery method')) +
+                '</h2>' +
                 (!c.addresses.shipping
-                    ? '<p>Enter the delivery address to see delivery options.</p>'
+                    ? '<p>' +
+                      esc(
+                          ec.l10n.localize(
+                              'Enter the delivery address to see delivery options.',
+                          ),
+                      ) +
+                      '</p>'
                     : deliveryOptions?.length
                       ? '<form method="post" action="' +
                         action('delivery') +
                         '">' +
                         changeFields(c) +
-                        '<fieldset><legend>Choose delivery</legend>' +
+                        '<fieldset><legend>' +
+                        esc(ec.l10n.localize('Choose delivery')) +
+                        '</legend>' +
                         deliveryOptions
                             .map(
                                 (option) =>
@@ -334,20 +365,32 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
                                     '</label>',
                             )
                             .join('') +
-                        '</fieldset><button type="submit">Choose delivery</button></form>'
-                      : '<p role="alert">No delivery is offered to this address.</p>') +
+                        '</fieldset><button type="submit">' +
+                        esc(ec.l10n.localize('Choose delivery')) +
+                        '</button></form>'
+                      : '<p role="alert">' +
+                        esc(
+                            ec.l10n.localize(
+                                'No delivery is offered to this address.',
+                            ),
+                        ) +
+                        '</p>') +
                 '</section>',
         )
     // Payment
     if (c.payment.needed)
         parts.push(
-            '<section class="shop-checkout-step" id="CheckoutPayment" aria-labelledby="CheckoutPaymentTitle"><h2 id="CheckoutPaymentTitle">Payment</h2>' +
+            '<section class="shop-checkout-step" id="CheckoutPayment" aria-labelledby="CheckoutPaymentTitle"><h2 id="CheckoutPaymentTitle">' +
+                esc(ec.l10n.localize('Payment')) +
+                '</h2>' +
                 (c.payment.options.length
                     ? '<form method="post" action="' +
                       action('payment') +
                       '">' +
                       changeFields(c) +
-                      '<fieldset><legend>Choose how to pay</legend>' +
+                      '<fieldset><legend>' +
+                      esc(ec.l10n.localize('Choose how to pay')) +
+                      '</legend>' +
                       c.payment.options
                           .map(
                               (option) =>
@@ -360,25 +403,53 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
                                       : '') +
                                   '> ' +
                                   esc(option.label) +
-                                  ' (on ' +
-                                  esc(option.provider) +
-                                  "'s page)</label>",
+                                  ' ' +
+                                  esc(
+                                      ec.resource.expand(
+                                          "(on ${provider}'s page)",
+                                          '',
+                                          { provider: option.provider },
+                                      ),
+                                  ) +
+                                  '</label>',
                           )
                           .join('') +
                       '</fieldset>' +
                       (c.payment.options.some((option) => option.canSave)
                           ? '<label><input type="checkbox" name="savePaymentMethod" value="true"' +
                             (c.payment.savePaymentMethod ? ' checked' : '') +
-                            '> Keep this card for my next order</label>'
+                            '> ' +
+                            esc(
+                                ec.l10n.localize(
+                                    'Keep this card for my next order',
+                                ),
+                            ) +
+                            '</label>'
                           : '') +
-                      '<button type="submit">Choose payment</button></form><p><small>You pay on the payment provider\'s page; this site never sees your card.</small></p>'
-                    : '<p role="alert">This store cannot take payments now.</p>') +
+                      '<button type="submit">' +
+                      esc(ec.l10n.localize('Choose payment')) +
+                      '</button></form><p><small>' +
+                      esc(
+                          ec.l10n.localize(
+                              "You pay on the payment provider's page; this site never sees your card.",
+                          ),
+                      ) +
+                      '</small></p>'
+                    : '<p role="alert">' +
+                      esc(
+                          ec.l10n.localize(
+                              'This store cannot take payments now.',
+                          ),
+                      ) +
+                      '</p>') +
                 '</section>',
         )
     // ReviewPurchase
     const t = c.totals
     parts.push(
-        '<section class="shop-checkout-step" id="CheckoutReview" aria-labelledby="CheckoutReviewTitle"><h2 id="CheckoutReviewTitle">Review your order</h2><ul class="shop-checkout-lines">' +
+        '<section class="shop-checkout-step" id="CheckoutReview" aria-labelledby="CheckoutReviewTitle"><h2 id="CheckoutReviewTitle">' +
+            esc(ec.l10n.localize('Review your order')) +
+            '</h2><ul class="shop-checkout-lines">' +
             c.lines
                 .map(
                     (line) =>
@@ -394,26 +465,48 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
                         '</span></li>',
                 )
                 .join('') +
-            '</ul><dl class="shop-checkout-totals" id="CheckoutTotals" aria-live="polite"><dt>Items</dt><dd>' +
+            '</ul><dl class="shop-checkout-totals" id="CheckoutTotals" aria-live="polite"><dt>' +
+            esc(ec.l10n.localize('Items')) +
+            '</dt><dd>' +
             money(t.items) +
             '</dd>' +
             (t.discounts && Number(t.discounts.amount) !== 0
-                ? '<dt>Discounts</dt><dd>' + money(t.discounts) + '</dd>'
+                ? '<dt>' +
+                  esc(ec.l10n.localize('Discounts')) +
+                  '</dt><dd>' +
+                  money(t.discounts) +
+                  '</dd>'
                 : '') +
             (t.shipping
-                ? '<dt>Delivery</dt><dd>' + money(t.shipping) + '</dd>'
+                ? '<dt>' +
+                  esc(ec.l10n.localize('Delivery charge')) +
+                  '</dt><dd>' +
+                  money(t.shipping) +
+                  '</dd>'
                 : '') +
-            '<dt>Tax</dt><dd>' +
+            '<dt>' +
+            esc(ec.l10n.localize('Tax')) +
+            '</dt><dd>' +
             money(t.tax) +
-            '</dd><dt>Total</dt><dd id="CheckoutTotal">' +
+            '</dd><dt>' +
+            esc(ec.l10n.localize('Total')) +
+            '</dt><dd id="CheckoutTotal">' +
             money(t.total) +
-            '</dd><dt>Due now</dt><dd>' +
+            '</dd><dt>' +
+            esc(ec.l10n.localize('Amount due now')) +
+            '</dt><dd>' +
             money(t.dueNow) +
             '</dd></dl>' +
             (c.missing.length
-                ? '<p>Complete ' +
-                  esc(c.missing.join(', ')) +
-                  ' to place your order.</p>'
+                ? '<p>' +
+                  esc(
+                      ec.resource.expand(
+                          'Complete ${steps} to place your order.',
+                          '',
+                          { steps: c.missing.join(', ') },
+                      ),
+                  ) +
+                  '</p>'
                 : '<form method="post" action="' +
                   action('submit') +
                   '" id="CheckoutSubmit">' +
@@ -422,23 +515,34 @@ function checkoutHtml(context, view, deliveryOptions, notice) {
                   optInFields(c) +
                   (c.terms.required
                       ? hidden('termsVersion', c.terms.version) +
-                        '<label><input type="checkbox" name="acceptTerms" value="true" required> I accept the ' +
+                        '<label><input type="checkbox" name="acceptTerms" value="true" required> ' +
                         (c.terms.url
-                            ? '<a href="' +
-                              esc(c.terms.url) +
-                              '">' +
-                              esc(c.terms.title) +
-                              '</a>'
-                            : esc(c.terms.title)) +
+                            ? ec.resource.expand(
+                                  'I accept the <a href="${href}">${title}</a>',
+                                  '',
+                                  {
+                                      href: esc(c.terms.url),
+                                      title: esc(c.terms.title),
+                                  },
+                              )
+                            : esc(
+                                  ec.resource.expand('I accept the ${title}', '', {
+                                      title: c.terms.title,
+                                  }),
+                              )) +
                         '</label>'
                       : '') +
-                  '<button type="submit">Place order and pay ' +
-                  money(t.dueNow) +
+                  '<button type="submit">' +
+                  ec.resource.expand('Place order and pay ${amount}', '', {
+                      amount: money(t.dueNow),
+                  }) +
                   '</button></form>') +
             '</section>',
     )
     return markInvalid(
-        '<div class="shop-checkout" id="ShopCheckout"><h1>Checkout</h1>' +
+        '<div class="shop-checkout" id="ShopCheckout"><h1>' +
+            esc(ec.l10n.localize('Checkout')) +
+            '</h1>' +
             parts.join('') +
             '</div>',
         notice,
@@ -497,7 +601,7 @@ function page(context) {
     return themed(
         context,
         checkoutHtml(context, view, options, notice),
-        'Checkout',
+        ec.l10n.localize('Checkout'),
     )
 }
 
@@ -523,7 +627,9 @@ function optInFields(c) {
     const offered = c.optIns || []
     if (!offered.length) return ''
     return (
-        '<fieldset class="shop-checkout-optins" id="CheckoutOptIns"><legend>Optional emails</legend>' +
+        '<fieldset class="shop-checkout-optins" id="CheckoutOptIns"><legend>' +
+        esc(ec.l10n.localize('Optional emails')) +
+        '</legend>' +
         offered
             .map(
                 (o) =>
@@ -535,11 +641,20 @@ function optInFields(c) {
                     esc(o.label) +
                     '</label><p><small>' +
                     esc(o.statement) +
-                    (o.alreadyOn ? ' Already on for your account.' : '') +
+                    (o.alreadyOn
+                        ? ' ' +
+                          esc(ec.l10n.localize('Already on for your account.'))
+                        : '') +
                     '</small></p>',
             )
             .join('') +
-        '<p><small>Not needed for your order: your receipt and order updates come either way.</small></p></fieldset>'
+        '<p><small>' +
+        esc(
+            ec.l10n.localize(
+                'Not needed for your order: your receipt and order updates come either way.',
+            ),
+        ) +
+        '</small></p></fieldset>'
     )
 }
 /* Every value of a repeated form field. */
@@ -573,7 +688,7 @@ function contact(context) {
         name: param('name'),
         phone: param('phone'),
     })
-    back(context, found, 'Saved your contact details.')
+    back(context, found, ec.l10n.localize('Saved your contact details.'))
 }
 const ADDRESS_FIELDS = [
     'toName',
@@ -602,7 +717,7 @@ function addresses(context) {
     back(
         context,
         call(context, 'setCheckoutAddresses', input),
-        'Saved the address.',
+        ec.l10n.localize('Saved the address.'),
     )
 }
 function delivery(context) {
@@ -616,7 +731,7 @@ function delivery(context) {
             carrierPartyId,
             shipmentMethodEnumId,
         }),
-        'Chose the delivery.',
+        ec.l10n.localize('Chose the delivery.'),
     )
 }
 function payment(context) {
@@ -626,7 +741,7 @@ function payment(context) {
         savePaymentMethod:
             param('savePaymentMethod') === 'true' ? 'true' : 'false',
     })
-    back(context, found, 'Chose how to pay.')
+    back(context, found, ec.l10n.localize('Chose how to pay.'))
 }
 /* Shop P7: a subscription's renewal terms (CheckoutView's recurring): the price and term, and for an automatic offer the
    consent to renewal charges of the card kept now, unchecked until the buyer checks it and required to subscribe. */
@@ -635,11 +750,11 @@ function recurringFields(c) {
     if (!r) return ''
     return (
         '<fieldset class="shop-recurring"><legend>' +
-        esc(r.name) +
-        ': ' +
-        money(r.price) +
-        ' every ' +
-        esc(r.termText) +
+        ec.resource.expand('${name}: ${price} every ${term}', '', {
+            name: esc(r.name),
+            price: money(r.price),
+            term: esc(r.termText),
+        }) +
         '</legend>' +
         (r.consentRequired
             ? '<label><input type="checkbox" name="recurringConsent" value="true" required> ' +
@@ -809,38 +924,69 @@ function resultHtml(context, view, notice) {
             parts.push(
                 '<p><a class="shop-pay-link" href="' +
                     esc(provider) +
-                    '">Continue to the payment page</a></p>',
+                    '">' +
+                    esc(ec.l10n.localize('Continue to the payment page')) +
+                    '</a></p>',
             )
         poll = true
     } else if (c.state === 'paymentPending') {
         parts.push(
             '<p><strong>' +
-                esc(a?.message || 'We are confirming your payment.') +
+                esc(
+                    a?.message ||
+                        ec.l10n.localize('We are confirming your payment.'),
+                ) +
                 '</strong></p>',
         )
         poll = true
     } else if (c.state === 'placementPending') {
         parts.push(
-            '<p><strong>Your payment is approved.</strong> We are finishing your order; this page shows it when it is ready.</p>',
+            '<p><strong>' +
+                esc(ec.l10n.localize('Your payment is approved.')) +
+                '</strong> ' +
+                esc(
+                    ec.l10n.localize(
+                        'We are finishing your order; this page shows it when it is ready.',
+                    ),
+                ) +
+                '</p>',
         )
         poll = true
     } else if (['ready', 'editing', 'reviewRequired'].includes(c.state))
         parts.push(
             '<p role="alert"><strong>' +
-                esc(a?.message || 'Your payment did not complete.') +
+                esc(
+                    a?.message ||
+                        ec.l10n.localize('Your payment did not complete.'),
+                ) +
                 '</strong></p><form method="post" action="' +
                 esc(base(context) + '/Checkout/resume') +
                 '">' +
                 formToken() +
                 hidden('ref', c.reference) +
-                '<button type="submit">Back to checkout</button></form>',
+                '<button type="submit">' +
+                esc(ec.l10n.localize('Back to checkout')) +
+                '</button></form>',
         )
-    else parts.push('<p>This checkout is no longer open.</p>')
+    else
+        parts.push(
+            '<p>' +
+                esc(ec.l10n.localize('This checkout is no longer open.')) +
+                '</p>',
+        )
     parts.push(
-        '<p id="ShopPaymentStill" hidden>Your payment is still processing. We will email you when your order is confirmed; you can also check again later.</p>' +
+        '<p id="ShopPaymentStill" hidden>' +
+            esc(
+                ec.l10n.localize(
+                    'Your payment is still processing. We will email you when your order is confirmed; you can also check again later.',
+                ),
+            ) +
+            '</p>' +
             '<p><a href="' +
             esc(base(context) + '/PaymentResult?ref=' + reference) +
-            '">Check again</a></p>',
+            '">' +
+            esc(ec.l10n.localize('Check again')) +
+            '</a></p>',
     )
     return (
         '<section class="shop-payment-result" id="ShopPaymentResult" aria-live="polite" data-state="' +
@@ -851,7 +997,9 @@ function resultHtml(context, view, notice) {
               esc(base(context) + '/PaymentResult/state?ref=' + reference) +
               '"'
             : '') +
-        '><h1>Payment</h1>' +
+        '><h1>' +
+        esc(ec.l10n.localize('Payment')) +
+        '</h1>' +
         markInvalid(parts.join(''), notice) +
         '</section>' +
         (poll ? enhanceScript(context) : '')
@@ -865,10 +1013,12 @@ function resultPage(context) {
     if (found.error)
         return themed(
             context,
-            '<section class="shop-payment-result"><h1>Payment</h1><p role="alert">' +
+            '<section class="shop-payment-result"><h1>' +
+                esc(ec.l10n.localize('Payment')) +
+                '</h1><p role="alert">' +
                 esc(found.error.message) +
                 '</p></section>',
-            'Payment',
+            ec.l10n.localize('Payment'),
         )
     if (found.result.checkout.state === 'completed')
         return {
@@ -880,7 +1030,7 @@ function resultPage(context) {
     return themed(
         context,
         resultHtml(context, found.result, takeNotice(context.site.siteId)),
-        'Payment',
+        ec.l10n.localize('Payment'),
     )
 }
 /* Checkout/resume: a resolved attempt without a payment, back to the checkout (a refreshed session gets the cart again). */
@@ -889,7 +1039,7 @@ function resume(context) {
     const found = call(context, 'resumeCheckout', { reference })
     if (found.result?.token)
         carts().keep(context.site.siteId, { token: found.result.token })
-    back(context, found, 'Your checkout is open again.')
+    back(context, found, ec.l10n.localize('Your checkout is open again.'))
 }
 
 /* ---- the payment relay (F37) ---- */
@@ -901,7 +1051,9 @@ function relayPage(context) {
     if (found.error)
         return themed(
             context,
-            '<section class="shop-payment-result"><h1>Payment</h1><p role="alert">' +
+            '<section class="shop-payment-result"><h1>' +
+                esc(ec.l10n.localize('Payment')) +
+                '</h1><p role="alert">' +
                 esc(found.error.message) +
                 '</p><p><a href="' +
                 esc(
@@ -909,33 +1061,55 @@ function relayPage(context) {
                         '/PaymentResult?ref=' +
                         encodeURIComponent(reference),
                 ) +
-                '">Back to your payment</a></p></section>',
-            'Payment',
+                '">' +
+                esc(ec.l10n.localize('Back to your payment')) +
+                '</a></p></section>',
+            ec.l10n.localize('Payment'),
         )
     const form = found.result
     const html =
-        '<section class="shop-payment-relay"><h1>Payment</h1><form method="post" id="ShopPaymentRelay" action="' +
+        '<section class="shop-payment-relay"><h1>' +
+        esc(ec.l10n.localize('Payment')) +
+        '</h1><form method="post" id="ShopPaymentRelay" action="' +
         esc(form.formUrl) +
         '">' +
         Object.entries(form.fields || {})
             .map(([name, value]) => hidden(esc(name), value))
             .join('') +
-        '<p>Taking you to the payment page.</p><button type="submit">Continue to the payment page</button></form></section>' +
+        '<p>' +
+        esc(ec.l10n.localize('Taking you to the payment page.')) +
+        '</p><button type="submit">' +
+        esc(ec.l10n.localize('Continue to the payment page')) +
+        '</button></form></section>' +
         enhanceScript(context)
-    return themed(context, html, 'Payment')
+    return themed(context, html, ec.l10n.localize('Payment'))
 }
 
 /* ---- the order confirmation ---- */
 function confirmationHtml(context, view) {
     const o = view.confirmation
     // the reference alone (another device, F85): the order's state, nothing of the buyer
+    const orderStatus =
+        ec.resource.expand('Order <strong>${orderId}</strong>', '', {
+            orderId: esc(o.orderId),
+        }) +
+        ' · ' +
+        esc(o.statusText)
     if (o.minimal)
         return (
-            '<section class="shop-confirmation" id="ShopConfirmation"><h1>Thank you for your order</h1><p role="status">Order <strong>' +
-            esc(o.orderId) +
-            '</strong> · ' +
-            esc(o.statusText) +
-            '</p><p>We emailed the details. Open the order from that email, or sign in, to see it.</p></section>'
+            '<section class="shop-confirmation" id="ShopConfirmation"><h1>' +
+            esc(ec.l10n.localize('Thank you for your order')) +
+            '</h1><p role="status">' +
+            orderStatus +
+            '</p><p>' +
+            esc(ec.l10n.localize('We emailed the details.')) +
+            ' ' +
+            esc(
+                ec.l10n.localize(
+                    'Open the order from that email, or sign in, to see it.',
+                ),
+            ) +
+            '</p></section>'
         )
     const qr = (() => {
         try {
@@ -954,14 +1128,20 @@ function confirmationHtml(context, view) {
     })()
     const accountBase = ec.context.get('passBases')?.account ?? '/account'
     return (
-        '<section class="shop-confirmation" id="ShopConfirmation"><h1>Thank you for your order</h1><p role="status">Order <strong>' +
-        esc(o.orderId) +
-        '</strong> · ' +
-        esc(o.statusText) +
+        '<section class="shop-confirmation" id="ShopConfirmation"><h1>' +
+        esc(ec.l10n.localize('Thank you for your order')) +
+        '</h1><p role="status">' +
+        orderStatus +
         (o.placedDate ? ' · ' + esc(o.placedDate) : '') +
-        '</p><p>We sent the details to ' +
-        esc(o.contactEmail) +
-        '. We will email you as your order moves on.</p><ul class="shop-checkout-lines">' +
+        '</p><p>' +
+        esc(
+            ec.resource.expand('We sent the details to ${email}.', '', {
+                email: o.contactEmail,
+            }),
+        ) +
+        ' ' +
+        esc(ec.l10n.localize('We will email you as your order moves on.')) +
+        '</p><ul class="shop-checkout-lines">' +
         o.lines
             .map(
                 (line) =>
@@ -974,21 +1154,35 @@ function confirmationHtml(context, view) {
                     '</span></li>',
             )
             .join('') +
-        '</ul><dl class="shop-checkout-totals"><dt>Items</dt><dd>' +
+        '</ul><dl class="shop-checkout-totals"><dt>' +
+        esc(ec.l10n.localize('Items')) +
+        '</dt><dd>' +
         money(o.totals.items) +
         '</dd>' +
         (o.totals.shipping
-            ? '<dt>Delivery</dt><dd>' + money(o.totals.shipping) + '</dd>'
+            ? '<dt>' +
+              esc(ec.l10n.localize('Delivery charge')) +
+              '</dt><dd>' +
+              money(o.totals.shipping) +
+              '</dd>'
             : '') +
-        '<dt>Tax</dt><dd>' +
+        '<dt>' +
+        esc(ec.l10n.localize('Tax')) +
+        '</dt><dd>' +
         money(o.totals.tax) +
-        '</dd><dt>Total</dt><dd>' +
+        '</dd><dt>' +
+        esc(ec.l10n.localize('Total')) +
+        '</dt><dd>' +
         money(o.totals.total) +
-        '</dd><dt>Payment</dt><dd>' +
+        '</dd><dt>' +
+        esc(ec.l10n.localize('Payment')) +
+        '</dt><dd>' +
         esc(o.payment.text) +
         '</dd>' +
         (o.delivery
-            ? '<dt>Delivery to</dt><dd>' +
+            ? '<dt>' +
+              esc(ec.l10n.localize('Delivery to')) +
+              '</dt><dd>' +
               esc(o.delivery.address) +
               ' (' +
               esc(o.delivery.method) +
@@ -998,17 +1192,38 @@ function confirmationHtml(context, view) {
         (qr
             ? '<figure class="shop-order-qr"><div aria-hidden="true">' +
               qr +
-              '</div><figcaption>Scan to open this order after you sign in</figcaption></figure>'
+              '</div><figcaption>' +
+              esc(
+                  ec.l10n.localize(
+                      'Scan to open this order after you sign in',
+                  ),
+              ) +
+              '</figcaption></figure>'
             : '') +
-        '<nav aria-label="Next steps"><p><a href="' +
+        '<nav aria-label="' +
+        esc(ec.l10n.localize('Next steps')) +
+        '"><p><a href="' +
         esc(base(context) + '/') +
-        '">Continue shopping</a></p>' +
+        '">' +
+        esc(ec.l10n.localize('Continue shopping')) +
+        '</a></p>' +
         (o.guest
-            ? '<p><a href="' +
-              esc(accountBase + '/Register') +
-              '">Create an account with ' +
-              esc(o.contactEmail) +
-              '</a> to see this order later. Once you verify that address, this order moves to your account, and the links we email open it after you sign in.</p>'
+            ? '<p>' +
+              ec.resource.expand(
+                  '<a href="${href}">Create an account with ${email}</a> to see this order later.',
+                  '',
+                  {
+                      href: esc(accountBase + '/Register'),
+                      email: esc(o.contactEmail),
+                  },
+              ) +
+              ' ' +
+              esc(
+                  ec.l10n.localize(
+                      'Once you verify that address, this order moves to your account, and the links we email open it after you sign in.',
+                  ),
+              ) +
+              '</p>'
             : '') +
         '</nav></section>'
     )
@@ -1031,15 +1246,17 @@ function confirmationPage(context) {
     if (found.error)
         return themed(
             context,
-            '<section class="shop-confirmation"><h1>Your order</h1><p role="alert">' +
+            '<section class="shop-confirmation"><h1>' +
+                esc(ec.l10n.localize('Your order')) +
+                '</h1><p role="alert">' +
                 esc(found.error.message) +
                 '</p></section>',
-            'Order',
+            ec.l10n.localize('Order'),
         )
     return themed(
         context,
         confirmationHtml(context, found.result),
-        'Order confirmation',
+        ec.l10n.localize('Order confirmation'),
     )
 }
 

@@ -91,7 +91,7 @@
             const found=token || invoiceId ? portal.attempt('getInvoice',{siteId:resolvedSiteId,token,invoiceId}) : null
             if(found?.result){view=found.result;if(!attempt)attempt=view.attempt}
             else if(found?.error)failure=found.error
-            else failure={kind:'NotFound',message:'Open the link in your invoice email to see the invoice.'}
+            else failure={kind:'NotFound',message:ec.l10n.localize('Open the link in your invoice email to see the invoice.')}
         }
         payOperationId=portal.operationId()
     ]]></script>

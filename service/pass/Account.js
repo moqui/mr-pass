@@ -195,13 +195,13 @@ function callAuthority(op, parameters, siteId) {
                 .call().result.site
             // Same rule as the authority's registration route: an unpublished site takes no registrations.
             if (s.state !== 'published')
-                fail('Unauthorized', 'Registration is closed')
+                fail('Unauthorized', ec.l10n.localize('Registration is closed'))
             if (s.registrationMode !== 'open') {
                 if (
                     s.registrationMode !== 'invitation' ||
                     !input.invitationToken
                 )
-                    fail('Unauthorized', 'Registration is closed')
+                    fail('Unauthorized', ec.l10n.localize('Registration is closed'))
                 ec.service
                     .sync()
                     .throwOnError(true)

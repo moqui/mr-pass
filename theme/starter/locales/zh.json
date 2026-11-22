@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "skip": "跳到内容",
+    "menu": "商店菜单",
+    "categories": "分类",
+    "search": "搜索",
+    "cart": "购物车"
+  },
+  "category": {
+    "empty": "这里还没有产品。",
+    "more": "更多产品"
+  },
+  "grid": {
+    "emptyHeading": "即将推出",
+    "emptyText": "此商店正在准备。请稍后再来浏览其产品。"
+  },
+  "notFound": {
+    "heading": "此页面不可用。",
+    "back": "返回商店"
+  },
+  "reviews": {
+    "heading": "评价",
+    "ofFive": "（满分 5）",
+    "count": "条评价",
+    "none": "还没有评价。",
+    "own": "您的评价：",
+    "verified": "已验证购买",
+    "replyFrom": "回复来自",
+    "all": "全部评价",
+    "write": "撰写或修改您的评价"
+  },
+  "search": {
+    "heading": "搜索",
+    "invalid": "搜索请输入不超过 100 个字符。",
+    "unavailable": "搜索暂时不可用。请稍后再试。",
+    "noMatch": "没有与您的搜索匹配的产品。",
+    "pages": "页面",
+    "more": "更多结果"
+  }
+}

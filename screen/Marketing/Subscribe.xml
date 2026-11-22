@@ -27,7 +27,7 @@
         listId=marketing.param('list')
         view=null;failure=null
         const found=marketing.portal.attempt('getMarketingPublication',{siteId:resolvedSiteId,...(listId ? {contactListId:listId} : {})})
-        if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'There is nothing to subscribe to here. The offer may have ended.'}:found.error
+        if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("There is nothing to subscribe to here. The offer may have ended.")}:found.error
         else view=found.result
         // the receipt shows after a post, never on a plain visit (a refreshed page asks again)
         receipt=marketing.param('sent') ? flash.receipt : null

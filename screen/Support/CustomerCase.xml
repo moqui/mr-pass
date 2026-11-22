@@ -62,10 +62,10 @@
         token=support.param('token');requestId=token?null:support.param('requestId')
         flash=support.take()
         view=null;failure=null
-        if(!token && !requestId)failure={kind:'NotFound',message:'Open the case from My cases, or the link in our email.'}
+        if(!token && !requestId)failure={kind:'NotFound',message:ec.l10n.localize("Open the case from My cases, or the link in our email.")}
         else{
             const found=support.portal.attempt('getCustomerCase',{siteId:resolvedSiteId,requestId,token})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This case is not available. The link may have expired, or the case is not one of yours.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This case is not available. The link may have expired, or the case is not one of yours.")}:found.error
             else view=found.result
         }
         // what identifies the case in this page's links and posts: the link's token, else the case

@@ -25,7 +25,7 @@
     <section name="PassCategoryDetailJoinCategorySection" condition="view.forms.some(form =&gt; form.op === 'joinCategory')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailJoinCategory" action="${publicPath}/save"><h2>Join category</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailJoinCategory" action="${publicPath}/save"><h2>${ec.l10n.localize("Join category")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategoryDetailJoinCategory" transition="save" map="Object.assign({},view.formValues['joinCategory'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -87,7 +87,7 @@
     <section name="PassCategoryDetailLeaveCategorySection" condition="view.forms.some(form =&gt; form.op === 'leaveCategory')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailLeaveCategory" action="${publicPath}/save"><h2>Leave category</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailLeaveCategory" action="${publicPath}/save"><h2>${ec.l10n.localize("Leave category")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategoryDetailLeaveCategory" transition="save" map="Object.assign({},view.formValues['leaveCategory'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -149,7 +149,7 @@
     <section name="PassCategoryDetailSetPreferencesSection" condition="view.forms.some(form =&gt; form.op === 'setPreferences')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailSetPreferences" action="${publicPath}/save"><h2>Category notifications</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategoryDetailSetPreferences" action="${publicPath}/save"><h2>${ec.l10n.localize("Category notifications")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategoryDetailSetPreferences" transition="save" map="Object.assign({},view.formValues['setPreferences'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

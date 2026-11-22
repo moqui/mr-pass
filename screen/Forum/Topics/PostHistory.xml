@@ -25,7 +25,7 @@
     <section name="PassPostHistoryRestorePostRevisionSection" condition="view.forms.some(form =&gt; form.op === 'restorePostRevision')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPostHistoryRestorePostRevision" action="${publicPath}/save"><h2>Restore this revision</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPostHistoryRestorePostRevision" action="${publicPath}/save"><h2>${ec.l10n.localize("Restore this revision")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPostHistoryRestorePostRevision" transition="save" map="Object.assign({},view.formValues['restorePostRevision'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -102,7 +102,7 @@
     <section name="PassPostHistorySetPostHistorySection" condition="view.forms.some(form =&gt; form.op === 'setPostHistory')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPostHistorySetPostHistory" action="${publicPath}/save"><h2>Hide or show the earlier versions</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPostHistorySetPostHistory" action="${publicPath}/save"><h2>${ec.l10n.localize("Hide or show the earlier versions")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPostHistorySetPostHistory" transition="save" map="Object.assign({},view.formValues['setPostHistory'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

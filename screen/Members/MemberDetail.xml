@@ -31,7 +31,7 @@
     <section name="PassMemberDetailSetMemberPreferenceSection" condition="view.forms.some(form =&gt; form.op === 'setMemberPreference')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMemberDetailSetMemberPreference" action="${publicPath}/save"><h2>Mute or block this member</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMemberDetailSetMemberPreference" action="${publicPath}/save"><h2>${ec.l10n.localize('Mute or block this member')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMemberDetailSetMemberPreference" transition="save" map="Object.assign({},view.formValues['setMemberPreference'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

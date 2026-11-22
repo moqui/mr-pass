@@ -34,7 +34,7 @@
     <section name="PassUnsubscribeApplyOptOutSection" condition="view.forms.some(form =&gt; form.op === 'applyOptOut')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassUnsubscribeApplyOptOut" action="${publicPath}/save"><h2>Stop forum email</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassUnsubscribeApplyOptOut" action="${publicPath}/save"><h2>${ec.l10n.localize('Stop forum email')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassUnsubscribeApplyOptOut" transition="save" map="Object.assign({},view.formValues['applyOptOut'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

@@ -41,14 +41,14 @@ const eventText = event => EVENTS.find(([key]) => key === event)?.[1] || event |
 const RUN_STATES = ["waiting", "queued", "running", "success", "failure", "error", "cancelled"]
 /* When an outside run waits for a Maintainer's approval (a group's and the site's setting). */
 const APPROVALS = [
-    ["first", "A first contribution's runs wait for a Maintainer's approval"],
-    ["always", "Every outside run waits for a Maintainer's approval"],
-    ["never", "Outside runs start without an approval"]
+    ["first", ec.l10n.localize("A first contribution's runs wait for a Maintainer's approval")],
+    ["always", ec.l10n.localize("Every outside run waits for a Maintainer's approval")],
+    ["never", ec.l10n.localize("Outside runs start without an approval")]
 ]
 const SCOPES = [
-    ["protected", "Protected branches: runs of a branch a branch rule names"],
-    ["tags", "Tags: runs of a tag"],
-    ["environment", "An environment: runs its rules allow"]
+    ["protected", ec.l10n.localize("Protected branches: runs of a branch a branch rule names")],
+    ["tags", ec.l10n.localize("Tags: runs of a tag")],
+    ["environment", ec.l10n.localize("An environment: runs its rules allow")]
 ]
 const scopeText = scope => ({protected: "protected branches", tags: "tags", environment: "an environment"})[scope] || scope || ""
 
@@ -157,7 +157,7 @@ function pipelines(shell, bases, siteInfo, self) {
         html: h`<h2>Pipelines</h2>${pipelineTabs(pu, "runs")}${runForm(c, shell, found)}${filterForm}<section id="SmithyRunList" aria-label="Pipeline runs">${
             rows.length
                 ? rows
-                : h`<p class="card">${filtered ? "No run matches these filters." : "No pipeline has run in this repository yet. A push runs the pipelines of the ci.xml at its commit; a Moqui component with no ci.xml runs the built-in pipeline."}</p>`
+                : h`<p class="card">${filtered ? ec.l10n.localize("No run matches these filters.") : "No pipeline has run in this repository yet. A push runs the pipelines of the ci.xml at its commit; a Moqui component with no ci.xml runs the built-in pipeline."}</p>`
         }</section>${found.nextCursor ? h`<p><a href="${pu.list}${query({...filters, cursor: found.nextCursor})}" id="SmithyRunsMore">More runs</a></p>` : ""}`
             .html
     }
@@ -392,7 +392,7 @@ function runPage(shell, runNum, jobRunId, bases, siteInfo, self) {
         : null
     const logSection = h`<section class="card" id="SmithyLog" aria-label="Log"><h3>Log</h3>${
         at.line > 1 ? h`<p><a href="${pu.job(run.runNum, job.jobRunId)}#SmithyLog">From the start</a></p>` : ""
-    }${log.lines.length ? "" : h`<p id="SmithyLogEmpty">${live ? "No lines yet." : "This job wrote no log."}</p>`}<pre class="smithy-code" id="SmithyJobLog"><code>${logHtml(
+    }${log.lines.length ? "" : h`<p id="SmithyLogEmpty">${live ? ec.l10n.localize("No lines yet.") : ec.l10n.localize("This job wrote no log.")}</p>`}<pre class="smithy-code" id="SmithyJobLog"><code>${logHtml(
         log.lines,
         at.line
     )}</code></pre>${moreHref ? h`<p id="SmithyLogMore"><a href="${moreHref}">Load more</a></p>` : ""}${
@@ -450,7 +450,7 @@ function logIsland(c, siteInfo, pu, run, job, log, at) {
             // the framework's notification socket, which opens for a signed-in account; the page polls without it
             notification: c.signedIn && notificationEndpoint() ? {endpoint: notificationEndpoint(), topic: "GitCiJobLog", subTopic: job.jobRunId} : null
         },
-        {loading: "Loading the log"}
+        {loading: ec.l10n.localize("Loading the log")}
     )
 }
 /* A failed test's file, as a path in the repository: a relative path only (a runner's absolute path is not one), with no . or
@@ -606,11 +606,11 @@ function requestRuns(c, shell, request) {
 
 /* Runs and Deployments, the two lists of a repository's Pipelines (DG10). */
 const pipelineTabs = (pu, current) =>
-    tabsOf("Pipelines", [["runs", "Runs", pu.list], ["deployments", "Deployments", pu.deployments]], current)
+    tabsOf("Pipelines", [["runs", "Runs", pu.list], ["deployments", ec.l10n.localize("Deployments"), pu.deployments]], current)
 /* A deployment's states (the engine's statusId) as the pages write them. */
 const DEPLOY_STATE_TEXT = {
     requested: "Requested",
-    "waiting-pipeline": "Waiting for the pipeline",
+    "waiting-pipeline": ec.l10n.localize("Waiting for the pipeline"),
     "waiting-approval": "Waiting for approval",
     deploying: "Deploying",
     deployed: "Deployed",
@@ -651,10 +651,10 @@ function deployments(shell, bases, siteInfo, self) {
         (pageIndex + 1) * limit < count ? h`<a href="${pu.deployments}${query({pageIndex: pageIndex + 1})}" id="SmithyDeploymentsOlder">Older</a>` : null
     ].filter(Boolean)
     return {
-        html: h`<h2>Deployments</h2>${pipelineTabs(pu, "deployments")}${deployForm(c, shell, pu, found)}${
+        html: h`<h2>${ec.l10n.localize("Deployments")}</h2>${pipelineTabs(pu, "deployments")}${deployForm(c, shell, pu, found)}${
             rows.length
                 ? h`<div class="card table-wrap"><table class="lines" id="SmithyDeploymentList"><thead><tr><th scope="col">Environment</th><th scope="col">Commit</th><th scope="col">Branch</th><th scope="col">State</th><th scope="col">Asked by</th><th scope="col">Dates</th></tr></thead><tbody>${rows}</tbody></table></div>`
-                : h`<p class="card" id="SmithyDeploymentsNone">${pageIndex ? "No more deployments." : "Nothing has been deployed from this repository yet."}</p>`
+                : h`<p class="card" id="SmithyDeploymentsNone">${pageIndex ? ec.l10n.localize("No more deployments.") : ec.l10n.localize("Nothing has been deployed from this repository yet.")}</p>`
         }${pages.length ? h`<p id="SmithyDeploymentPages">${pages.map((link, i) => h`${i ? " · " : ""}${link}`)}</p>` : ""}`.html
     }
 }
@@ -694,10 +694,10 @@ function deploySteps(d, approvalRequired) {
     const here = {mark: "ended", text: deployStateText(state)}
     const now = {mark: "now", text: "Now"}
     const done = text => ({mark: "done", text: text || "Done"})
-    const notYet = {mark: "pending", text: ended ? "Not reached" : "Not yet"}
+    const notYet = {mark: "pending", text: ended ? ec.l10n.localize("Not reached") : "Not yet"}
     const steps = [
         {
-            label: "Waiting for the pipeline",
+            label: ec.l10n.localize("Waiting for the pipeline"),
             run: true,
             ...(["requested", "waiting-pipeline"].includes(state) ? now : pipelinePassed ? done("Passed") : ended ? here : notYet)
         }
@@ -721,7 +721,7 @@ function deploySteps(d, approvalRequired) {
         label: "Deploying",
         ...(state === "deploying" ? now : state === "deployed" ? done() : state === "failed" && deploying ? here : notYet)
     })
-    steps.push({label: ended ? deployStateText(state) : "Deployed or failed", ...(ended ? {mark: state === "deployed" ? "done" : "ended", text: ""} : notYet)})
+    steps.push({label: ended ? deployStateText(state) : ec.l10n.localize("Deployed or failed"), ...(ended ? {mark: state === "deployed" ? "done" : "ended", text: ""} : notYet)})
     return steps
 }
 /* The target's answer (the engine's deployResult: status, component, commitId, problems), as plain text. */
@@ -796,13 +796,13 @@ function deploymentPage(shell, deploymentId, bases, siteInfo, self) {
     if (param("confirm") === "cancel" && caps.canCancel)
         return {
             html: h`${head}${confirmCard(c, "cancelDeploy", {
-                title: "Cancel the deployment to " + target,
+                title: ec.resource.expand("Cancel the deployment to ${target}", "", {target: target}),
                 lines: [
-                    "This cancels the deployment of " + what + " to " + target + ", and its pipeline run if it is still running.",
-                    "Nothing is deployed. Deploying it later takes a new request."
+                    ec.resource.expand("This cancels the deployment of ${what} to ${target}, and its pipeline run if it is still running.", "", {what: what, target: target}),
+                    ec.l10n.localize("Nothing is deployed. Deploying it later takes a new request.")
                 ],
                 fields,
-                button: "Cancel the deployment",
+                button: ec.l10n.localize("Cancel the deployment"),
                 cancelHref: page,
                 returnTo: page + "?confirm=cancel",
                 successTo: page
@@ -811,11 +811,11 @@ function deploymentPage(shell, deploymentId, bases, siteInfo, self) {
     if (param("confirm") === "refuse" && caps.canDecide && waiting) {
         const f = formOf(c, "decideDeploy", "refuse")
         return {
-            html: h`${head}${open(c, f, {title: "Refuse the deployment to " + target, returnTo: page + "?confirm=refuse", successTo: page})}<p>This refuses the deployment of ${what} to ${target}. Nothing is deployed, and deploying it later takes a new request.</p><p>Who asked for it is told that it was refused. Your reason is kept in the repository's audit, for its Maintainers.</p>${Object.entries(
+            html: h`${head}${open(c, f, {title: ec.resource.expand("Refuse the deployment to ${target}", "", {target: target}), returnTo: page + "?confirm=refuse", successTo: page})}<p>${ec.resource.expand("This refuses the deployment of ${what} to ${target}. Nothing is deployed, and deploying it later takes a new request.", "", {what: what, target: target})}</p><p>Who asked for it is told that it was refused. Your reason is kept in the repository's audit, for its Maintainers.</p>${Object.entries(
                 fields
             ).map(([field, value]) => hidden(field, value))}${hidden("decision", "refuse")}${hidden("confirm", "yes")}${textarea(f, "reason", "Reason (optional)", {
                 maxlength: 1000
-            })}<p><button>Refuse the deployment</button> <a href="${page}">Back</a></p></form>`.html
+            })}<p><button>${ec.l10n.localize("Refuse the deployment")}</button> <a href="${page}">Back</a></p></form>`.html
         }
     }
     // whether it waits for an approver once its pipeline passes (its environment's rule, or a branch no rule protects)
@@ -856,7 +856,7 @@ function deploymentPage(shell, deploymentId, bases, siteInfo, self) {
           }</section>`
         : ""
     const actions = caps.canCancel
-        ? h`<p class="card" id="SmithyDeployActions"><a href="${page}?confirm=cancel" id="SmithyDeployCancel">Cancel the deployment</a></p>`
+        ? h`<p class="card" id="SmithyDeployActions"><a href="${page}?confirm=cancel" id="SmithyDeployCancel">${ec.l10n.localize("Cancel the deployment")}</a></p>`
         : ""
     // a refused Approve, Refuse or Cancel whose form this page no longer shows (another Maintainer decided first, the
     // deployment moved on): its refusal is shown here; Approve's own form shows its refusal where it is still there
@@ -891,7 +891,7 @@ function runnerSettings(c, found, closed, groupPath) {
         pools.length
             ? pools.map(
                   pool =>
-                      h`<tr><th scope="row">${poolText(pool)}</th><td>${pool.trusted ? "Trusted runs" : "Outside runs"}</td><td>${pool.shared ? "The site" : "This group"}</td></tr>`
+                      h`<tr><th scope="row">${poolText(pool)}</th><td>${pool.trusted ? ec.l10n.localize("Trusted runs") : ec.l10n.localize("Outside runs")}</td><td>${pool.shared ? "The site" : ec.l10n.localize("This group")}</td></tr>`
               )
             : h`<tr><td colspan="3">An operator of the site has allowed no runner pool here, so no pipeline runs.</td></tr>`
     }</tbody></table></div>`
@@ -903,7 +903,7 @@ function runnerSettings(c, found, closed, groupPath) {
         return h`<section class="card" id="SmithyRunners" aria-label="Runners"><h3>Runners</h3>${minutes}<dl><dt>Pool of trusted runs</dt><dd>${chosen(
             found.runnerPoolId,
             "A pool of the jobs' pool name that takes trusted runs"
-        )}</dd><dt>Pool of outside runs</dt><dd>${chosen(found.outsideRunnerPoolId, "A pool of the jobs' pool name that takes outside runs")}</dd><dt>Outside runs</dt><dd>${approvalText}</dd></dl>${inherited}${
+        )}</dd><dt>Pool of outside runs</dt><dd>${chosen(found.outsideRunnerPoolId, "A pool of the jobs' pool name that takes outside runs")}</dd><dt>${ec.l10n.localize("Outside runs")}</dt><dd>${approvalText}</dd></dl>${inherited}${
             closed ||
             (found.groupId
                 ? h`<p><small>An Owner of ${groupPath || "the group"} changes these, on the group's settings.</small></p>`
@@ -976,20 +976,15 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
     if (doomed && secrets.canChange && !closed)
         return page(
             confirmCard(c, "deleteCiSecret", {
-                title: "Delete the secret " + doomed.name,
+                title: ec.resource.expand("Delete the secret ${name}", "", {name: doomed.name}),
                 lines: [
-                    "This deletes the secret " +
-                        doomed.name +
-                        " of " +
-                        r.repositoryPath +
-                        ", given to runs of " +
-                        scopeText(doomed.scope) +
-                        (doomed.environmentName ? " " + doomed.environmentName : "") +
-                        ".",
-                    "A job that reads it gets nothing from now on. Its value cannot be read back, so it cannot be restored."
+                    doomed.environmentName
+                        ? ec.resource.expand("This deletes the secret ${name} of ${repository}, given to runs of ${scope} ${environment}.", "", {name: doomed.name, repository: r.repositoryPath, scope: {protected: ec.l10n.localize("protected branches"), tags: ec.l10n.localize("tags"), environment: ec.l10n.localize("an environment")}[doomed.scope] || doomed.scope || "", environment: doomed.environmentName})
+                        : ec.resource.expand("This deletes the secret ${name} of ${repository}, given to runs of ${scope}.", "", {name: doomed.name, repository: r.repositoryPath, scope: {protected: ec.l10n.localize("protected branches"), tags: ec.l10n.localize("tags"), environment: ec.l10n.localize("an environment")}[doomed.scope] || doomed.scope || ""}),
+                    ec.l10n.localize("A job that reads it gets nothing from now on. Its value cannot be read back, so it cannot be restored.")
                 ],
                 fields: {repositoryId: id, secretId: doomed.secretId},
-                button: "Delete secret",
+                button: ec.l10n.localize("Delete secret"),
                 cancelHref: tab,
                 returnTo: tab + query({delete: doomed.secretId}),
                 successTo: tab
@@ -1000,13 +995,13 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
     if (doomedEnv && environments.canChange && !closed)
         return page(
             confirmCard(c, "deleteCiEnvironment", {
-                title: "Delete the environment " + doomedEnv.name,
+                title: ec.resource.expand("Delete the environment ${name}", "", {name: doomedEnv.name}),
                 lines: [
-                    "This deletes the environment " + doomedEnv.name + " of " + r.repositoryPath + ".",
-                    "An environment with a secret scoped to it is not deleted: delete the secret or move it first."
+                    ec.resource.expand("This deletes the environment ${name} of ${repository}.", "", {name: doomedEnv.name, repository: r.repositoryPath}),
+                    ec.l10n.localize("An environment with a secret scoped to it is not deleted: delete the secret or move it first.")
                 ],
                 fields: {repositoryId: id, environmentId: doomedEnv.environmentId},
-                button: "Delete environment",
+                button: ec.l10n.localize("Delete environment"),
                 cancelHref: tab,
                 returnTo: tab + query({deleteEnvironment: doomedEnv.environmentId}),
                 successTo: tab
@@ -1036,12 +1031,12 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
             secrets.canChange && !closed
                 ? h`<details${attributes({open: !!f.error})}><summary>Replace the value</summary>${open(c, f, {plain: true})}${common}${hidden("secretId", secret.secretId)}${value(
                       f,
-                      "New value"
-                  )}${scopeFields(f, secret)}${hint("A secret moved to another scope or environment takes a new value.")}${submit("Save secret")}</details><p><a href="${tab}${query(
+                      ec.l10n.localize("New value")
+                  )}${scopeFields(f, secret)}${hint(ec.l10n.localize("A secret moved to another scope or environment takes a new value."))}${submit(ec.l10n.localize("Save secret"))}</details><p><a href="${tab}${query(
                       {
                           delete: secret.secretId
                       }
-                  )}" aria-label="Delete the secret ${secret.name}">Delete secret</a></p>`
+                  )}" aria-label="${ec.resource.expand("Delete the secret ${name}", "", {name: secret.name})}">${ec.l10n.localize("Delete secret")}</a></p>`
                 : ""
         }</article>`
     })
@@ -1051,7 +1046,7 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
     }${
         secrets.canChange
             ? closed ||
-              h`${open(c, freshSecret, {title: "New secret"})}${common}${hidden("secretId", "")}${hidden("operationId", portal.operationId())}${input(
+              h`${open(c, freshSecret, {title: ec.l10n.localize("New secret")})}${common}${hidden("secretId", "")}${hidden("operationId", portal.operationId())}${input(
                   freshSecret,
                   "name",
                   "Name",
@@ -1060,9 +1055,9 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
                       maxlength: 64,
                       pattern: "[A-Za-z_][A-Za-z0-9_]{0,63}",
                       autocomplete: "off",
-                      hint: "A variable name: letters, digits and _."
+                      hint: ec.l10n.localize("A variable name: letters, digits and _.")
                   }
-              )}${value(freshSecret, "Value")}${scopeFields(freshSecret, null)}${submit("Add secret")}`
+              )}${value(freshSecret, "Value")}${scopeFields(freshSecret, null)}${submit(ec.l10n.localize("Add secret"))}`
             : ""
     }</section>`
     // DG10: the deploy target (an https address, its token written and never shown again), the pipeline that must pass, the
@@ -1151,7 +1146,7 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
                 ? h`<details${attributes({open: !!f.error})}><summary>Edit</summary>${open(c, f, {plain: true})}${common}${hidden("environmentId", env.environmentId)}${envFields(
                       f,
                       env
-                  )}${submit("Save environment")}</details><p><a href="${tab}${query({deleteEnvironment: env.environmentId})}" aria-label="Delete the environment ${env.name}">Delete environment</a></p>`
+                  )}${submit(ec.l10n.localize("Save environment"))}</details><p><a href="${tab}${query({deleteEnvironment: env.environmentId})}" aria-label="${ec.resource.expand("Delete the environment ${name}", "", {name: env.name})}">${ec.l10n.localize("Delete environment")}</a></p>`
                 : ""
         }</article>`
     })
@@ -1161,8 +1156,8 @@ function repositorySettings(shell, head, bases, siteInfo, self) {
     }${
         environments.canChange
             ? closed ||
-              h`${open(c, freshEnv, {title: "New environment"})}${common}${hidden("environmentId", "")}${hidden("operationId", portal.operationId())}${envFields(freshEnv, null)}${submit(
-                  "Add environment"
+              h`${open(c, freshEnv, {title: ec.l10n.localize("New environment")})}${common}${hidden("environmentId", "")}${hidden("operationId", portal.operationId())}${envFields(freshEnv, null)}${submit(
+                  ec.l10n.localize("Add environment")
               )}`
             : ""
     }</section>`

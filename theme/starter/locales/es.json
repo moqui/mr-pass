@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "skip": "Saltar al contenido",
+    "menu": "Menú de la tienda",
+    "categories": "Categorías",
+    "search": "Buscar",
+    "cart": "Carrito"
+  },
+  "category": {
+    "empty": "Aún no hay productos aquí.",
+    "more": "Más productos"
+  },
+  "grid": {
+    "emptyHeading": "Próximamente",
+    "emptyText": "Esta tienda se está preparando. Vuelva pronto para ver sus productos."
+  },
+  "notFound": {
+    "heading": "Esta página no está disponible.",
+    "back": "Volver a la tienda"
+  },
+  "reviews": {
+    "heading": "Reseñas",
+    "ofFive": "de 5",
+    "count": "reseñas",
+    "none": "Aún no hay reseñas.",
+    "own": "Su reseña:",
+    "verified": "Compra verificada",
+    "replyFrom": "Respuesta de",
+    "all": "Todas las reseñas",
+    "write": "Escribir o cambiar su reseña"
+  },
+  "search": {
+    "heading": "Buscar",
+    "invalid": "Escriba hasta 100 caracteres para buscar.",
+    "unavailable": "La búsqueda no está disponible en este momento. Inténtelo de nuevo pronto.",
+    "noMatch": "Ningún producto coincide con su búsqueda.",
+    "pages": "Páginas",
+    "more": "Más resultados"
+  }
+}

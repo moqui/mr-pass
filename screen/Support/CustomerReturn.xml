@@ -46,10 +46,10 @@
         token=support.param('token');returnId=token?null:support.param('returnId')
         flash=support.take()
         view=null;failure=null
-        if(!token && !returnId)failure={kind:'NotFound',message:'Open the return from My returns, or the link in our return email.'}
+        if(!token && !returnId)failure={kind:'NotFound',message:ec.l10n.localize("Open the return from My returns, or the link in our return email.")}
         else{
             const found=support.portal.attempt('getCustomerReturn',{siteId:resolvedSiteId,returnId,token})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This return is not available. The link may have expired or been replaced.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This return is not available. The link may have expired or been replaced.")}:found.error
             else view=found.result
         }
         returnQuery=token?'token='+encodeURIComponent(token):'returnId='+encodeURIComponent(returnId || '')

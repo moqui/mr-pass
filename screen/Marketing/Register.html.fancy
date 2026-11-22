@@ -1,22 +1,22 @@
-<#if failure><h1>Register</h1><p role="alert" class="error">${failure.message}</p>
-<#elseif step == 'choice'><h1>Register: ${event.title}</h1>
+<#if failure><h1>${ec.l10n.localize("Register")}</h1><p role="alert" class="error">${failure.message}</p>
+<#elseif step == 'choice'><h1>${ec.resource.expand("Register: ${event.title}", "", {event: event})}</h1>
 <p class="event-host"><small>${event.organizationName} · ${event.startText} <small>(${event.timeZone})</small><#if event.location> · ${event.location}</#if></small></p>
 <#if flash.error><p role="alert" class="error" id="RegisterError">${flash.error}</p></#if>
 <form method="post" id="RegistrationChoice" class="card" action="${publicPath}/reserve"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="offer" value="${event.registrationPolicyId}"><input type="hidden" name="ticketIds" value="${ticketIds}">
-<table><thead><tr><th scope="col">Ticket</th><th scope="col">Price</th><th scope="col">Availability</th><th scope="col">Places</th></tr></thead><tbody>
-<#list event.tickets as t><tr><td>${t.name}</td><td>${t.priceText}</td><td>${t.availability}</td><td><input type="number" name="quantity_${t.ticketTypeId}" min="0" max="10" value="0" aria-label="Places of ${t.name}"></td></tr></#list>
-</tbody></table><p><small>Availability is a guide: places are held for you only when you reserve them, and if there are not enough left you join the waitlist.</small></p>
-<label>Your name <input name="buyerName" maxlength="100" required autocomplete="name"<#if flash.field == 'buyer'> aria-invalid="true" aria-describedby="RegisterError"</#if>></label>
-<label>Your email address <input type="email" name="buyerEmail" maxlength="254" required autocomplete="email"></label>
-<p><small>We send your receipt and ticket to this address. Registering does not subscribe you to anything.</small></p>
-<p><button>Reserve</button></p></form>
-<#elseif step == 'answers'><h1>Register: ${view.title}</h1><p><small>${view.whenText}</small></p>
-<p role="status" id="RegistrationHold">Your places are held until ${view.holdEndsText}.</p>
+<table><thead><tr><th scope="col">${ec.l10n.localize("Ticket")}</th><th scope="col">${ec.l10n.localize("Price")}</th><th scope="col">${ec.l10n.localize("Availability")}</th><th scope="col">${ec.l10n.localize("Places")}</th></tr></thead><tbody>
+<#list event.tickets as t><tr><td>${t.name}</td><td>${t.priceText}</td><td>${t.availability}</td><td><input type="number" name="quantity_${t.ticketTypeId}" min="0" max="10" value="0" aria-label="${ec.resource.expand("Places of ${t.name}", "", {t: t})}"></td></tr></#list>
+</tbody></table><p><small>${ec.l10n.localize("Availability is a guide: places are held for you only when you reserve them, and if there are not enough left you join the waitlist.")}</small></p>
+<label>${ec.l10n.localize("Your name")} <input name="buyerName" maxlength="100" required autocomplete="name"<#if flash.field == 'buyer'> aria-invalid="true" aria-describedby="RegisterError"</#if>></label>
+<label>${ec.l10n.localize("Your email address")} <input type="email" name="buyerEmail" maxlength="254" required autocomplete="email"></label>
+<p><small>${ec.l10n.localize("We send your receipt and ticket to this address. Registering does not subscribe you to anything.")}</small></p>
+<p><button>${ec.l10n.localize("Reserve")}</button></p></form>
+<#elseif step == 'answers'><h1>${ec.resource.expand("Register: ${view.title}", "", {view: view})}</h1><p><small>${view.whenText}</small></p>
+<p role="status" id="RegistrationHold">${ec.resource.expand("Your places are held until ${view.holdEndsText}.", "", {view: view})}</p>
 <#if flash.error><p role="alert" class="error" id="RegisterError">${flash.error}</p></#if>
 <form method="post" id="RegistrationAnswers" class="card" action="${publicPath}/complete"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="ref" value="${view.reference}"><input type="hidden" name="placeCount" value="${placeList.length}"><input type="hidden" name="fieldNames" value="${fieldNames}"><input type="hidden" name="questionScope" value="${view.questionScope}"><input type="hidden" name="termsRevision" value="${view.termsRevision}">
-<#list placeList as place><fieldset id="Attendee_${place_index}"><legend>Attendee ${place_index + 1}: ${place.ticketName}</legend>
-<label>Name <input name="attendeeName_${place_index}" maxlength="100" required value="${place.attendeeName}"></label>
-<label>Email address (optional) <input type="email" name="attendeeEmail_${place_index}" maxlength="254"></label>
+<#list placeList as place><fieldset id="Attendee_${place_index}"><legend>${ec.resource.expand("Attendee ${place_index + 1}: ${place.ticketName}", "", {place_index: place_index, place: place})}</legend>
+<label>${ec.l10n.localize("Name")} <input name="attendeeName_${place_index}" maxlength="100" required value="${place.attendeeName}"></label>
+<label>${ec.l10n.localize("Email address (optional)")} <input type="email" name="attendeeEmail_${place_index}" maxlength="254"></label>
 <#if fieldList.length && (view.questionScope == 'attendee' || place_index == 0)><#list fieldList as f><div class="field">
 <#if f.kind == 'radio'><fieldset><legend>${f.title}<#if f.required> <span aria-hidden="true">*</span></#if></legend><#list f.options as o><label><input type="radio" name="f${place_index}_${f.fieldName}" value="${o.key}"<#if f.required> required</#if>> ${o.text}</label></#list></fieldset>
 <#elseif f.kind == 'checks'><fieldset><legend>${f.title}</legend><#list f.options as o><label><input type="checkbox" name="f${place_index}_${f.fieldName}" value="${o.key}"> ${o.text}</label></#list></fieldset>
@@ -25,22 +25,22 @@
 <#elseif f.kind == 'date'><label>${f.title}<#if f.required> <span aria-hidden="true">*</span></#if> <input type="date" name="f${place_index}_${f.fieldName}"<#if f.required> required</#if>></label>
 <#else><label>${f.title}<#if f.required> <span aria-hidden="true">*</span></#if> <input name="f${place_index}_${f.fieldName}" maxlength="255"<#if f.required> required</#if>></label></#if>
 <#if f.tooltip><p><small>${f.tooltip}</small></p></#if></div></#list></#if></fieldset></#list>
-<#if view.needsTerms><section id="RegistrationTerms"><h2>Terms</h2><#list termsParagraphs as paragraph><p>${paragraph}</p></#list>
-<h3>Cancellation</h3><p id="RegistrationCancelRule">${view.cancelRule}</p><#if view.cancellationTerms><p>${view.cancellationTerms}</p></#if><#if view.consentText><p>${view.consentText}</p></#if>
-<label><input type="checkbox" name="acceptTerms" value="Y" required> I accept these terms</label></section></#if>
-<p><button>Continue</button></p></form>
-<#elseif step == 'payment'><h1>Pay for your registration: ${view.title}</h1><p><small>${view.whenText}</small></p>
+<#if view.needsTerms><section id="RegistrationTerms"><h2>${ec.l10n.localize("Terms")}</h2><#list termsParagraphs as paragraph><p>${paragraph}</p></#list>
+<h3>${ec.l10n.localize("Cancellation")}</h3><p id="RegistrationCancelRule">${view.cancelRule}</p><#if view.cancellationTerms><p>${view.cancellationTerms}</p></#if><#if view.consentText><p>${view.consentText}</p></#if>
+<label><input type="checkbox" name="acceptTerms" value="Y" required> ${ec.l10n.localize("I accept these terms")}</label></section></#if>
+<p><button>${ec.l10n.localize("Continue")}</button></p></form>
+<#elseif step == 'payment'><h1>${ec.resource.expand("Pay for your registration: ${view.title}", "", {view: view})}</h1><p><small>${view.whenText}</small></p>
 <#if flash.error><p role="alert" class="error" id="RegisterError">${flash.error}</p></#if>
-<section class="card" id="RegistrationPayment"><p role="status">Your places are held until ${view.holdEndsText}.<#if view.payment.amountText> Amount: ${view.payment.amountText}.</#if></p>
-<#if view.payment.paymentState == 'pending' && view.payment.provider && view.payment.provider.redirectUrl><p>Your payment is waiting at the payment provider.</p><p><a class="button" href="${view.payment.provider.redirectUrl}">Continue to the payment page</a> <a href="${publicPath}?ref=${encodeURIComponent(view.reference)}">Check again</a></p>
-<#elseif view.payment.paymentState == 'pending' && view.payment.provider && view.payment.provider.form><p>Your payment is waiting at the payment provider.</p><p><a class="button" href="${relayPath}?ref=${encodeURIComponent(view.reference)}">Continue to the payment page</a> <a href="${publicPath}?ref=${encodeURIComponent(view.reference)}">Check again</a></p>
-<#elseif view.payment.paymentState == 'unknown' || view.payment.paymentState == 'pending'><p>We are waiting for the payment provider's answer. This page shows it once it arrives; you are not charged twice.</p><p><a href="${publicPath}?ref=${encodeURIComponent(view.reference)}">Check again</a></p>
-<#else><#if view.payment.paymentState == 'declined' || view.payment.paymentState == 'failed'><p role="alert" class="error">The payment was not completed. You can try again while your places are held.</p></#if>
-<#if view.amountDueText><p id="RegistrationAmountDue">Amount due: <strong>${view.amountDueText}</strong>, plus any tax, shown on the payment page.</p></#if>
-<form method="post" action="${publicPath}/pay"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="ref" value="${view.reference}"><input type="hidden" name="priceKey" value="${view.priceKey}"><p><button>Pay</button></p></form>
-<p><small>You pay on the payment provider's page. Your registration is confirmed by the provider's answer, not by returning here.</small></p></#if></section>
-<#else><h1>${view.title}</h1><section class="card" id="RegistrationReceipt" role="status"><p><strong>${view.stateText}</strong></p><p>Reference ${view.reference}</p>
-<#if view.state == 'pending'><p>We have your payment. The organizer confirms your registration next; your ticket follows then.</p>
-<#elseif view.state == 'waitlisted'><p>You are on the waitlist. We email you if a place is yours.</p>
-<#elseif view.state == 'confirmed'><p>Your ticket is on its way to your email.</p></#if>
-<#if !view.limited><p><a href="${registrationPath}?ref=${encodeURIComponent(view.reference)}">Your registration</a></p></#if></section></#if>
+<section class="card" id="RegistrationPayment"><p role="status">${ec.resource.expand("Your places are held until ${view.holdEndsText}.", "", {view: view})}<#if view.payment.amountText> ${ec.resource.expand("Amount: ${view.payment.amountText}.", "", {view: view})}</#if></p>
+<#if view.payment.paymentState == 'pending' && view.payment.provider && view.payment.provider.redirectUrl><p>${ec.l10n.localize("Your payment is waiting at the payment provider.")}</p><p><a class="button" href="${view.payment.provider.redirectUrl}">${ec.l10n.localize("Continue to the payment page")}</a> <a href="${publicPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Check again")}</a></p>
+<#elseif view.payment.paymentState == 'pending' && view.payment.provider && view.payment.provider.form><p>${ec.l10n.localize("Your payment is waiting at the payment provider.")}</p><p><a class="button" href="${relayPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Continue to the payment page")}</a> <a href="${publicPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Check again")}</a></p>
+<#elseif view.payment.paymentState == 'unknown' || view.payment.paymentState == 'pending'><p>${ec.l10n.localize("We are waiting for the payment provider's answer. This page shows it once it arrives; you are not charged twice.")}</p><p><a href="${publicPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Check again")}</a></p>
+<#else><#if view.payment.paymentState == 'declined' || view.payment.paymentState == 'failed'><p role="alert" class="error">${ec.l10n.localize("The payment was not completed. You can try again while your places are held.")}</p></#if>
+<#if view.amountDueText><p id="RegistrationAmountDue">${ec.l10n.localize("Amount due:")} <strong>${view.amountDueText}</strong>${ec.l10n.localize(", plus any tax, shown on the payment page.")}</p></#if>
+<form method="post" action="${publicPath}/pay"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="ref" value="${view.reference}"><input type="hidden" name="priceKey" value="${view.priceKey}"><p><button>${ec.l10n.localize("Pay")}</button></p></form>
+<p><small>${ec.l10n.localize("You pay on the payment provider's page. Your registration is confirmed by the provider's answer, not by returning here.")}</small></p></#if></section>
+<#else><h1>${view.title}</h1><section class="card" id="RegistrationReceipt" role="status"><p><strong>${view.stateText}</strong></p><p>${ec.resource.expand("Reference ${view.reference}", "", {view: view})}</p>
+<#if view.state == 'pending'><p>${ec.l10n.localize("We have your payment. The organizer confirms your registration next; your ticket follows then.")}</p>
+<#elseif view.state == 'waitlisted'><p>${ec.l10n.localize("You are on the waitlist. We email you if a place is yours.")}</p>
+<#elseif view.state == 'confirmed'><p>${ec.l10n.localize("Your ticket is on its way to your email.")}</p></#if>
+<#if !view.limited><p><a href="${registrationPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Your registration")}</a></p></#if></section></#if>

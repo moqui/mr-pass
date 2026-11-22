@@ -161,7 +161,8 @@ function finish(context, kind, page, status) {
                   }
                 : { status: 503, html: theme().unavailablePage(context) }
     } else {
-        if ((status || 200) === 404) fail('NotFound', 'Page not found')
+        if ((status || 200) === 404)
+            fail('NotFound', ec.l10n.localize('Page not found'))
         out = shellPage(context, kind, page ? page.view : null, status || 200)
     }
     if (out.status !== 200) return commit(out.status, out.html)

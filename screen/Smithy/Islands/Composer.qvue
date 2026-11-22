@@ -8,9 +8,9 @@
 <template>
     <div v-if="ready" class="smithy-composer">
         <fieldset>
-            <legend>Write in</legend>
+            <legend>{{ t('Write in') }}</legend>
             <label><input v-model="format" type="radio" value="markdown" /> Markdown</label>
-            <label><input v-model="format" type="radio" value="html" /> Rich text</label>
+            <label><input v-model="format" type="radio" value="html" /> {{ t('Rich text') }}</label>
         </fieldset>
         <label v-if="format === 'markdown'"
             >{{ label }}
@@ -18,11 +18,11 @@
         </label>
         <m-rich-text v-else v-model="text" :rows="rows" :aria-label="label" :plain-toggle="false"></m-rich-text>
         <p>
-            <button type="button" :disabled="busy" @click="preview">Preview</button>
+            <button type="button" :disabled="busy" @click="preview">{{ t('Preview') }}</button>
             <span role="status" aria-live="polite"> {{ status }}</span>
         </p>
-        <section v-if="previewHtml" class="smithy-preview" aria-label="Preview">
-            <h3>Preview</h3>
+        <section v-if="previewHtml" class="smithy-preview" :aria-label="t('Preview')">
+            <h3>{{ t('Preview') }}</h3>
             <div class="wrap" v-html="previewHtml"></div>
         </section>
     </div>
@@ -58,7 +58,7 @@ module.exports = {
         this.token = config.sessionToken || ''
         this.previewUrl = context.previewUrl
         this.previewOf = context.previewOf
-        this.label = context.label || 'Text'
+        this.label = context.label || this.t('Text')
         this.text = area.value
         // a text that is rich text already (an edit) starts so, with nothing to convert
         this.given = format.value === 'html'
@@ -100,6 +100,7 @@ module.exports = {
         },
     },
     methods: {
+        t(text) { return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text },
         // m-rich-text is drawn with Quasar: its stylesheets, then the page's own type sizes again
         styles() {
             if (document.getElementById('SmithyComposerStyles')) return
@@ -139,7 +140,7 @@ module.exports = {
                     moquiSessionToken: this.token,
                 }),
             })
-            if (!response.ok) throw new Error('The preview is not available. Your text is kept.')
+            if (!response.ok) throw new Error(this.t('The preview is not available. Your text is kept.'))
             const out = await response.json()
             if (out.error) throw new Error(out.error)
             return out.body || ''
@@ -149,7 +150,7 @@ module.exports = {
             this.status = ''
             try {
                 this.previewHtml = await this.render(this.format)
-                if (!this.previewHtml) this.status = 'Nothing to preview.'
+                if (!this.previewHtml) this.status = this.t('Nothing to preview.')
                 // the plain page's preview, if it showed one, is replaced by this
                 const served = document.getElementById(this.fields.area.form.id + '_preview')
                 if (served) served.style.display = 'none'

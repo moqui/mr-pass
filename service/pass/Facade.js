@@ -60,7 +60,7 @@ function checkLoginKey(operation) {
 function call(operation, input) {
     const def = schema[operation]
     if (!def || Object.keys(input).some((k) => !def.fields.includes(k)))
-        fail('Unprocessable', 'Unsupported operation or input')
+        fail('Unprocessable', ec.l10n.localize('Unsupported operation or input'))
     const backend = ec.factory.getConfValue('pass@backend-url')
     if (!backend) checkLoginKey(operation)
     if (!backend)

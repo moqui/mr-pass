@@ -5,7 +5,7 @@
     <actions>
       <script><![CDATA[
         const saved=ec.resource.script('component://mr-pass/screen/Shared/View.js').save('Policies',resolvedSiteId,ec.web.parameters)
-        if(ec.web.parameters.formAction==='testRule' && !ec.web.request.getHeader('accept')?.includes('application/json')){ec.web.response.setContentType('text/html');ec.web.response.write('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rule test</title><main style="max-width:45rem;margin:2rem auto;font:1rem/1.6 system-ui"><h1>Rule test</h1><p>'+(saved.matched?'The rule matches this text.':'The rule does not match this text.')+'</p><p>Censored display: '+saved.censored+'</p><a href="'+WebUtilities.encodeHtml(publicPath.replace(/\/save$/, ''))+'">Return to policies</a></main></html>');return}
+        if(ec.web.parameters.formAction==='testRule' && !ec.web.request.getHeader('accept')?.includes('application/json')){ec.web.response.setContentType('text/html');ec.web.response.write('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+ec.l10n.localize('Rule test')+'</title><main style="max-width:45rem;margin:2rem auto;font:1rem/1.6 system-ui"><h1>'+ec.l10n.localize('Rule test')+'</h1><p>'+(saved.matched?ec.l10n.localize('The rule matches this text.'):ec.l10n.localize('The rule does not match this text.'))+'</p><p>'+ec.l10n.localize('Censored display')+': '+saved.censored+'</p><a href="'+WebUtilities.encodeHtml(publicPath.replace(/\/save$/, ''))+'">'+ec.l10n.localize('Return to policies')+'</a></main></html>');return}
         if(ec.web.parameters.formAction?.startsWith('preview') && ec.web.response){ec.web.response.setContentType('text/html');ec.web.response.write(ec.resource.script('component://mr-pass/screen/Shared/View.js').preview(saved,publicPath.replace(/\/save$/, '')));return}
         if (ec.web.request.getHeader('accept')?.includes('application/json')) ec.web.sendJsonResponse(saved)
         else ec.web.response.sendRedirect(publicPath.replace(/\/save$/, '') + '?saved=true')
@@ -26,7 +26,7 @@
     <section name="PassPoliciesStorePolicySection" condition="view.forms.some(form =&gt; form.op === 'storePolicy')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStorePolicy" action="${publicPath}/save"><h2>Save forum policy</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStorePolicy" action="${publicPath}/save"><h2>${ec.l10n.localize("Save forum policy")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPoliciesStorePolicy" transition="save" map="Object.assign({},view.formValues['storePolicy'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -246,7 +246,7 @@
     <section name="PassPoliciesStoreRuleSection" condition="view.forms.some(form =&gt; form.op === 'storeRule')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStoreRule" action="${publicPath}/save"><h2>Save content rule</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStoreRule" action="${publicPath}/save"><h2>${ec.l10n.localize("Save content rule")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPoliciesStoreRule" transition="save" map="Object.assign({},view.formValues['storeRule'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -359,7 +359,7 @@
     <section name="PassPoliciesTestRuleSection" condition="view.forms.some(form =&gt; form.op === 'testRule')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPoliciesTestRule" action="${publicPath}/save"><h2>Test a rule</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesTestRule" action="${publicPath}/save"><h2>${ec.l10n.localize("Test a rule")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPoliciesTestRule" transition="save" map="Object.assign({},view.formValues['testRule'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -440,7 +440,7 @@
     <section name="PassPoliciesStoreRetentionPolicySection" condition="view.forms.some(form =&gt; form.op === 'storeRetentionPolicy')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStoreRetentionPolicy" action="${publicPath}/save"><h2>Save retention periods</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassPoliciesStoreRetentionPolicy" action="${publicPath}/save"><h2>${ec.l10n.localize("Save retention periods")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassPoliciesStoreRetentionPolicy" transition="save" map="Object.assign({},view.formValues['storeRetentionPolicy'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

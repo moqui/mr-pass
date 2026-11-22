@@ -32,7 +32,7 @@
     <section name="PassOperationsManageRunSection" condition="view.forms.some(form =&gt; form.op === 'manageRun')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassOperationsManageRun" action="${publicPath}/save"><h2>Recover a checkpointed job</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassOperationsManageRun" action="${publicPath}/save"><h2>${ec.l10n.localize("Recover a checkpointed job")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassOperationsManageRun" transition="save" map="Object.assign({},view.formValues['manageRun'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -113,7 +113,7 @@
     <section name="PassOperationsPreviewOperationSection" condition="view.forms.some(form =&gt; form.op === 'previewOperation')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassOperationsPreviewOperation" action="${publicPath}/save"><h2>Preview an operation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassOperationsPreviewOperation" action="${publicPath}/save"><h2>${ec.l10n.localize("Preview an operation")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassOperationsPreviewOperation" transition="save" map="Object.assign({},view.formValues['previewOperation'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -185,7 +185,7 @@
     <section name="PassOperationsStartOperationSection" condition="view.forms.some(form =&gt; form.op === 'startOperation')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassOperationsStartOperation" action="${publicPath}/save"><h2>Start an operation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassOperationsStartOperation" action="${publicPath}/save"><h2>${ec.l10n.localize("Start an operation")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassOperationsStartOperation" transition="save" map="Object.assign({},view.formValues['startOperation'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -275,7 +275,7 @@
     <section name="PassOperationsDecideDataRequestSection" condition="view.forms.some(form =&gt; form.op === 'decideDataRequest')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassOperationsDecideDataRequest" action="${publicPath}/save"><h2>Decide an erasure request</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassOperationsDecideDataRequest" action="${publicPath}/save"><h2>${ec.l10n.localize("Decide an erasure request")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassOperationsDecideDataRequest" transition="save" map="Object.assign({},view.formValues['decideDataRequest'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

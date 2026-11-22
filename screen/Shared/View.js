@@ -83,21 +83,21 @@ const POLICY_FIELDS = [
 ]
 const definitions = {
     Topics: {
-        title: 'Latest topics',
+        title: ec.l10n.localize('Latest topics'),
         read: 'findTopics',
         list: 'topicList',
         link: 'topic',
         params: ['view', 'tag', 'solved', 'period'],
     },
     Tags: {
-        title: 'Tags',
+        title: ec.l10n.localize('Tags'),
         read: 'findTags',
         list: 'tagList',
         link: 'tag',
         params: ['query'],
     },
     Bookmarks: {
-        title: 'Bookmarks',
+        title: ec.l10n.localize('Bookmarks'),
         read: 'findBookmarks',
         list: 'bookmarkList',
         link: 'post',
@@ -114,7 +114,7 @@ const definitions = {
         ],
     },
     PostHistory: {
-        title: 'Post history',
+        title: ec.l10n.localize('Post history'),
         read: 'getPostHistory',
         list: 'revisionList',
         params: ['postId'],
@@ -124,7 +124,7 @@ const definitions = {
                 text('reason', 'Reason'),
                 field('expectedRevision', 'Current revision', 'number'),
             ]),
-            form('setPostHistory', 'Hide or show the earlier versions', [
+            form('setPostHistory', ec.l10n.localize('Hide or show the earlier versions'), [
                 field('history', 'Earlier versions are', 'select', [
                     'hidden',
                     'shown',
@@ -134,13 +134,13 @@ const definitions = {
         ],
     },
     Categories: {
-        title: 'Categories',
+        title: ec.l10n.localize('Categories'),
         read: 'findCategories',
         list: 'categoryList',
         link: 'category',
     },
     CategoryDetail: {
-        title: 'Category topics',
+        title: ec.l10n.localize('Category topics'),
         read: 'findTopics',
         list: 'topicList',
         link: 'topic',
@@ -167,7 +167,7 @@ const definitions = {
         ],
     },
     Search: {
-        title: 'Search',
+        title: ec.l10n.localize('Search'),
         read: 'searchForum',
         list: 'topicList',
         link: 'topic',
@@ -175,14 +175,14 @@ const definitions = {
         optional: 'query',
     },
     Guidelines: {
-        title: 'Community guidelines',
+        title: ec.l10n.localize('Community guidelines'),
         read: 'getSitePage',
         params: ['pageRole'],
         defaults: { pageRole: 'guidelines' },
         body: 'page',
     },
     TopicDetail: {
-        title: 'Topic',
+        title: ec.l10n.localize('Topic'),
         read: 'getPosts',
         list: 'postList',
         params: ['rootCommEventId'],
@@ -297,7 +297,7 @@ const definitions = {
                 text('requestId', 'Case'),
                 field('body', 'Public reply', 'textarea'),
             ]),
-            form('publishCaseReply', 'Publish the previewed reply', []),
+            form('publishCaseReply', ec.l10n.localize('Publish the previewed reply'), []),
             form('linkDiscussion', 'Link a product or article', [
                 field('sourceType', 'Source', 'select', ['product', 'article']),
                 text('sourceId', 'Product or wiki page'),
@@ -321,9 +321,9 @@ const definitions = {
             ]),
         ],
     },
-    Compose: { title: 'Write a topic or reply', compose: true },
+    Compose: { title: ec.l10n.localize('Write a topic or reply'), compose: true },
     Conversations: {
-        title: 'Messages',
+        title: ec.l10n.localize('Messages'),
         read: 'findConversations',
         list: 'conversationList',
         link: 'conversation',
@@ -340,7 +340,7 @@ const definitions = {
         ],
     },
     ConversationDetail: {
-        title: 'Conversation',
+        title: ec.l10n.localize('Conversation'),
         read: 'getPosts',
         list: 'postList',
         params: ['rootCommEventId'],
@@ -372,7 +372,7 @@ const definitions = {
                 text('reason', 'Reason'),
             ]),
             form('setReaction', 'React', []),
-            form('releaseHeldMessage', 'Release a held message', []),
+            form('releaseHeldMessage', ec.l10n.localize('Release a held message'), []),
             form('votePoll', 'Vote', []),
             form('storeBookmark', 'Bookmark a post', [
                 text('postId', 'Post'),
@@ -387,7 +387,7 @@ const definitions = {
         ],
     },
     Drafts: {
-        title: 'Your drafts',
+        title: ec.l10n.localize('Your drafts'),
         read: 'findDrafts',
         list: 'draftList',
         link: 'draft',
@@ -399,13 +399,13 @@ const definitions = {
         ],
     },
     MemberDetail: {
-        title: 'Community profile',
+        title: ec.l10n.localize('Community profile'),
         read: 'getProfile',
         params: ['handle'],
         detail: 'profile',
         optional: 'handle',
         forms: [
-            form('setMemberPreference', 'Mute or block this member', [
+            form('setMemberPreference', ec.l10n.localize('Mute or block this member'), [
                 text('targetHandle', 'Member'),
                 field('preference', 'Preference', 'select', [
                     'none',
@@ -417,31 +417,31 @@ const definitions = {
         ],
     },
     Settings: {
-        title: 'Account settings',
+        title: ec.l10n.localize('Account settings'),
         account: true,
         forms: [
             form('manageAccount', 'Change password', [
-                field('action', 'Security action', 'select', ['password']),
+                field('action', ec.l10n.localize('Security action'), 'select', ['password']),
                 field('oldPassword', 'Current password', 'password'),
                 field('newPassword', 'New password', 'password'),
-                field('newPasswordVerify', 'Confirm new password', 'password'),
-                text('code', 'Authentication code (when required)'),
+                field('newPasswordVerify', ec.l10n.localize('Confirm new password'), 'password'),
+                text('code', ec.l10n.localize('Authentication code (when required)')),
             ]),
             form('endSession', 'Sign out', []),
             form('storeProfile', 'Save profile', [
                 text('handle', 'Handle'),
                 text('displayName', 'Display name'),
                 field('bio', 'Biography', 'textarea'),
-                field('discoverability', 'Profile visibility', 'select', [
+                field('discoverability', ec.l10n.localize('Profile visibility'), 'select', [
                     'members',
                     'public',
                     'hidden',
                 ]),
                 text('locale', 'Locale'),
                 text('timeZone', 'Time zone'),
-                field('expectedRevision', 'Profile revision', 'number'),
+                field('expectedRevision', ec.l10n.localize('Profile revision'), 'number'),
             ]),
-            form('setPreferences', 'Save delivery preferences', [
+            form('setPreferences', ec.l10n.localize('Save delivery preferences'), [
                 field('watchLevel', 'Notifications', 'select', [
                     'Normal',
                     'Muted',
@@ -455,73 +455,73 @@ const definitions = {
                     'Digest',
                     'EveryPost',
                 ]),
-                field('digestPeriod', 'Digest frequency', 'select', [
+                field('digestPeriod', ec.l10n.localize('Digest frequency'), 'select', [
                     'daily',
                     'weekly',
                 ]),
                 field(
                     'includeOwn',
-                    'Include my own posts in mailing-list email',
+                    ec.l10n.localize('Include my own posts in mailing-list email'),
                     'checkbox',
                 ),
                 field('expectedRevision', 'Preference revision', 'number'),
             ]),
-            form('leaveSite', 'Leave this site', [
-                field('expectedRevision', 'Membership revision', 'number'),
+            form('leaveSite', ec.l10n.localize('Leave this site'), [
+                field('expectedRevision', ec.l10n.localize('Membership revision'), 'number'),
             ]),
-            form('requestPersonalDataAction', 'Export or erase my data', [
+            form('requestPersonalDataAction', ec.l10n.localize('Export or erase my data'), [
                 field('kind', 'Request', 'select', ['export', 'erasure']),
                 text('reason', 'Note (optional)'),
                 field(
                     'confirm',
-                    'For erasure: I understand my profile is anonymized and my memberships end',
+                    ec.l10n.localize('For erasure: I understand my profile is anonymized and my memberships end'),
                     'checkbox',
                 ),
             ]),
         ],
     },
     Notifications: {
-        title: 'Notifications',
+        title: ec.l10n.localize('Notifications'),
         read: 'findNotifications',
         list: 'notificationList',
         link: 'post',
         params: ['view'],
         forms: [
             form('markNotifications', 'Mark read', [
-                field('all', 'Mark every unread notification read', 'checkbox'),
+                field('all', ec.l10n.localize('Mark every unread notification read'), 'checkbox'),
             ]),
-            form('appealReview', 'Appeal a moderation decision', [
+            form('appealReview', ec.l10n.localize('Appeal a moderation decision'), [
                 text('reviewId', 'Decision'),
-                field('reason', 'Why it should be reconsidered', 'textarea'),
+                field('reason', ec.l10n.localize('Why it should be reconsidered'), 'textarea'),
             ]),
         ],
     },
     Unsubscribe: {
-        title: 'Email preferences',
+        title: ec.l10n.localize('Email preferences'),
         read: 'inspectOptOut',
         params: ['token'],
         detail: 'optOut',
         forms: [
-            form('applyOptOut', 'Stop forum email', [
+            form('applyOptOut', ec.l10n.localize('Stop forum email'), [
                 field('scopeType', 'Stop', 'select', ['', 'site']),
             ]),
         ],
     },
     Login: {
-        title: 'Sign in',
+        title: ec.l10n.localize('Sign in'),
         account: true,
         forms: [
             form('startSession', 'Sign in', [
-                text('username', 'Email or username'),
+                text('username', ec.l10n.localize('Email or username')),
                 field('password', 'Password', 'password'),
             ]),
-            form('requestRecovery', 'Send recovery instructions', [
+            form('requestRecovery', ec.l10n.localize('Send recovery instructions'), [
                 field('emailAddress', 'Email', 'email'),
             ]),
         ],
     },
     SecondFactor: {
-        title: 'Verify sign-in',
+        title: ec.l10n.localize('Verify sign-in'),
         account: true,
         forms: [
             form('completeSession', 'Verify', [
@@ -530,40 +530,40 @@ const definitions = {
         ],
     },
     Register: {
-        title: 'Join the community',
+        title: ec.l10n.localize('Join the community'),
         account: true,
         forms: [
-            form('beginRegistration', 'Send verification', [
+            form('beginRegistration', ec.l10n.localize('Send verification'), [
                 field('emailAddress', 'Email', 'email'),
-                text('invitationToken', 'Invitation code (when required)'),
+                text('invitationToken', ec.l10n.localize('Invitation code (when required)')),
             ]),
-            form('verifyRegistration', 'Verify address', [
-                text('token', 'Verification code'),
-                field('newPassword', 'Choose a password', 'password'),
+            form('verifyRegistration', ec.l10n.localize('Verify address'), [
+                text('token', ec.l10n.localize('Verification code')),
+                field('newPassword', ec.l10n.localize('Choose a password'), 'password'),
             ]),
-            form('joinSite', 'Join this site', []),
+            form('joinSite', ec.l10n.localize('Join this site'), []),
         ],
     },
     Invitation: {
-        title: 'Invitation',
+        title: ec.l10n.localize('Invitation'),
         read: 'inspectInvitation',
         params: ['token'],
         optional: 'token',
         forms: [
             form('redeemInvitation', 'Accept invitation', [
-                text('token', 'Invitation code'),
+                text('token', ec.l10n.localize('Invitation code')),
             ]),
         ],
     },
     ReviewQueue: {
-        title: 'Review queue',
+        title: ec.l10n.localize('Review queue'),
         read: 'findReviews',
         list: 'reviewList',
         link: 'review',
         forms: [form('decideReviews', 'Decide selected reviews', [])],
     },
     ReviewDetail: {
-        title: 'Review decision',
+        title: ec.l10n.localize('Review decision'),
         read: 'getReview',
         params: ['reviewId'],
         detail: 'review',
@@ -594,14 +594,14 @@ const definitions = {
         ],
     },
     MemberModeration: {
-        title: 'Member moderation',
+        title: ec.l10n.localize('Member moderation'),
         read: 'getMember',
         list: 'sanctionList',
         params: ['targetPartyId', 'contactListId'],
         detail: 'membership',
         optional: 'targetPartyId',
         forms: [
-            form('endSanction', 'End a sanction', [
+            form('endSanction', ec.l10n.localize('End a sanction'), [
                 text('sanctionId', 'Sanction'),
                 field('expectedRevision', 'Sanction revision', 'number'),
                 text('reason', 'Reason'),
@@ -627,93 +627,93 @@ const definitions = {
             ]),
         ],
     },
-    Log: { title: 'Moderation log', read: 'findActions', list: 'actionList' },
+    Log: { title: ec.l10n.localize('Moderation log'), read: 'findActions', list: 'actionList' },
     Sites: {
-        title: 'Your sites',
+        title: ec.l10n.localize('Your sites'),
         read: 'findSites',
         list: 'siteList',
         link: 'site',
         forms: [
-            form('createSite', 'Create disabled site', [
-                text('name', 'Site name'),
-                text('ownerPartyId', 'Owner party'),
+            form('createSite', ec.l10n.localize('Create disabled site'), [
+                text('name', ec.l10n.localize('Site name')),
+                text('ownerPartyId', ec.l10n.localize('Owner party')),
                 text('locale', 'Locale'),
                 text('timeZone', 'Time zone'),
             ]),
         ],
     },
     SiteDetail: {
-        title: 'Site settings',
+        title: ec.l10n.localize('Site settings'),
         read: 'getSiteInfo',
         detail: 'site',
         forms: [
-            form('storeMounts', 'Save registered hosts and mounts', [
-                text('hostname', 'Host name (operator only)'),
-                text('forumMount', 'Forum path'),
-                text('accountMount', 'Account path'),
-                text('membersMount', 'Members path'),
-                text('sitesMount', 'Site settings path'),
-                field('expectedRevision', 'Site revision', 'number'),
+            form('storeMounts', ec.l10n.localize('Save registered hosts and mounts'), [
+                text('hostname', ec.l10n.localize('Host name (operator only)')),
+                text('forumMount', ec.l10n.localize('Forum path')),
+                text('accountMount', ec.l10n.localize('Account path')),
+                text('membersMount', ec.l10n.localize('Members path')),
+                text('sitesMount', ec.l10n.localize('Site settings path')),
+                field('expectedRevision', ec.l10n.localize('Site revision'), 'number'),
             ]),
-            form('setSiteRole', 'Delegate a site role', [
+            form('setSiteRole', ec.l10n.localize('Delegate a site role'), [
                 text('targetPartyId', 'Member'),
                 field('role', 'Role', 'select', [
                     'member',
                     'moderator',
                     'owner',
                 ]),
-                field('expectedRevision', 'Membership revision', 'number'),
+                field('expectedRevision', ec.l10n.localize('Membership revision'), 'number'),
                 text('reason', 'Decision reason'),
             ]),
-            form('publishSitePage', 'Publish a site page', [
+            form('publishSitePage', ec.l10n.localize('Publish a site page'), [
                 field('pageRole', 'Page', 'select', ['guidelines', 'about']),
                 text('wikiPageId', 'Wiki page'),
-                text('versionName', 'Published version'),
-                field('expectedRevision', 'Publication revision', 'number'),
+                text('versionName', ec.l10n.localize('Published version')),
+                field('expectedRevision', ec.l10n.localize('Publication revision'), 'number'),
             ]),
-            form('updateSite', 'Save site identity', [
+            form('updateSite', ec.l10n.localize('Save site identity'), [
                 text('name', 'Name'),
                 text('locale', 'Locale'),
                 text('timeZone', 'Time zone'),
                 text(
                     'subscriptionUrl',
-                    'Manage-subscription page (https address or local path)',
+                    ec.l10n.localize('Manage-subscription page (https address or local path)'),
                 ),
                 text(
                     'publishingWikiSpaceId',
-                    'Publishing wiki space for article drafts',
+                    ec.l10n.localize('Publishing wiki space for article drafts'),
                 ),
                 field('state', 'Publication', 'select', [
                     'disabled',
                     'published',
                 ]),
-                field('expectedRevision', 'Site revision', 'number'),
+                field('expectedRevision', ec.l10n.localize('Site revision'), 'number'),
             ]),
-            form('updateMembershipPolicy', 'Save registration policy', [
+            form('updateMembershipPolicy', ec.l10n.localize('Save registration policy'), [
                 field('registrationMode', 'Registration', 'select', [
                     'closed',
                     'invitation',
                     'open',
                 ]),
-                field('expectedRevision', 'Site revision', 'number'),
+                field('expectedRevision', ec.l10n.localize('Site revision'), 'number'),
             ]),
             form(
                 'storeSubscriptionBinding',
-                'Bind a subscription resource (operator only)',
+                ec.l10n.localize('Bind a subscription resource (operator only)'),
                 [
-                    text('subscriptionResourceId', 'Subscription resource'),
+                    text('subscriptionResourceId', ec.l10n.localize('Subscription resource')),
                     field('targetType', 'Scope', 'select', [
                         'site',
                         'category',
                     ]),
-                    text('contactListId', 'Category (for a category scope)'),
+                    text('contactListId', ec.l10n.localize('Category (for a category scope)')),
                     text('reason', 'Reason'),
                 ],
             ),
         ],
     },
     CategorySettings: {
-        title: 'Category settings',
+        title: ec.l10n.localize('Category settings'),
         read: 'findCategories',
         list: 'categoryList',
         forms: [
@@ -793,7 +793,7 @@ const definitions = {
         ],
     },
     Members: {
-        title: 'Members and invitations',
+        title: ec.l10n.localize('Members and invitations'),
         read: 'findMembers',
         list: 'memberList',
         forms: [
@@ -843,7 +843,7 @@ const definitions = {
         ],
     },
     Policies: {
-        title: 'Forum policies',
+        title: ec.l10n.localize('Forum policies'),
         read: 'getPolicy',
         detail: 'policy',
         list: 'ruleList',
@@ -908,7 +908,7 @@ const definitions = {
         ],
     },
     Mail: {
-        title: 'Forum mail delivery',
+        title: ec.l10n.localize('Forum mail delivery'),
         read: 'findDeliveries',
         list: 'deliveryList',
         forms: [
@@ -951,7 +951,7 @@ const definitions = {
         ],
     },
     Operations: {
-        title: 'Forum health',
+        title: ec.l10n.localize('Forum health'),
         read: 'getHealth',
         detail: 'health',
         list: 'runList',
@@ -1005,7 +1005,7 @@ const definitions = {
         ],
     },
     Import: {
-        title: 'Community import',
+        title: ec.l10n.localize('Community import'),
         read: 'findImports',
         list: 'importList',
         forms: [
@@ -1073,7 +1073,7 @@ const definitions = {
         ],
     },
     Activity: {
-        title: 'Community activity',
+        title: ec.l10n.localize('Community activity'),
         read: 'getActivity',
         forms: [
             form('exportReport', 'Export a report as CSV', [
@@ -1092,27 +1092,27 @@ const definitions = {
 const rowActions = {
     Policies: {
         key: 'ruleId',
-        label: 'Edit rule',
+        label: ec.l10n.localize('Edit rule'),
         form: 'PassPoliciesStoreRule',
     },
     Drafts: {
         key: 'draftId',
-        label: 'Discard',
+        label: ec.l10n.localize('Discard'),
         form: 'PassDraftsDiscardDraft',
     },
     Bookmarks: {
         key: 'bookmarkId',
-        label: 'Edit or remind',
+        label: ec.l10n.localize('Edit or remind'),
         form: 'PassBookmarksStoreBookmark',
     },
     MemberModeration: {
         key: 'sanctionId',
-        label: 'End sanction',
+        label: ec.l10n.localize('End sanction'),
         form: 'PassEndSanctionForm',
     },
     Mail: {
         key: 'deliveryId',
-        label: 'Reconcile',
+        label: ec.l10n.localize('Reconcile'),
         form: 'PassMailResolveDelivery',
     },
 }
@@ -1196,7 +1196,7 @@ function inputFor(op, siteId, parameters) {
  * category whose subtree the page is limited to (contactListId), the link base that takes the forum base's place (base) and
  * the base of the scope's moderation pages (moderationBase). */
 function load(name, siteId, parameters, bases, identity, scope) {
-    if (!definitions[name]) throw new Error('Unknown PASS screen')
+    if (!definitions[name]) throw new Error(ec.l10n.localize('Unknown PASS screen'))
     const forumBase = scope ? scope.base : bases.forum
     const moderationBase = scope
         ? scope.moderationBase
@@ -1231,7 +1231,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
     if (name === 'Members') {
         if (parameters.contactListId) {
             def.read = 'findCategoryMembers'
-            view.title = 'Category members and roles'
+            view.title = ec.l10n.localize('Category members and roles')
             view.forms = view.forms.filter((form) =>
                 [
                     'setCategoryMember',
@@ -1302,7 +1302,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
     if (name === 'Login' && identity?.ssoFlows?.length)
         view.forms = [
             ...view.forms,
-            form('startSso', 'Sign in with your provider', [
+            form('startSso', ec.l10n.localize('Sign in with your provider'), [
                 field(
                     'authFlowId',
                     'Provider',
@@ -1399,7 +1399,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
                 ['endSession', 'manageAccount', 'startSso'].includes(form.op),
             )
             if (identity.site.registrationMode === 'open')
-                view.forms.push(form('joinSite', 'Join this community', []))
+                view.forms.push(form('joinSite', ec.l10n.localize('Join this community'), []))
         }
         if (identity.profile?.handle) {
             const profile = call('getProfile', {
@@ -1474,7 +1474,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
                 view.details = view.details.concat(
                     [
                         [
-                            'Held mail',
+                            ec.l10n.localize('Held mail'),
                             held.targetType === 'issue'
                                 ? 'a report'
                                 : 'a message to the list',
@@ -1488,7 +1488,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
                         ],
                         ['Subject', held.subject],
                         [
-                            'Waits until',
+                            ec.l10n.localize('Waits until'),
                             held.expiresAt
                                 ? ec.l10n.format(new Date(until), 'MMM d, yyyy')
                                 : null,
@@ -1535,7 +1535,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
                 limit: 30,
             })
             view.rows = activity.topicList || []
-            view.activityTitle = 'Topics started'
+            view.activityTitle = ec.l10n.localize('Topics started')
             def.link = 'topic'
         }
         view.next = data.nextCursor
@@ -1591,7 +1591,7 @@ function load(name, siteId, parameters, bases, identity, scope) {
             // moderated as a scope's Owner: the member's posts and the actions on them in the scope, and a sanction
             // there; the trust level is the site's, not set here
             view.details = [
-                ['Posts here', String(data.scopeActivity.postCount ?? 0)],
+                [ec.l10n.localize('Posts here'), String(data.scopeActivity.postCount ?? 0)],
             ]
             view.scopeActions = (data.scopeActivity.actionList || []).map(
                 (action) => ({
@@ -1871,7 +1871,7 @@ function requireInScope(siteId, scope, contactListId) {
  * authority gives for a record the reader may see. */
 function linkCard(link) {
     const kinds = {
-        case: 'Support case',
+        case: ec.l10n.localize('Support case'),
         product: 'Product',
         article: 'Article',
         issue: 'Issue',
@@ -1952,7 +1952,7 @@ function save(name, siteId, parameters) {
         parameters = { ...parameters, includeOwn: false }
     const form = def.forms?.find((f) => f.op === parameters.formAction)
     if (!form) {
-        const e = new Error('Unknown form action')
+        const e = new Error(ec.l10n.localize('Unknown form action'))
         e.moquiErrorKind = 'Unprocessable'
         throw e
     }
@@ -1984,10 +1984,10 @@ function preview(result, back) {
     const encode = (value) => WebUtilities.encodeHtml(String(value ?? ''))
     const audience = (value) =>
         ({
-            public: 'Anyone, including visitors who are not signed in',
-            members: 'Active site members',
-            category: 'Granted category members',
-            help: 'Participants in their own discussions',
+            public: ec.l10n.localize('Anyone, including visitors who are not signed in'),
+            members: ec.l10n.localize('Active site members'),
+            category: ec.l10n.localize('Granted category members'),
+            help: ec.l10n.localize('Participants in their own discussions'),
         })[value] ||
         value ||
         ''

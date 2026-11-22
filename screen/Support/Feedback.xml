@@ -39,10 +39,10 @@
         feedbackError=ec.web.sessionAttributes.passFeedbackError || null
         if(feedbackError)ec.web.sessionAttributes.remove('passFeedbackError')
         view=null;failure=null
-        if(!token)failure={kind:'NotFound',message:'Open the link in the email we sent you about your request.'}
+        if(!token)failure={kind:'NotFound',message:ec.l10n.localize("Open the link in the email we sent you about your request.")}
         else{
             const found=portal.attempt('getCaseFeedbackInvitation',{siteId:resolvedSiteId,token})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This feedback link is not available. It may have expired or been replaced; you can still reply to the email we sent you.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This feedback link is not available. It may have expired or been replaced; you can still reply to the email we sent you.")}:found.error
             else view=found.result
         }
         // each field's show and require rules as moqui-form-when.js reads them (data-visible-when, data-require-when)

@@ -26,7 +26,7 @@
                 confirm:['true','on'].includes(String(p.confirm)),file:ec.web.multiPartParameters?.file}),{newTransaction:true})
             : portal.attempt('saveQuoteResponse',fields,{newTransaction:true})
         if(out.error)ec.web.sessionAttributes.passQuoteError=out.error.message
-        else if(!send)ec.web.sessionAttributes.passQuoteSaved='Draft saved. Only you see it until you send the quote.'
+        else if(!send)ec.web.sessionAttributes.passQuoteSaved=ec.l10n.localize("Draft saved. Only you see it until you send the quote.")
         ec.web.response.sendRedirect(base+query({token,orderId}))
     ]]></script>
     </actions>
@@ -42,7 +42,7 @@
         if(quoteSaved)ec.web.sessionAttributes.remove('passQuoteSaved')
         view=null;failure=null
         const orderId=token ? null : p.orderId || null
-        if(!token && !orderId)failure={kind:'NotFound',message:'Open the link the buyer sent with the request for quotation.'}
+        if(!token && !orderId)failure={kind:'NotFound',message:ec.l10n.localize("Open the link the buyer sent with the request for quotation.")}
         else{
             const found=portal.attempt('getQuoteInvitation',{siteId:resolvedSiteId,token,orderId})
             if(found.error)failure=found.error

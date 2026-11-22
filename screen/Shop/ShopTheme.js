@@ -45,7 +45,9 @@ const COMPONENTS = {
         html: (context) =>
             context.cartComponent
                 ? context.cartComponent()
-                : '<p class="shop-cart">Your cart is empty.</p>',
+                : '<p class="shop-cart">' +
+                  escapeText(ec.l10n.localize('Your cart is empty.')) +
+                  '</p>',
     },
     // P5: the checkout's steps, the payment's result, its relay and the order confirmation (Shop/ShopCheckout.js), given by
     // the page as context.checkoutComponent
@@ -54,7 +56,9 @@ const COMPONENTS = {
         html: (context) =>
             context.checkoutComponent
                 ? context.checkoutComponent()
-                : '<p class="shop-checkout">Your cart is empty.</p>',
+                : '<p class="shop-checkout">' +
+                  escapeText(ec.l10n.localize('Your cart is empty.')) +
+                  '</p>',
     },
     // P3: the search form, which a theme cannot make (no <form> in theme source)
     'shop.search': {
@@ -186,20 +190,31 @@ function searchForm(view) {
     return (
         '<form class="shop-search" method="get" role="search" action="' +
         escapeText(view?.shop?.searchUrl || 'Search') +
-        '"><label>Search the store <input type="search" name="q" maxlength="100" value="' +
+        '"><label>' +
+        escapeText(ec.l10n.localize('Search the store')) +
+        ' <input type="search" name="q" maxlength="100" value="' +
         escapeText(view?.page?.query || '') +
-        '"></label><button type="submit">Search</button></form>'
+        '"></label><button type="submit">' +
+        escapeText(ec.l10n.localize('Search')) +
+        '</button></form>'
     )
 }
 /* The built-in safe page for a release or page that cannot be shown: no draft, source or diagnostic text. */
 function unavailablePage(context) {
-    const name = escapeText(context?.store?.name || 'This store')
+    const name = context?.store?.name || ec.l10n.localize('This store')
+    const safe = escapeText(name)
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' +
-        name +
+        safe +
         '</title></head><body><main id="ShopUnavailable"><h1>' +
-        name +
-        ' is not available right now</h1><p>Please try again in a few minutes.</p></main></body></html>'
+        escapeText(
+            ec.resource.expand('${name} is not available right now', '', {
+                name,
+            }),
+        ) +
+        '</h1><p>' +
+        escapeText(ec.l10n.localize('Please try again in a few minutes.')) +
+        '</p></main></body></html>'
     )
 }
 /* The asset prefix of a release under the site's Shop mount: immutable by the manifest's digest. */
@@ -328,19 +343,19 @@ function sendAsset(context, manifestDigest, assetPath, call) {
         !/^assets\/[A-Za-z0-9_-]+(\/[A-Za-z0-9_.-]+)*\.[A-Za-z0-9]+$/.test(path) ||
         path.includes('..')
     )
-        fail('NotFound', 'Not found')
+        fail('NotFound', ec.l10n.localize('Not found'))
     let verified
     try {
         verified = packageOf(context.site.siteId, release, call)
     } catch (error) {
-        fail('NotFound', 'Not found')
+        fail('NotFound', ec.l10n.localize('Not found'))
     }
     let text = verified.files[path]
     // the extension in any case, as the authority and the adapter take it
     const extension = path.slice(path.lastIndexOf('.') + 1).toLowerCase()
     const type = ASSET_TYPES[extension]
     // only the asset types a theme serves: never its template source (.html.fancy-locked) or another file under assets/
-    if (text == null || !type) fail('NotFound', 'Not found')
+    if (text == null || !type) fail('NotFound', ec.l10n.localize('Not found'))
     if (typeof text !== 'string')
         return sendBinary(context, release, path, text, call)
     if (extension === 'svg') text = ec.resource.theme.sanitizeSvg(text)
@@ -387,10 +402,10 @@ function sendBinary(context, release, path, asset, call) {
     try {
         result = (call || facade)('getShopThemeAsset', input)
     } catch (error) {
-        fail('NotFound', 'Not found')
+        fail('NotFound', ec.l10n.localize('Not found'))
     }
     if (!result?.location || result.file?.mimeType !== asset.contentType)
-        fail('NotFound', 'Not found')
+        fail('NotFound', ec.l10n.localize('Not found'))
     // the authority checked the release, path and digest; the bytes are read as it reads them (the database resource
     // store, which a public account may not read itself)
     const wasDisabled = ec.artifactExecution.disableAuthz()
@@ -407,7 +422,7 @@ function sendBinary(context, release, path, asset, call) {
     } finally {
         if (!wasDisabled) ec.artifactExecution.enableAuthz()
     }
-    if (bytes.length !== asset.size) fail('NotFound', 'Not found')
+    if (bytes.length !== asset.size) fail('NotFound', ec.l10n.localize('Not found'))
     if (response) {
         response.setContentType(asset.contentType)
         response.setHeader('Cache-Control', ASSET_CACHE)

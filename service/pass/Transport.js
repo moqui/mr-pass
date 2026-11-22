@@ -214,7 +214,7 @@ function selectTransport({ backend, setting, grpcUrl, available }) {
                 'Unavailable',
                 'pass@backend-transport grpc needs gRPC in this host',
             )
-        if (!endpoint) fail('Unavailable', 'No gRPC endpoint for the authority')
+        if (!endpoint) fail('Unavailable', ec.l10n.localize('No gRPC endpoint for the authority'))
         return { kind: 'grpc', endpoint }
     }
     // automatic: an authority that has not opened its gRPC listener keeps REST until pass@backend-grpc-url names it
@@ -255,7 +255,7 @@ function webBase() {
    metadata), and the anonymous-write rule both transports keep. */
 function routeOf(operation, input) {
     const route = routes().find(([method, path, op]) => op === operation)
-    if (!route) fail('Unavailable', 'Remote operation is unavailable')
+    if (!route) fail('Unavailable', ec.l10n.localize('Remote operation is unavailable'))
     const token = ec.web.sessionAttributes.passDelegation
     if (
         !token &&
@@ -284,7 +284,7 @@ function routeOf(operation, input) {
 }
 const checkUpload = (file) => {
     if (!file || Number(file.size) > MAX_UPLOAD)
-        fail('Unprocessable', 'Upload exceeds the size limit')
+        fail('Unprocessable', ec.l10n.localize('Upload exceeds the size limit'))
 }
 function signedOut() {
     ec.web.sessionAttributes.remove('passDelegation')
@@ -298,7 +298,7 @@ function authorityClient(siteId, path, method) {
     const backend = ec.factory.getConfValue('pass@backend-url'),
         clientId = ec.factory.getConfValue('pass@client-id')
     if (!backend || !clientId || !ec.factory.isConfValueSet('pass@client-secret'))
-        fail('Unavailable', 'Remote authority is not configured')
+        fail('Unavailable', ec.l10n.localize('Remote authority is not configured'))
     // the same rule as select's for a caller that comes here directly: no secret in clear text to another host
     if (property('pass@backend-insecure') !== 'true' && clearToAnotherHost(backend))
         fail('Unavailable', 'pass@backend-url sends the client secret in clear text to another host')
@@ -353,7 +353,7 @@ const rest = {
             )
                 fail(
                     statusKind(upload.statusCode),
-                    'Upload could not be completed',
+                    ec.l10n.localize('Upload could not be completed'),
                 )
             return upload.jsonObject()
         }
@@ -370,7 +370,7 @@ const rest = {
                 refused(
                     sent.statusCode,
                     envelopeOf(sent),
-                    'The authority could not complete this request',
+                    ec.l10n.localize('The authority could not complete this request'),
                 )
             return sent.jsonObject()
         }
@@ -390,7 +390,7 @@ const rest = {
             refused(
                 status,
                 envelopeOf(response),
-                'The authority could not complete this request',
+                ec.l10n.localize('The authority could not complete this request'),
             )
         return response.jsonObject()
     },
@@ -412,7 +412,7 @@ const rest = {
         if (Number(response.statusCode) !== 200)
             fail(
                 'AuthenticationRequired',
-                'Sign-in handoff could not be completed',
+                ec.l10n.localize('Sign-in handoff could not be completed'),
             )
         return response.jsonObject()
     },
@@ -437,7 +437,7 @@ const rest = {
         if (Number(response.statusCode) !== 200)
             fail(
                 statusKind(response.statusCode),
-                'Authentication could not be completed',
+                ec.l10n.localize('Authentication could not be completed'),
             )
         const cookies = response
             .headerList('set-cookie')
@@ -486,7 +486,7 @@ const grpc = (endpoint) => ({
                     grpcCall(operation, input.siteId, fields),
                     input.file,
                 ),
-                'Upload could not be completed',
+                ec.l10n.localize('Upload could not be completed'),
             )
         }
         if (def.fields.includes('file') && input.file) {
@@ -500,7 +500,7 @@ const grpc = (endpoint) => ({
                     grpcCall(operation, input.siteId, fields),
                     input.file,
                 ),
-                'The authority could not complete this request',
+                ec.l10n.localize('The authority could not complete this request'),
             )
         }
         const payload = {}
@@ -516,7 +516,7 @@ const grpc = (endpoint) => ({
             if (method === 'GET' && token)
                 return this.call(operation, input, def)
         }
-        return answered(answer, 'The authority could not complete this request')
+        return answered(answer, ec.l10n.localize('The authority could not complete this request'))
     },
     /* A protected file, streamed through to the browser; an error is the envelope with its status, as REST's. */
     download(siteId, operation, input) {
@@ -534,7 +534,7 @@ const grpc = (endpoint) => ({
         if (answer.error)
             fail(
                 'AuthenticationRequired',
-                'Sign-in handoff could not be completed',
+                ec.l10n.localize('Sign-in handoff could not be completed'),
             )
         return answer.result
     },
@@ -549,14 +549,14 @@ const grpc = (endpoint) => ({
         )
         if (answer.sessionHandle)
             ec.web.sessionAttributes.passAuthoritySession = answer.sessionHandle
-        return answered(answer, 'Authentication could not be completed')
+        return answered(answer, ec.l10n.localize('Authentication could not be completed'))
     },
 })
 
 /* The remote transport, which callers use when the authority is not in process. */
 function remote() {
     const chosen = current()
-    if (chosen.kind === 'local') fail('Unavailable', 'The authority is local')
+    if (chosen.kind === 'local') fail('Unavailable', ec.l10n.localize('The authority is local'))
     return chosen.kind === 'grpc' ? grpc(chosen.endpoint) : rest
 }
 /* ---- the anonymous catalog read cache (Shop P3, F43, F58; design-shop §12.7) ----
@@ -692,7 +692,7 @@ function downloadOperation(siteId, operation, input) {
     const transport = remote()
     if (transport === rest) {
         const route = routes().find(([method, , op]) => method === 'GET' && op === operation)
-        if (!route) fail('NotFound', 'Resource not found')
+        if (!route) fail('NotFound', ec.l10n.localize('Resource not found'))
         const query = Object.entries(input || {})
             .filter(([k, v]) => k !== 'siteId' && v != null && v !== '')
             .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(String(v)))

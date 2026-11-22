@@ -35,7 +35,7 @@
         if(billError)ec.web.sessionAttributes.remove('passBillError')
         view=null;failure=null
         const orderId=token ? null : p.orderId || null
-        if(!token && !orderId)failure={kind:'NotFound',message:'Open the link the buyer sent with the purchase order.'}
+        if(!token && !orderId)failure={kind:'NotFound',message:ec.l10n.localize("Open the link the buyer sent with the purchase order.")}
         else{
             const found=portal.attempt('getSubmission',{siteId:resolvedSiteId,token,orderId,submissionId:p.submissionId || null})
             if(found.error)failure=found.error

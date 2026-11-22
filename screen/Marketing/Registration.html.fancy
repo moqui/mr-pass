@@ -1,25 +1,25 @@
-<#if failure><h1>Your registration</h1><p role="alert" class="error">${failure.message}</p>
+<#if failure><h1>${ec.l10n.localize("Your registration")}</h1><p role="alert" class="error">${failure.message}</p>
 <#else><article class="card" id="MyRegistration"><h1>${view.title}</h1>
 <p class="event-host"><small>${view.organizationName} · ${view.whenText}<#if view.where> · ${view.where}</#if></small></p>
-<p role="status"><strong>${view.stateText}</strong> · Reference ${view.reference}</p>
-<#if view.canConfirm><form method="post" id="ConfirmRegistration" class="card" action="${publicPath}/confirm"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="ref" value="${view.reference}"><p>Confirm that these places are yours. They are held until you do.</p><button>Confirm my places</button></form></#if>
+<p role="status"><strong>${view.stateText}</strong> ${ec.resource.expand("· Reference ${view.reference}", "", {view: view})}</p>
+<#if view.canConfirm><form method="post" id="ConfirmRegistration" class="card" action="${publicPath}/confirm"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="ref" value="${view.reference}"><p>${ec.l10n.localize("Confirm that these places are yours. They are held until you do.")}</p><button>${ec.l10n.localize("Confirm my places")}</button></form></#if>
 <#if flash.error><p role="alert" class="error" id="RegistrationError">${flash.error}</p></#if>
-<#if view.state == 'held' && !view.completed><p><a href="${registerPath}?ref=${encodeURIComponent(view.reference)}">Complete your registration</a> before ${view.holdEndsText}.</p>
-<#elseif view.state == 'held' && view.paymentDue><p><a href="${registerPath}?ref=${encodeURIComponent(view.reference)}">Pay for your registration</a> before ${view.holdEndsText}.</p></#if>
-<#if ticket><section id="EntryCode" class="card"><h2>Your entry code</h2><div class="qr">${raw(ticket.qrSvg)}</div><p><strong>${ticket.code}</strong></p><p><small>Show this at the entrance. It is the same code as in your ticket email; the organizer can issue a new one if it is lost.</small></p></section></#if>
-<table><thead><tr><th scope="col">Attendee</th><th scope="col">Ticket</th><th scope="col">State</th><th scope="col"></th></tr></thead><tbody>
+<#if view.state == 'held' && !view.completed><p><a href="${registerPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Complete your registration")}</a> ${ec.resource.expand("before ${view.holdEndsText}.", "", {view: view})}</p>
+<#elseif view.state == 'held' && view.paymentDue><p><a href="${registerPath}?ref=${encodeURIComponent(view.reference)}">${ec.l10n.localize("Pay for your registration")}</a> ${ec.resource.expand("before ${view.holdEndsText}.", "", {view: view})}</p></#if>
+<#if ticket><section id="EntryCode" class="card"><h2>${ec.l10n.localize("Your entry code")}</h2><div class="qr">${raw(ticket.qrSvg)}</div><p><strong>${ticket.code}</strong></p><p><small>${ec.l10n.localize("Show this at the entrance. It is the same code as in your ticket email; the organizer can issue a new one if it is lost.")}</small></p></section></#if>
+<table><thead><tr><th scope="col">${ec.l10n.localize("Attendee")}</th><th scope="col">${ec.l10n.localize("Ticket")}</th><th scope="col">${ec.l10n.localize("Status")}</th><th scope="col"></th></tr></thead><tbody>
 <#list placeList as place><tr><td>${place.attendeeName}</td><td>${place.ticketName}</td><td>${place.stateText}<#if place.refundText><br><small>${place.refundText}</small></#if></td>
-<td><#if place.canShowCode><form method="post" action="${publicPath}/showTicket"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="ref" value="${view.reference}"><input type="hidden" name="registrationId" value="${place.registrationId}"><button>Show my entry code</button></form></#if></td></tr></#list>
+<td><#if place.canShowCode><form method="post" action="${publicPath}/showTicket"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="ref" value="${view.reference}"><input type="hidden" name="registrationId" value="${place.registrationId}"><button>${ec.l10n.localize("Show my entry code")}</button></form></#if></td></tr></#list>
 </tbody></table>
-<#if view.state == 'pending'><p>We have your payment. The organizer confirms your registration next; your ticket and entry code follow then.</p></#if>
-<#if view.joinUrl><p><a href="${view.joinUrl}" rel="noopener">Join the event online</a></p></#if>
-<#if view.payment.amountText><p><small>Payment: ${view.payment.amountText}</small></p></#if>
-<#if view.termsAccepted><details><summary>The terms you accepted</summary><p>${view.termsAccepted}</p></details></#if>
+<#if view.state == 'pending'><p>${ec.l10n.localize("We have your payment. The organizer confirms your registration next; your ticket and entry code follow then.")}</p></#if>
+<#if view.joinUrl><p><a href="${view.joinUrl}" rel="noopener">${ec.l10n.localize("Join the event online")}</a></p></#if>
+<#if view.payment.amountText><p><small>${ec.resource.expand("Payment: ${view.payment.amountText}", "", {view: view})}</small></p></#if>
+<#if view.termsAccepted><details><summary>${ec.l10n.localize("The terms you accepted")}</summary><p>${view.termsAccepted}</p></details></#if>
 </article>
 <#if view.canCancel && livePlaces.length><form method="post" id="CancelRegistration" class="card" action="${publicPath}/cancel"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${operationId}"><input type="hidden" name="ref" value="${view.reference}">
-<h2>Cancel</h2><p id="CancelRule">${view.cancelRule}</p><#if view.cancellationTerms><p>${view.cancellationTerms}</p></#if>
-<#if (livePlaces.length > 1)><fieldset><legend>Places to cancel (none chosen: all)</legend><#list livePlaces as place><label><input type="checkbox" name="registrationId" value="${place.registrationId}"> ${place.attendeeName}: ${place.ticketName}</label></#list></fieldset></#if>
-<label>Reason (optional) <input name="reason" maxlength="200"></label>
-<label><input type="checkbox" name="confirm" value="Y" required> Yes, cancel. A refund, where one is due, shows here until it is done.</label>
-<p><button>Cancel my registration</button></p></form>
-<#elseif livePlaces.length == 0 && view.cancelRule && view.state != 'cancelled' && view.state != 'expired'><section class="card" id="CancelClosed"><h2>Cancel</h2><p>${view.cancelRule}</p><p>Your places can no longer be cancelled online; contact the organizer.</p></section></#if></#if>
+<h2>${ec.l10n.localize("Cancel")}</h2><p id="CancelRule">${view.cancelRule}</p><#if view.cancellationTerms><p>${view.cancellationTerms}</p></#if>
+<#if (livePlaces.length > 1)><fieldset><legend>${ec.l10n.localize("Places to cancel (none chosen: all)")}</legend><#list livePlaces as place><label><input type="checkbox" name="registrationId" value="${place.registrationId}"> ${place.attendeeName}: ${place.ticketName}</label></#list></fieldset></#if>
+<label>${ec.l10n.localize("Reason (optional)")} <input name="reason" maxlength="200"></label>
+<label><input type="checkbox" name="confirm" value="Y" required> ${ec.l10n.localize("Yes, cancel. A refund, where one is due, shows here until it is done.")}</label>
+<p><button>${ec.l10n.localize("Cancel my registration")}</button></p></form>
+<#elseif livePlaces.length == 0 && view.cancelRule && view.state != 'cancelled' && view.state != 'expired'><section class="card" id="CancelClosed"><h2>${ec.l10n.localize("Cancel")}</h2><p>${view.cancelRule}</p><p>${ec.l10n.localize("Your places can no longer be cancelled online; contact the organizer.")}</p></section></#if></#if>

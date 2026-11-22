@@ -1,7 +1,7 @@
-<#if failure><h1>Help</h1><p role="alert" class="error">${failure.message}</p><p><a href="${passBases.support}/SupportHome">Search our help</a></p>
+<#if failure><h1>${ec.l10n.localize("Help")}</h1><p role="alert" class="error">${failure.message}</p><p><a href="${passBases.support}/SupportHome">${ec.l10n.localize("Search our help")}</a></p>
 <#else><#assign a = view.article><article id="CustomerArticleBody"><h1>${a.title}</h1>${raw(a.body)}</article>
 <#if flash.notice><p role="status" class="card">${flash.notice}</p></#if><#if flash.error><p role="alert" class="error">${flash.error}</p></#if>
 <#if !rated><form method="post" id="ArticleRating" class="card" action="${publicPath}/rate"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="wikiPageId" value="${a.wikiPageId}"><input type="hidden" name="nonce" value="${view.nonce}">
-<fieldset><legend>Was this helpful?</legend><label><input type="radio" name="helpful" value="Y" required> Yes</label><label><input type="radio" name="helpful" value="N"> No</label></fieldset>
-<label>Tell us more (optional) <textarea name="comment" rows="3" maxlength="2000"></textarea></label><p><button>Send</button></p></form></#if>
-<p class="card"><#if view.capabilities.canCreateCase><a href="${passBases.support}/NewCustomerCase?wikiPageId=${encodeURIComponent(a.wikiPageId)}">Still need help? Contact support</a><#else><a href="${passBases.support}/SupportHome">More help</a></#if></p></#if>
+<fieldset><legend>${ec.l10n.localize("Was this helpful?")}</legend><label><input type="radio" name="helpful" value="Y" required> ${ec.l10n.localize("Yes")}</label><label><input type="radio" name="helpful" value="N"> ${ec.l10n.localize("No")}</label></fieldset>
+<label>${ec.l10n.localize("Tell us more (optional)")} <textarea name="comment" rows="3" maxlength="2000"></textarea></label><p><button>${ec.l10n.localize("Send")}</button></p></form></#if>
+<p class="card"><#if view.capabilities.canCreateCase><a href="${passBases.support}/NewCustomerCase?wikiPageId=${encodeURIComponent(a.wikiPageId)}">${ec.l10n.localize("Still need help? Contact support")}</a><#else><a href="${passBases.support}/SupportHome">${ec.l10n.localize("More help")}</a></#if></p></#if>

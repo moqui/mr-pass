@@ -25,7 +25,7 @@
     <section name="PassCategorySettingsBindMailboxSection" condition="view.forms.some(form =&gt; form.op === 'bindMailbox')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsBindMailbox" action="${publicPath}/save"><h2>Adopt an existing mailbox</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsBindMailbox" action="${publicPath}/save"><h2>${ec.l10n.localize("Adopt an existing mailbox")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategorySettingsBindMailbox" transition="save" map="Object.assign({},view.formValues['bindMailbox'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -94,7 +94,7 @@
     <section name="PassCategorySettingsStoreCategorySection" condition="view.forms.some(form =&gt; form.op === 'storeCategory')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsStoreCategory" action="${publicPath}/save"><h2>Save category</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsStoreCategory" action="${publicPath}/save"><h2>${ec.l10n.localize("Save category")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategorySettingsStoreCategory" transition="save" map="Object.assign({},view.formValues['storeCategory'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -196,7 +196,7 @@
     <section name="PassCategorySettingsPreviewCategoryAccessSection" condition="view.forms.some(form =&gt; form.op === 'previewCategoryAccess')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsPreviewCategoryAccess" action="${publicPath}/save"><h2>Preview publication</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsPreviewCategoryAccess" action="${publicPath}/save"><h2>${ec.l10n.localize("Preview publication")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategorySettingsPreviewCategoryAccess" transition="save" map="Object.assign({},view.formValues['previewCategoryAccess'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -273,7 +273,7 @@
     <section name="PassCategorySettingsSetCategoryAccessSection" condition="view.forms.some(form =&gt; form.op === 'setCategoryAccess')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsSetCategoryAccess" action="${publicPath}/save"><h2>Confirm publication</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsSetCategoryAccess" action="${publicPath}/save"><h2>${ec.l10n.localize("Confirm publication")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategorySettingsSetCategoryAccess" transition="save" map="Object.assign({},view.formValues['setCategoryAccess'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -370,7 +370,7 @@
     <section name="PassCategorySettingsStoreTagSection" condition="view.forms.some(form =&gt; form.op === 'storeTag')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsStoreTag" action="${publicPath}/save"><h2>Save tag</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsStoreTag" action="${publicPath}/save"><h2>${ec.l10n.localize("Save tag")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategorySettingsStoreTag" transition="save" map="Object.assign({},view.formValues['storeTag'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -457,7 +457,7 @@
     <section name="PassCategorySettingsMergeTagSection" condition="view.forms.some(form =&gt; form.op === 'mergeTag')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsMergeTag" action="${publicPath}/save"><h2>Merge tags</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassCategorySettingsMergeTag" action="${publicPath}/save"><h2>${ec.l10n.localize("Merge tags")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassCategorySettingsMergeTag" transition="save" map="Object.assign({},view.formValues['mergeTag'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

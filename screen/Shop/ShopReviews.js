@@ -37,14 +37,20 @@ function reviewHtml(review, storeName) {
         '<li class="shop-review" id="Review_' +
         esc(review.id) +
         '"><p><span class="shop-review-rating" aria-label="' +
-        esc(review.rating + ' of 5 stars') +
+        esc(
+            ec.resource.expand('${rating} of 5 stars', '', {
+                rating: review.rating,
+            }),
+        ) +
         '">' +
         stars(review.rating) +
         '</span> <strong>' +
         esc(review.authorLabel) +
         '</strong> <small>' +
         esc(review.dateText) +
-        (review.verifiedPurchase ? ' · Verified purchase' : '') +
+        (review.verifiedPurchase
+            ? ' · ' + esc(ec.l10n.localize('Verified purchase'))
+            : '') +
         '</small></p>' +
         paragraphs(review.body) +
         (review.images.length
@@ -62,8 +68,14 @@ function reviewHtml(review, storeName) {
               '</p>'
             : '') +
         (review.reply
-            ? '<blockquote class="shop-review-reply"><p><strong>Reply from ' +
-              esc(storeName || 'the store') +
+            ? '<blockquote class="shop-review-reply"><p><strong>' +
+              esc(
+                  storeName
+                      ? ec.resource.expand('Reply from ${name}', '', {
+                            name: storeName,
+                        })
+                      : ec.l10n.localize('Reply from the store'),
+              ) +
               '</strong> <small>' +
               esc(review.reply.dateText) +
               '</small></p>' +
@@ -76,19 +88,43 @@ function reviewHtml(review, storeName) {
 /* The rating summary of the approved reviews. */
 function summaryHtml(summary) {
     const esc = account().esc
-    if (!summary.count) return '<p id="ReviewSummary">No reviews yet.</p>'
+    if (!summary.count)
+        return (
+            '<p id="ReviewSummary">' +
+            esc(ec.l10n.localize('No reviews yet.')) +
+            '</p>'
+        )
     return (
         '<div id="ReviewSummary"><p><strong>' +
-        esc(summary.average) +
-        ' of 5</strong> ' +
+        esc(
+            ec.resource.expand('${average} of 5', '', {
+                average: summary.average,
+            }),
+        ) +
+        '</strong> ' +
         stars(summary.average) +
         ' · ' +
-        esc(summary.count + (summary.count === 1 ? ' review' : ' reviews')) +
+        esc(
+            ec.resource.expand(
+                summary.count === 1
+                    ? '${count} review'
+                    : '${count} reviews',
+                '',
+                { count: summary.count },
+            ),
+        ) +
         '</p><ul class="shop-review-distribution">' +
         summary.distribution
             .map(
                 (row) =>
-                    '<li>' + esc(row.stars + ' stars: ' + row.count) + '</li>',
+                    '<li>' +
+                    esc(
+                        ec.resource.expand('${stars} stars: ${count}', '', {
+                            stars: row.stars,
+                            count: row.count,
+                        }),
+                    ) +
+                    '</li>',
             )
             .join('') +
         '</ul></div>'
@@ -112,14 +148,24 @@ function formHtml(context, view) {
               hidden('expectedRevision', own.revision)
             : '') +
         '<h2>' +
-        (own ? 'Change your review' : 'Write a review') +
+        esc(
+            ec.l10n.localize(own ? 'Change your review' : 'Write a review'),
+        ) +
         '</h2>' +
         (own
-            ? '<p class="shop-review-own">Your review: ' +
-              esc(own.statusText) +
-              '. A change waits for approval again.</p>'
+            ? '<p class="shop-review-own">' +
+              esc(
+                  ec.resource.expand(
+                      'Your review: ${status}. A change waits for approval again.',
+                      '',
+                      { status: own.statusText },
+                  ),
+              ) +
+              '</p>'
             : '') +
-        '<label>Rating <select name="rating">' +
+        '<label>' +
+        esc(ec.l10n.localize('Rating')) +
+        ' <select name="rating">' +
         [5, 4, 3, 2, 1]
             .map(
                 (n) =>
@@ -128,29 +174,48 @@ function formHtml(context, view) {
                     '"' +
                     (n === Number(rating) ? ' selected' : '') +
                     '>' +
-                    n +
-                    (n === 1 ? ' star' : ' stars') +
+                    esc(
+                        ec.resource.expand(
+                            n === 1 ? '${n} star' : '${n} stars',
+                            '',
+                            { n },
+                        ),
+                    ) +
                     '</option>',
             )
             .join('') +
         '</select></label>' +
-        '<label>Your review <textarea name="body" rows="6" maxlength="5000" required>' +
+        '<label>' +
+        esc(ec.l10n.localize('Your product review')) +
+        ' <textarea name="body" rows="6" maxlength="5000" required>' +
         esc(own?.body || '') +
         '</textarea></label>' +
-        '<fieldset><legend>Show my name as</legend><label><input type="radio" name="displayChoice" value="name"' +
+        '<fieldset><legend>' +
+        esc(ec.l10n.localize('Show my name as')) +
+        '</legend><label><input type="radio" name="displayChoice" value="name"' +
         (own?.displayChoice !== 'anonymous' ? ' checked' : '') +
-        '> My first name and initial</label> <label><input type="radio" name="displayChoice" value="anonymous"' +
+        '> ' +
+        esc(ec.l10n.localize('My first name and initial')) +
+        '</label> <label><input type="radio" name="displayChoice" value="anonymous"' +
         (own?.displayChoice === 'anonymous' ? ' checked' : '') +
-        '> A customer</label></fieldset>' +
+        '> ' +
+        esc(ec.l10n.localize('A customer')) +
+        '</label></fieldset>' +
         (photos.length
-            ? '<fieldset><legend>Your photos</legend>' +
+            ? '<fieldset><legend>' +
+              esc(ec.l10n.localize('Your photos')) +
+              '</legend>' +
               photos
                   .map(
                       (photo) =>
                           '<label><input type="checkbox" name="removeImageSeqIds" value="' +
                           esc(photo.imageSeqId) +
-                          '"> Remove ' +
-                          esc(photo.filename) +
+                          '"> ' +
+                          esc(
+                              ec.resource.expand('Remove ${name}', '', {
+                                  name: photo.filename,
+                              }),
+                          ) +
                           '</label>',
                   )
                   .join(' ') +
@@ -159,15 +224,27 @@ function formHtml(context, view) {
         Array.from(
             { length: room },
             (unused, index) =>
-                '<label>Photo ' +
-                (photos.length + index + 1) +
+                '<label>' +
+                esc(
+                    ec.resource.expand('Photo ${n}', '', {
+                        n: photos.length + index + 1,
+                    }),
+                ) +
                 ' <input type="file" name="photo' +
                 (index + 1) +
                 '" accept="image/png,image/jpeg"></label>',
         ).join('') +
-        '<p><small>Photos are PNG or JPEG, up to 10 MB each, and are shown once the review is approved.</small></p>' +
+        '<p><small>' +
+        esc(
+            ec.l10n.localize(
+                'Photos are PNG or JPEG, up to 10 MB each, and are shown once the review is approved.',
+            ),
+        ) +
+        '</small></p>' +
         '<button type="submit">' +
-        (own ? 'Save my review' : 'Send my review') +
+        esc(
+            ec.l10n.localize(own ? 'Save my review' : 'Send my review'),
+        ) +
         '</button></form>'
     )
 }
@@ -183,12 +260,16 @@ function reviewPage(context) {
     if (found.error)
         return page(
             context,
-            'Reviews',
-            '<h1>Reviews</h1><p role="alert">' +
+            ec.l10n.localize('Product reviews'),
+            '<h1>' +
+                esc(ec.l10n.localize('Product reviews')) +
+                '</h1><p role="alert">' +
                 esc(found.error.message) +
                 '</p><p><a href="' +
                 esc(base(context) + '/') +
-                '">Return to the store</a></p>',
+                '">' +
+                esc(ec.l10n.localize('Return to the store')) +
+                '</a></p>',
         )
     const view = found.result
     const signedIn = !!ec.user.userId
@@ -196,25 +277,45 @@ function reviewPage(context) {
         view.own || view.canReview
             ? formHtml(context, view)
             : view.reviewRemoved
-              ? '<p id="ReviewRemoved">The store removed your review of this product, so another cannot be written.</p>'
+              ? '<p id="ReviewRemoved">' +
+                esc(
+                    ec.l10n.localize(
+                        'The store removed your review of this product, so another cannot be written.',
+                    ),
+                ) +
+                '</p>'
               : signedIn
-              ? '<p id="ReviewNotAllowed">You can review this product once your order of it has arrived and your email address is verified.</p>'
+              ? '<p id="ReviewNotAllowed">' +
+                esc(
+                    ec.l10n.localize(
+                        'You can review this product once your order of it has arrived and your email address is verified.',
+                    ),
+                ) +
+                '</p>'
               : '<div id="ReviewSignIn">' +
-                signIn(context, reviewPath(productId)).replace(
-                    'to see your purchases',
-                    'to review a product you bought',
+                signIn(
+                    context,
+                    reviewPath(productId),
+                    '<a href="${href}">Sign in</a> to review a product you bought.',
                 ) +
                 '</div>'
+    const heading = ec.resource.expand('Reviews of ${name}', '', {
+        name: view.product.name,
+    })
     return page(
         context,
-        'Reviews of ' + view.product.name,
-        '<h1>Reviews of ' +
-            esc(view.product.name) +
+        heading,
+        '<h1>' +
+            esc(heading) +
             '</h1><p><a href="' +
             esc(view.product.url) +
-            '">Back to the product</a></p>' +
+            '">' +
+            esc(ec.l10n.localize('Back to the product')) +
+            '</a></p>' +
             takeNotice(context.site.siteId) +
-            '<section id="PublicReviews" aria-label="Reviews">' +
+            '<section id="PublicReviews" aria-label="' +
+            esc(ec.l10n.localize('Product reviews')) +
+            '">' +
             summaryHtml(view.summary) +
             (view.reviews.length
                 ? '<ul class="shop-reviews">' +
@@ -226,7 +327,9 @@ function reviewPage(context) {
             (view.nextCursor
                 ? '<p><a rel="next" href="' +
                   esc(base(context) + reviewPath(productId, view.nextCursor)) +
-                  '">More reviews</a></p>'
+                  '">' +
+                  esc(ec.l10n.localize('More reviews')) +
+                  '</a></p>'
                 : '') +
             '</section><section id="ReviewWrite">' +
             write +
@@ -288,9 +391,14 @@ function submit(context) {
         reviewPath(productId),
         found,
         refused.length
-            ? 'Thank you. Your review waits for approval; a photo was not added: ' +
-                  refused.join('; ')
-            : 'Thank you. Your review waits for approval before it is shown.',
+            ? ec.resource.expand(
+                  'Thank you. Your review waits for approval; a photo was not added: ${reason}',
+                  '',
+                  { reason: refused.join('; ') },
+              )
+            : ec.l10n.localize(
+                  'Thank you. Your review waits for approval before it is shown.',
+              ),
     )
 }
 ;({

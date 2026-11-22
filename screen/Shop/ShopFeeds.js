@@ -18,9 +18,10 @@ function feedOf(context, feedKey, extension) {
             status: found.error.kind === 'NotFound' ? 404 : 503,
             contentType: 'text/plain; charset=utf-8',
             body:
-                found.error.kind === 'NotFound'
-                    ? 'This feed is not available.\n'
-                    : 'This feed cannot be read just now.\n',
+                (found.error.kind === 'NotFound'
+                    ? ec.l10n.localize('This feed is not available.')
+                    : ec.l10n.localize('This feed cannot be read just now.')) +
+                '\n',
             digest: null,
         }
     return {

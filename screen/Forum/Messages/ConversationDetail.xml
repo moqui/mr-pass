@@ -65,7 +65,7 @@
     <section name="PassConversationDetailUpdateParticipantsSection" condition="view.forms.some(form =&gt; form.op === 'updateParticipants')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailUpdateParticipants" action="${publicPath}/save"><h2>Change participants</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailUpdateParticipants" action="${publicPath}/save"><h2>${ec.l10n.localize("Change participants")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassConversationDetailUpdateParticipants" transition="save" map="Object.assign({},view.formValues['updateParticipants'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -154,7 +154,7 @@
     <section name="PassConversationDetailSetConversationStateSection" condition="view.forms.some(form =&gt; form.op === 'setConversationState')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailSetConversationState" action="${publicPath}/save"><h2>Archive or leave</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailSetConversationState" action="${publicPath}/save"><h2>${ec.l10n.localize("Archive or leave")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassConversationDetailSetConversationState" transition="save" map="Object.assign({},view.formValues['setConversationState'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -225,7 +225,7 @@
     <section name="PassConversationDetailFlagPostSection" condition="view.forms.some(form =&gt; form.op === 'flagPost')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailFlagPost" action="${publicPath}/save"><h2>Report a post</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailFlagPost" action="${publicPath}/save"><h2>${ec.l10n.localize("Report a post")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassConversationDetailFlagPost" transition="save" map="Object.assign({},view.formValues['flagPost'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -297,7 +297,7 @@
     <section name="PassConversationDetailStoreBookmarkSection" condition="view.forms.some(form =&gt; form.op === 'storeBookmark')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailStoreBookmark" action="${publicPath}/save"><h2>Bookmark a post</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailStoreBookmark" action="${publicPath}/save"><h2>${ec.l10n.localize("Bookmark a post")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassConversationDetailStoreBookmark" transition="save" map="Object.assign({},view.formValues['storeBookmark'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -374,7 +374,7 @@
     <section name="PassConversationDetailDeletePostSection" condition="view.forms.some(form =&gt; form.op === 'deletePost')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailDeletePost" action="${publicPath}/save"><h2>Delete a post</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassConversationDetailDeletePost" action="${publicPath}/save"><h2>${ec.l10n.localize("Delete a post")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassConversationDetailDeletePost" transition="save" map="Object.assign({},view.formValues['deletePost'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

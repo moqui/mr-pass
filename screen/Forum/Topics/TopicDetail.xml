@@ -89,7 +89,7 @@
     <section name="PassTopicDetailSetPreferencesSection" condition="view.forms.some(form =&gt; form.op === 'setPreferences')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailSetPreferences" action="${publicPath}/save"><h2>Topic notifications</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailSetPreferences" action="${publicPath}/save"><h2>${ec.l10n.localize("Topic notifications")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailSetPreferences" transition="save" map="Object.assign({},view.formValues['setPreferences'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -175,7 +175,7 @@
     <section name="PassTopicDetailFlagPostSection" condition="view.forms.some(form =&gt; form.op === 'flagPost')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailFlagPost" action="${publicPath}/save"><h2>Report a post</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailFlagPost" action="${publicPath}/save"><h2>${ec.l10n.localize("Report a post")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailFlagPost" transition="save" map="Object.assign({},view.formValues['flagPost'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -247,7 +247,7 @@
     <section name="PassTopicDetailStoreBookmarkSection" condition="view.forms.some(form =&gt; form.op === 'storeBookmark')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailStoreBookmark" action="${publicPath}/save"><h2>Bookmark a post</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailStoreBookmark" action="${publicPath}/save"><h2>${ec.l10n.localize("Bookmark a post")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailStoreBookmark" transition="save" map="Object.assign({},view.formValues['storeBookmark'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -324,7 +324,7 @@
     <section name="PassTopicDetailAcceptAnswerSection" condition="view.forms.some(form =&gt; form.op === 'acceptAnswer')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailAcceptAnswer" action="${publicPath}/save"><h2>Accept an answer</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailAcceptAnswer" action="${publicPath}/save"><h2>${ec.l10n.localize("Accept an answer")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailAcceptAnswer" transition="save" map="Object.assign({},view.formValues['acceptAnswer'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -396,7 +396,7 @@
     <section name="PassTopicDetailDeletePostSection" condition="view.forms.some(form =&gt; form.op === 'deletePost')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDeletePost" action="${publicPath}/save"><h2>Delete a post</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDeletePost" action="${publicPath}/save"><h2>${ec.l10n.localize("Delete a post")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailDeletePost" transition="save" map="Object.assign({},view.formValues['deletePost'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -473,7 +473,7 @@
     <section name="PassTopicDetailPreviewTopicActionSection" condition="view.forms.some(form =&gt; form.op === 'previewTopicAction')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewTopicAction" action="${publicPath}/save"><h2>Preview a move, split or merge</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewTopicAction" action="${publicPath}/save"><h2>${ec.l10n.localize("Preview a move, split or merge")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailPreviewTopicAction" transition="save" map="Object.assign({},view.formValues['previewTopicAction'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -560,7 +560,7 @@
     <section name="PassTopicDetailApplyTopicActionSection" condition="view.forms.some(form =&gt; form.op === 'applyTopicAction')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailApplyTopicAction" action="${publicPath}/save"><h2>Moderate topic</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailApplyTopicAction" action="${publicPath}/save"><h2>${ec.l10n.localize("Moderate topic")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailApplyTopicAction" transition="save" map="Object.assign({},view.formValues['applyTopicAction'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -720,7 +720,7 @@
     <section name="PassTopicDetailCreateCaseFromTopicSection" condition="view.forms.some(form =&gt; form.op === 'createCaseFromTopic')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailCreateCaseFromTopic" action="${publicPath}/save"><h2>Escalate to a support case</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailCreateCaseFromTopic" action="${publicPath}/save"><h2>${ec.l10n.localize("Escalate to a support case")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailCreateCaseFromTopic" transition="save" map="Object.assign({},view.formValues['createCaseFromTopic'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -797,7 +797,7 @@
     <section name="PassTopicDetailPreviewCaseReplySection" condition="view.forms.some(form =&gt; form.op === 'previewCaseReply')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewCaseReply" action="${publicPath}/save"><h2>Preview a public reply from a case</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailPreviewCaseReply" action="${publicPath}/save"><h2>${ec.l10n.localize("Preview a public reply from a case")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailPreviewCaseReply" transition="save" map="Object.assign({},view.formValues['previewCaseReply'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -869,7 +869,7 @@
     <section name="PassTopicDetailLinkDiscussionSection" condition="view.forms.some(form =&gt; form.op === 'linkDiscussion')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailLinkDiscussion" action="${publicPath}/save"><h2>Link a product or article</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailLinkDiscussion" action="${publicPath}/save"><h2>${ec.l10n.localize("Link a product or article")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailLinkDiscussion" transition="save" map="Object.assign({},view.formValues['linkDiscussion'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -957,7 +957,7 @@
     <section name="PassTopicDetailDetachDiscussionSection" condition="view.forms.some(form =&gt; form.op === 'detachDiscussion')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDetachDiscussion" action="${publicPath}/save"><h2>Detach a linked discussion</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDetachDiscussion" action="${publicPath}/save"><h2>${ec.l10n.localize("Detach a linked discussion")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailDetachDiscussion" transition="save" map="Object.assign({},view.formValues['detachDiscussion'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -1036,7 +1036,7 @@
     <section name="PassTopicDetailDraftArticleFromTopicSection" condition="view.forms.some(form =&gt; form.op === 'draftArticleFromTopic')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDraftArticleFromTopic" action="${publicPath}/save"><h2>Draft an article from this topic</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassTopicDetailDraftArticleFromTopic" action="${publicPath}/save"><h2>${ec.l10n.localize("Draft an article from this topic")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassTopicDetailDraftArticleFromTopic" transition="save" map="Object.assign({},view.formValues['draftArticleFromTopic'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

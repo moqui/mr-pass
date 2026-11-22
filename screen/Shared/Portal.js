@@ -13,10 +13,10 @@ const call = (operation, input, newTransaction) => {
 }
 const messages = {
     NotFound:
-        'This page is not available. The link may have expired or been replaced.',
-    AuthenticationRequired: 'Sign in to continue.',
-    Tarpit: 'Too many attempts. Wait a few minutes and try again.',
-    Unavailable: 'This is not available right now. Try again later.',
+        ec.l10n.localize('This page is not available. The link may have expired or been replaced.'),
+    AuthenticationRequired: ec.l10n.localize('Sign in to continue.'),
+    Tarpit: ec.l10n.localize('Too many attempts. Wait a few minutes and try again.'),
+    Unavailable: ec.l10n.localize('This is not available right now. Try again later.'),
 }
 /* The page's text of each reason a refusal may name (design-shop §7.3; impl-shop P1, F4): the same reasons as Mantle's
  * PassAuthority REASONS, which it passes to a remote frontend; a reason with null shows the refusal's own text. */
@@ -24,17 +24,17 @@ const reasons = {
     // the refusal's kind gives the text (a Not Found's is the Not Found text); a refusal of another kind shows its own
     notAvailable: null,
     signInRequired: messages.AuthenticationRequired,
-    accessDenied: 'You do not have access to this.',
+    accessDenied: ec.l10n.localize('You do not have access to this.'),
     staleRevision:
-        'This changed since you opened it. Reload the page and try again.',
-    reviewRequired: 'Something changed. Review the details and try again.',
-    quoteExpired: 'This price has expired. Review the new price and try again.',
+        ec.l10n.localize('This changed since you opened it. Reload the page and try again.'),
+    reviewRequired: ec.l10n.localize('Something changed. Review the details and try again.'),
+    quoteExpired: ec.l10n.localize('This price has expired. Review the new price and try again.'),
     paymentDeclined:
-        'The payment was declined. Choose another way to pay or try again.',
+        ec.l10n.localize('The payment was declined. Choose another way to pay or try again.'),
     rateLimited: messages.Tarpit,
     providerUnavailable: messages.Unavailable,
     // a change of a site's or a category's rights asks a recent sign-in (Mantle Forum.js reauthenticate)
-    reauthRequired: 'Confirm it is you: sign in again, then do this again.',
+    reauthRequired: ec.l10n.localize('Confirm it is you: sign in again, then do this again.'),
     // Shop P1: an operator's mount refusals
     mountTaken: null,
     rootNotAllowed: null,
@@ -45,33 +45,33 @@ const reasons = {
     checkoutPending: null,
     valueInvalid: null,
     // Smithy (plan/design-smithy.md §4.1): its refusals, each with the refusal's own text (which name, which limit)
-    addressUnconfirmed: 'Confirm your email address to do this.',
+    addressUnconfirmed: ec.l10n.localize('Confirm your email address to do this.'),
     nameTaken: null,
     nameInvalid: null,
     quotaExceeded: null,
     limitReached: null,
-    repositoryArchived: 'This repository is archived and cannot be changed.',
+    repositoryArchived: ec.l10n.localize('This repository is archived and cannot be changed.'),
     agreementUnsigned: null,
     checksRequired: null,
     squashFoldsSignature: null,
-    fileChanged: 'This file changed since you opened it. Reload the page and try again.',
+    fileChanged: ec.l10n.localize('This file changed since you opened it. Reload the page and try again.'),
     notEditable: null,
     policyRefused: null,
     // what a later phase builds
-    notBuilt: 'This is not available yet.',
+    notBuilt: ec.l10n.localize('This is not available yet.'),
     // Smithy DG2: a change of the git access by an account with no password needs a sign-in in the last 15 minutes
-    recentSignInRequired: 'Sign in again to do this: you have been signed in for a while.',
+    recentSignInRequired: ec.l10n.localize('Sign in again to do this: you have been signed in for a while.'),
     // IronStone Sales P13: a quote above the seller's threshold is accepted signed in; one answered already shows its own text
     acceptanceSignInRequired:
-        'Sign in as a contact invited for your company to accept a quote of this amount.',
+        ec.l10n.localize('Sign in as a contact invited for your company to accept a quote of this amount.'),
     responseRecorded: null,
     // Smithy DG6: a repository a moderator hid is not forked
-    repositoryHidden: 'This repository is hidden.',
+    repositoryHidden: ec.l10n.localize('This repository is hidden.'),
     // Smithy DG8: the GitHub import; each with the refusal's own text (which token, which repository)
     sourceRefused: null,
     importActive: null,
     numbersTaken: null,
-    secretRequired: 'Give the secret again for the mirror’s new address, username or host key',
+    secretRequired: ec.l10n.localize('Give the secret again for the mirror’s new address, username or host key'),
     // Smithy: a deployment's lease is opened by an approver of its environment's vault; the refusal's own text says how
     vaultApproverRequired: null,
 }

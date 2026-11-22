@@ -27,10 +27,10 @@
         token=asked.token;orderId=asked.orderId
         flash=sales.take()
         view=null;failure=null
-        if(!token && !orderId)failure={kind:'NotFound',message:'Open the order from the link in our order confirmation, or from My orders.'}
+        if(!token && !orderId)failure={kind:'NotFound',message:ec.l10n.localize("Open the order from the link in our order confirmation, or from My orders.")}
         else{
             const found=sales.portal.attempt('getSalesOrder',{siteId:resolvedSiteId,token,orderId})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This order is not available. The link may have expired, or the order is not one of yours. Your sales contact can help.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This order is not available. The link may have expired, or the order is not one of yours. Your sales contact can help.")}:found.error
             else{
                 view=found.result
                 if(token)sales.keepOrderLink(resolvedSiteId,view.order.orderId,token)

@@ -53,19 +53,27 @@ const stateLine = (s) =>
     '</strong> · ' +
     esc(s.accessText) +
     (s.nextRenewalText
-        ? ' · Next charge ' +
-          money(s.nextAmount) +
-          ' on ' +
-          esc(s.nextRenewalText)
+        ? ' · ' +
+          esc(
+              ec.resource.expand('Next charge ${amount} on ${date}', '', {
+                  amount: s.nextAmount ? s.nextAmount.display : '',
+                  date: s.nextRenewalText,
+              }),
+          )
         : '') +
-    (s.cancelAtText ? ' · Ends ' + esc(s.cancelAtText) : '') +
+    (s.cancelAtText
+        ? ' · ' +
+          esc(
+              ec.resource.expand('Ends ${date}', '', { date: s.cancelAtText }),
+          )
+        : '') +
     '</p>'
 
 /* ---- Subscriptions ---- */
 function listPage(context) {
     const found = h().attempt(context, 'getSubscriptions', {})
-    if (found.error)
-        return refusal(context, 'Your subscriptions', found, '/Subscriptions')
+    const title = ec.l10n.localize('Your subscriptions')
+    if (found.error) return refusal(context, title, found, '/Subscriptions')
     const items = found.result.subscriptions
         .map(
             (s) =>
@@ -74,13 +82,18 @@ function listPage(context) {
                 '">' +
                 esc(s.name) +
                 '</a></h2><p>' +
-                money(s.price) +
-                ' every ' +
-                esc(s.termText) +
+                esc(
+                    ec.resource.expand('${price} every ${term}', '', {
+                        price: s.price ? s.price.display : '',
+                        term: s.termText,
+                    }),
+                ) +
                 '</p>' +
                 stateLine(s) +
                 (s.actionNeeded
-                    ? '<p role="alert">Your renewal needs attention.</p>'
+                    ? '<p role="alert">' +
+                      esc(ec.l10n.localize('Your renewal needs attention.')) +
+                      '</p>'
                     : '') +
                 '</li>',
         )
@@ -91,32 +104,46 @@ function listPage(context) {
                 '<li><p><strong>' +
                 esc(o.name) +
                 '</strong> ' +
-                money(o.price) +
-                ' every ' +
-                esc(o.termText) +
-                (o.autoRenew ? ', renews until you cancel' : ', prepaid') +
+                esc(
+                    ec.resource.expand(
+                        o.autoRenew
+                            ? '${price} every ${term}, renews until you cancel'
+                            : '${price} every ${term}, prepaid',
+                        '',
+                        {
+                            price: o.price ? o.price.display : '',
+                            term: o.termText,
+                        },
+                    ),
+                ) +
                 '</p>' +
                 form(
                     context,
                     'purchase',
                     h().hidden('offerId', o.offerId),
-                    'Subscribe',
+                    ec.l10n.localize('Subscribe'),
                 ) +
                 '</li>',
         )
         .join('')
     return h().page(
         context,
-        'Your subscriptions',
-        '<h1>Your subscriptions</h1>' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1>' +
             h().takeNotice(context.site.siteId) +
             '<section id="SubscriptionList">' +
             (items
                 ? '<ul class="shop-subscriptions">' + items + '</ul>'
-                : '<p>You have no subscriptions yet.</p>') +
+                : '<p>' +
+                  esc(ec.l10n.localize('You have no subscriptions yet.')) +
+                  '</p>') +
             '</section>' +
             (offers
-                ? '<section id="Offers"><h2>Subscribe</h2><ul>' +
+                ? '<section id="Offers"><h2>' +
+                  esc(ec.l10n.localize('Subscribe')) +
+                  '</h2><ul>' +
                   offers +
                   '</ul></section>'
                 : ''),
@@ -129,7 +156,8 @@ function detailPage(context, contractId) {
     const found = h().attempt(context, 'getSubscription', {
         contractId: cleanId(contractId),
     })
-    if (found.error) return refusal(context, 'Your subscription', found, path)
+    if (found.error)
+        return refusal(context, ec.l10n.localize('Your subscription'), found, path)
     const s = found.result.subscription
     const id = h().hidden('contractId', s.contractId)
     const revision = h().hidden('expectedRevision', s.revision)
@@ -151,7 +179,11 @@ function detailPage(context, contractId) {
                 '</td><td>' +
                 esc(row.stateText) +
                 (row.nextRetryText
-                    ? ', next try ' + esc(row.nextRetryText)
+                    ? esc(
+                          ec.resource.expand(', next try ${date}', '', {
+                              date: row.nextRetryText,
+                          }),
+                      )
                     : '') +
                 '</td></tr>',
         )
@@ -166,18 +198,34 @@ function detailPage(context, contractId) {
                     ? ' selected'
                     : '') +
                 '>' +
-                esc((m.brand || 'Card') + ' ending ' + m.last4) +
+                esc(
+                    m.brand
+                        ? ec.resource.expand(
+                              '${brand} ending ${last4}',
+                              '',
+                              { brand: m.brand, last4: m.last4 },
+                          )
+                        : ec.resource.expand('Card ending ${last4}', '', {
+                              last4: m.last4,
+                          }),
+                ) +
                 '</option>',
         )
         .join('')
     const resolve = s.actionNeeded
-        ? '<section id="ResolveRenewal"><h2>Your renewal</h2><p role="alert">The renewal payment did not go through.</p>' +
-          form(context, 'resume', id, 'Try the payment again') +
+        ? '<section id="ResolveRenewal"><h2>' +
+          esc(ec.l10n.localize('Your renewal')) +
+          '</h2><p role="alert">' +
+          esc(ec.l10n.localize('The renewal payment did not go through.')) +
+          '</p>' +
+          form(context, 'resume', id, ec.l10n.localize('Try the payment again')) +
           '</section>'
         : ''
     const change =
         s.autoRenew && s.canCancel
-            ? '<section id="ChangeMethod"><h2>Card for renewals</h2><p>' +
+            ? '<section id="ChangeMethod"><h2>' +
+              esc(ec.l10n.localize('Card for renewals')) +
+              '</h2><p>' +
               esc(s.consentText) +
               '</p>' +
               (methods
@@ -186,43 +234,77 @@ function detailPage(context, contractId) {
                         'method',
                         id +
                             revision +
-                            '<label>Card <select name="paymentMethodId">' +
+                            '<label>' +
+                            esc(ec.l10n.localize('Card')) +
+                            ' <select name="paymentMethodId">' +
                             methods +
-                            '</select></label><label><input type="checkbox" name="consent" value="true" required> I agree to renewal charges of ' +
-                            money(s.price) +
-                            ' to this card every ' +
-                            esc(s.termText) +
-                            ' until I cancel</label>',
-                        'Use this card',
+                            '</select></label><label><input type="checkbox" name="consent" value="true" required> ' +
+                            esc(
+                                ec.resource.expand(
+                                    'I agree to renewal charges of ${price} to this card every ${term} until I cancel',
+                                    '',
+                                    {
+                                        price: s.price ? s.price.display : '',
+                                        term: s.termText,
+                                    },
+                                ),
+                            ) +
+                            '</label>',
+                        ec.l10n.localize('Use this card'),
                     )
                   : '') +
               '<p><a href="' +
               esc(base(context) + '/PaymentMethods') +
-              '">Add a card</a></p></section>'
+              '">' +
+              esc(ec.l10n.localize('Add a card')) +
+              '</a></p></section>'
             : ''
     const cancel = s.canCancel
-        ? '<section id="CancelRenewal"><h2>Cancel renewal</h2><p>Access lasts until ' +
-          esc(s.paidThroughText) +
-          '; no further charges are made.</p>' +
+        ? '<section id="CancelRenewal"><h2>' +
+          esc(ec.l10n.localize('Cancel renewal')) +
+          '</h2><p>' +
+          esc(
+              ec.resource.expand(
+                  'Access lasts until ${date}; no further charges are made.',
+                  '',
+                  { date: s.paidThroughText },
+              ),
+          ) +
+          '</p>' +
           form(
               context,
               'cancel',
               id +
                   revision +
-                  '<label>Reason (optional) <input name="reason" maxlength="255"></label><label><input type="checkbox" name="confirmCancel" value="true" required> Stop renewing ' +
-                  esc(s.name) +
+                  '<label>' +
+                  esc(ec.l10n.localize('Reason (optional)')) +
+                  ' <input name="reason" maxlength="255"></label><label><input type="checkbox" name="confirmCancel" value="true" required> ' +
+                  esc(
+                      ec.resource.expand('Stop renewing ${name}', '', {
+                          name: s.name,
+                      }),
+                  ) +
                   '</label>',
-              'Cancel renewal',
+              ec.l10n.localize('Cancel renewal'),
           ) +
           '</section>'
         : ''
     const renew = s.renewOffer
-        ? '<section id="RenewPrepaid"><h2>Buy another term</h2><p>' +
-          money(s.renewOffer.price) +
-          ' for ' +
-          esc(s.renewOffer.termText) +
-          ', starting when the current term ends.</p>' +
-          form(context, 'purchase', id, 'Buy another term') +
+        ? '<section id="RenewPrepaid"><h2>' +
+          esc(ec.l10n.localize('Buy another term')) +
+          '</h2><p>' +
+          esc(
+              ec.resource.expand(
+                  '${price} for ${term}, starting when the current term ends.',
+                  '',
+                  {
+                      price: s.renewOffer.price ? s.renewOffer.price.display : '',
+                      term: s.renewOffer.termText,
+                  },
+              ),
+          ) +
+          '</p>' +
+          form(context, 'purchase', id, ec.l10n.localize('Buy another term')) +
           '</section>'
         : ''
     return h().page(
@@ -230,27 +312,62 @@ function detailPage(context, contractId) {
         s.name,
         '<p><a href="' +
             esc(base(context) + '/Subscriptions') +
-            '">Your subscriptions</a></p><h1>' +
+            '">' +
+            esc(ec.l10n.localize('Your subscriptions')) +
+            '</a></p><h1>' +
             esc(s.name) +
             '</h1>' +
             h().takeNotice(context.site.siteId) +
             '<section id="Subscription"><p>' +
-            money(s.price) +
-            ' every ' +
-            esc(s.termText) +
-            (s.termsVersion ? ' · Terms version ' + esc(s.termsVersion) : '') +
+            esc(
+                ec.resource.expand('${price} every ${term}', '', {
+                    price: s.price ? s.price.display : '',
+                    term: s.termText,
+                }),
+            ) +
+            (s.termsVersion
+                ? ' · ' +
+                  esc(
+                      ec.resource.expand('Terms version ${version}', '', {
+                          version: s.termsVersion,
+                      }),
+                  )
+                : '') +
             '</p>' +
             stateLine(s) +
             (s.method
-                ? '<p>Renews with ' +
+                ? '<p>' +
                   esc(
-                      (s.method.brand || 'Card') + ' ending ' + s.method.last4,
+                      s.method.brand
+                          ? ec.resource.expand(
+                                'Renews with ${brand} ending ${last4}',
+                                '',
+                                {
+                                    brand: s.method.brand,
+                                    last4: s.method.last4,
+                                },
+                            )
+                          : ec.resource.expand(
+                                'Renews with card ending ${last4}',
+                                '',
+                                { last4: s.method.last4 },
+                            ),
                   ) +
                   '</p>'
                 : '') +
             '</section>' +
             resolve +
-            '<section id="RenewalHistory"><h2>History</h2><table><thead><tr><th>Period</th><th>Order</th><th>Amount</th><th>State</th></tr></thead><tbody>' +
+            '<section id="RenewalHistory"><h2>' +
+            esc(ec.l10n.localize('History')) +
+            '</h2><table><thead><tr><th>' +
+            esc(ec.l10n.localize('Period')) +
+            '</th><th>' +
+            esc(ec.l10n.localize('Order')) +
+            '</th><th>' +
+            esc(ec.l10n.localize('Amount')) +
+            '</th><th>' +
+            esc(ec.l10n.localize('Renewal state')) +
+            '</th></tr></thead><tbody>' +
             history +
             '</tbody></table></section>' +
             change +
@@ -294,7 +411,8 @@ function changeMethod(context) {
         context,
         detailPath(),
         found,
-        found.result?.notice?.message || 'Renewals now use this card.',
+        found.result?.notice?.message ||
+            ec.l10n.localize('Renewals now use this card.'),
     )
 }
 function cancel(context) {
@@ -302,7 +420,13 @@ function cancel(context) {
         return h().back(
             context,
             detailPath(),
-            { error: { message: 'Confirm that you want to stop renewing' } },
+            {
+                error: {
+                    message: ec.l10n.localize(
+                        'Confirm that you want to stop renewing',
+                    ),
+                },
+            },
             '',
         )
     const found = h().attempt(context, 'cancelSubscription', {
@@ -315,7 +439,9 @@ function cancel(context) {
         context,
         detailPath(),
         found,
-        'Renewal cancelled. Your access lasts to the end of the paid term.',
+        ec.l10n.localize(
+            'Renewal cancelled. Your access lasts to the end of the paid term.',
+        ),
     )
 }
 function resume(context) {
@@ -323,7 +449,12 @@ function resume(context) {
         ...operation(),
         contractId: cleanId(param('contractId')),
     })
-    h().back(context, detailPath(), found, 'The renewal was tried again.')
+    h().back(
+        context,
+        detailPath(),
+        found,
+        ec.l10n.localize('The renewal was tried again.'),
+    )
 }
 
 const actions = { purchase, changeMethod, cancel, resume }

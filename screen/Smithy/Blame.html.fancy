@@ -1,5 +1,5 @@
-<#if view.failure><p role="alert" class="card" id="SmithyBlameRefused">${view.failure} <a href="${view.fileHref}">Back to the file</a></p>
+<#if view.failure><p role="alert" class="card" id="SmithyBlameRefused">${view.failure} <a href="${view.fileHref}">${ec.l10n.localize("Back to the file")}</a></p>
 <#else><nav aria-label="Path" class="smithy-crumbs"><#list view.crumbs as crumb><#if crumb_index><span aria-hidden="true">/</span></#if><#if crumb.href><a href="${crumb.href}">${crumb.label}</a><#else><strong>${crumb.label}</strong></#if></#list></nav>
-<p class="card wrap" id="SmithyBlameHeader"><strong>${view.name}</strong> · Blame · <a href="${view.fileHref}">File</a> · <a href="${view.historyHref}">History</a></p>
+<p class="card wrap" id="SmithyBlameHeader"><strong>${view.name}</strong> ${ec.l10n.localize("· Blame ·")} <a href="${view.fileHref}">File</a> · <a href="${view.historyHref}">History</a></p>
 <div class="card table-wrap"><table class="smithy-blame" id="SmithyBlame"><thead><tr><th scope="col">Commit</th><th scope="col">Line</th><th scope="col">Text</th></tr></thead><tbody>
 <#list view.lines as line><tr id="L${line.number}"<#if line.commit> class="s"</#if>><td><#if line.commit><a href="${line.commit.href}" title="${line.commit.summary}"><code>${line.commit.shortId}</code></a> <small>${line.commit.authorName} · ${line.commit.date}</small></#if></td><td class="n"><a href="#L${line.number}">${line.number}</a></td><td><pre>${line.text}</pre></td></tr></#list></tbody></table></div></#if>

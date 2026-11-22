@@ -11,7 +11,7 @@
     <div v-if="ready" class="smithy-diff-review">
         <teleport v-for="file in files" :key="'tool' + file.index" :to="file.tools">
             <button v-if="file.canSide" type="button" @click="toggle(file)">
-                {{ file.side ? 'Unified' : 'Side by side' }}
+                {{ file.side ? t('Unified') : t('Side by side') }}
             </button>
         </teleport>
         <teleport v-for="file in shown" :key="'side' + file.index" :to="file.target">
@@ -23,7 +23,7 @@
                 :file-name="file.path"
                 height="70vh"
             ></m-diff-view>
-            <p v-else role="status">Loading both versions…</p>
+            <p v-else role="status">{{ t('Loading both versions…') }}</p>
         </teleport>
         <teleport v-if="composer" :to="composer.target">
             <form method="post" class="card smithy-thread" :action="doUrl">
@@ -37,13 +37,13 @@
                 <input type="hidden" name="operationId" :value="composer.operationId" />
                 <input type="hidden" name="sourceFormat" value="markdown" />
                 <label
-                    >Comment on line {{ composer.line }} of {{ composer.path }}
+                    >{{ t('Comment on line ${line} of ${path}').replace('${line}', composer.line).replace('${path}', composer.path) }}
                     <textarea ref="body" name="body" rows="3" maxlength="100000" required></textarea>
                 </label>
                 <p><small>Markdown.</small></p>
                 <p>
                     <button>Comment</button>
-                    <button type="button" @click="cancel">Cancel</button>
+                    <button type="button" @click="cancel">{{ t('Cancel') }}</button>
                 </p>
             </form>
         </teleport>
@@ -111,6 +111,7 @@ module.exports = {
         if (this.onClick) document.removeEventListener('click', this.onClick)
     },
     methods: {
+        t(text) { return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text },
         // the form goes under the line's own row, in the page's diff
         open(link) {
             const row = link.closest('.l, .sr')
@@ -143,11 +144,11 @@ module.exports = {
             const response = await fetch(base + '/' + String(path).split('/').map(encodeURIComponent).join('/'))
             if (response.status === 404 && absent) return ''
             if (!response.ok)
-                throw new Error('This file cannot be shown side by side: its text was not read (' + response.status + ').')
+                throw new Error(this.t('This file cannot be shown side by side: its text was not read (${status}).').replace('${status}', String(response.status)))
             if (Number(response.headers.get('content-length') || 0) > MAX_SIDE)
-                throw new Error('This file is too large to show side by side.')
+                throw new Error(this.t('This file is too large to show side by side.'))
             const text = await response.text()
-            if (text.length > MAX_SIDE) throw new Error('This file is too large to show side by side.')
+            if (text.length > MAX_SIDE) throw new Error(this.t('This file is too large to show side by side.'))
             return text
         },
         async toggle(file) {

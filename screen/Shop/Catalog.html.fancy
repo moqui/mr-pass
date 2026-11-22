@@ -1,31 +1,31 @@
 <#if shopPage.written><#elseif shopPage.html>${raw(shopPage.html)}<#else><#assign v = shopPage.view || {}><#assign base = shopContext.mount.base || ''>
-<#if shopPage.kind == 'not-found'><h1>Page not found</h1>
-<section class="card" id="ShopNotFound"><p>This page is not available. <a href="${base}/">Return to the store</a></p></section>
+<#if shopPage.kind == 'not-found'><h1>${ec.l10n.localize("Page not found")}</h1>
+<section class="card" id="ShopNotFound"><p>${ec.l10n.localize("This page is not available.")} <a href="${base}/">${ec.l10n.localize("Return to the store")}</a></p></section>
 <#elseif shopPage.kind == 'home'><h1>${shopContext.store.name}</h1>
-<p><a href="${base}/Categories">Categories</a> · <a href="${base}/Search">Search</a></p>
-<#if v.productList && v.productList.length><section class="card" aria-labelledby="ShopFeatured"><h2 id="ShopFeatured">Featured products</h2><ul id="ShopProducts"><#list v.productList as p><li><a href="${p.url}">${p.name}</a> ${p.price ? p.price.display : ''} <small>${p.availability ? p.availability.label : ''}</small></li></#list></ul></section>
-<#else><section class="card" id="ShopEmpty" aria-live="polite"><h2>Coming soon</h2><p>This store is getting ready. Check back soon to browse its products.</p></section></#if>
+<p><a href="${base}/Categories">${ec.l10n.localize("Categories")}</a> · <a href="${base}/Search">${ec.l10n.localize("Search")}</a></p>
+<#if v.productList && v.productList.length><section class="card" aria-labelledby="ShopFeatured"><h2 id="ShopFeatured">${ec.l10n.localize("Featured products")}</h2><ul id="ShopProducts"><#list v.productList as p><li><a href="${p.url}">${p.name}</a> ${p.price ? p.price.display : ''} <small>${p.availability ? p.availability.label : ''}</small></li></#list></ul></section>
+<#else><section class="card" id="ShopEmpty" aria-live="polite"><h2>${ec.l10n.localize("Coming soon")}</h2><p>${ec.l10n.localize("This store is getting ready. Check back soon to browse its products.")}</p></section></#if>
 <#elseif shopPage.kind == 'category'><h1>${v.category.name}</h1>
 <#if v.category.description><p>${v.category.description}</p></#if>
 <#if v.category.children && v.category.children.length><nav aria-label="${v.category.name}" class="card"><ul id="ShopCategories"><#list v.category.children as c><li><a href="${c.url}">${c.name}</a><#if c.children && c.children.length><ul><#list c.children as g><li><a href="${g.url}">${g.name}</a></li></#list></ul></#if></li></#list></ul></nav></#if>
-<#if v.productList && v.productList.length><section class="card"><ul id="ShopProducts"><#list v.productList as p><li><a href="${p.url}">${p.name}</a> ${p.price ? p.price.display : ''} <small>${p.availability ? p.availability.label : ''}</small></li></#list></ul></section><#elseif !(v.category.children && v.category.children.length)><p class="card">No products here yet.</p></#if>
-<#if v.page && v.page.nextUrl><p><a rel="next" href="${v.page.nextUrl}">More products</a></p></#if>
+<#if v.productList && v.productList.length><section class="card"><ul id="ShopProducts"><#list v.productList as p><li><a href="${p.url}">${p.name}</a> ${p.price ? p.price.display : ''} <small>${p.availability ? p.availability.label : ''}</small></li></#list></ul></section><#elseif !(v.category.children && v.category.children.length)><p class="card">${ec.l10n.localize("No products here yet.")}</p></#if>
+<#if v.page && v.page.nextUrl><p><a rel="next" href="${v.page.nextUrl}">${ec.l10n.localize("More products")}</a></p></#if>
 <#elseif shopPage.kind == 'product'><#assign p = v.product><article class="card" id="ShopProduct"><h1>${p.name}</h1>
 <p class="price">${p.price ? p.price.display : ''}<#if p.compareAtPrice> <s>${p.compareAtPrice.display}</s></#if></p>
 <p>${p.availability ? p.availability.label : ''}</p>
 <#if shopPage.richDescription><div>${raw(shopPage.richDescription)}</div></#if>
 ${raw(shopPage.purchaseHtml)}</article>
-<#if p.reviews><#assign rv = p.reviews><section class="card" id="ProductReviews" aria-labelledby="ProductReviewsTitle"><h2 id="ProductReviewsTitle">Reviews</h2>
-<#if rv.summary.count><p id="ReviewSummary"><strong>${rv.summary.average} of 5</strong> · ${rv.summary.count} <#if rv.summary.count == 1>review<#else>reviews</#if></p><#else><p id="ReviewSummary">No reviews yet.</p></#if>
-<#if rv.own><p class="shop-review-own">Your review: ${rv.own.statusText}</p></#if>
-<#if rv.reviews.length><ul class="shop-reviews"><#list rv.reviews as r><li class="shop-review"><p><strong>${r.rating} of 5</strong> · ${r.authorLabel} <small>${r.dateText}<#if r.verifiedPurchase> · Verified purchase</#if></small></p><p>${r.body}</p><#list r.images as i><img src="${i.url}" alt="${i.alt}" loading="lazy" width="160"> </#list><#if r.reply><blockquote class="shop-review-reply"><p><strong>Reply from ${shopContext.store.name}</strong> <small>${r.reply.dateText}</small></p><p>${r.reply.text}</p></blockquote></#if></li></#list></ul></#if>
-<#if rv.moreUrl><p><a href="${rv.moreUrl}">All reviews</a></p></#if><#if rv.writeUrl><p><a href="${rv.writeUrl}"><#if rv.own>Change your review<#else>Write a review</#if></a></p></#if></section></#if>
+<#if p.reviews><#assign rv = p.reviews><section class="card" id="ProductReviews" aria-labelledby="ProductReviewsTitle"><h2 id="ProductReviewsTitle">${ec.l10n.localize("Product reviews")}</h2>
+<#if rv.summary.count><p id="ReviewSummary"><strong>${ec.resource.expand("${rv.summary.average} of 5", "", {rv: rv})}</strong> · <#if rv.summary.count == 1>${ec.resource.expand("${rv.summary.count} review", "", {rv: rv})}<#else>${ec.resource.expand("${rv.summary.count} reviews", "", {rv: rv})}</#if></p><#else><p id="ReviewSummary">${ec.l10n.localize("No reviews yet.")}</p></#if>
+<#if rv.own><p class="shop-review-own">${ec.resource.expand("Your review: ${rv.own.statusText}", "", {rv: rv})}</p></#if>
+<#if rv.reviews.length><ul class="shop-reviews"><#list rv.reviews as r><li class="shop-review"><p><strong>${ec.resource.expand("${r.rating} of 5", "", {r: r})}</strong> · ${r.authorLabel} <small><#if r.verifiedPurchase>${ec.resource.expand("${r.dateText} · Verified purchase", "", {r: r})}<#else>${r.dateText}</#if></small></p><p>${r.body}</p><#list r.images as i><img src="${i.url}" alt="${i.alt}" loading="lazy" width="160"> </#list><#if r.reply><blockquote class="shop-review-reply"><p><strong>${ec.resource.expand("Reply from ${shopContext.store.name}", "", {shopContext: shopContext})}</strong> <small>${r.reply.dateText}</small></p><p>${r.reply.text}</p></blockquote></#if></li></#list></ul></#if>
+<#if rv.moreUrl><p><a href="${rv.moreUrl}">${ec.l10n.localize("All reviews")}</a></p></#if><#if rv.writeUrl><p><a href="${rv.writeUrl}"><#if rv.own>${ec.l10n.localize("Change your review")}<#else>${ec.l10n.localize("Write a review")}</#if></a></p></#if></section></#if>
 <#elseif shopPage.kind == 'search'><h1>${v.page.title}</h1>
 ${raw(shopPage.searchHtml)}
-<#if v.page.resultState == 'invalid'><p class="card" role="alert">Enter up to 100 characters to search.</p></#if>
-<#if v.page.resultState == 'unavailable'><p class="card" role="alert">Search is not available right now. Please try again soon.</p></#if>
-<#if v.productList && v.productList.length><section class="card"><ul id="ShopProducts"><#list v.productList as p><li><a href="${p.url}">${p.name}</a> ${p.price ? p.price.display : ''}</li></#list></ul></section><#elseif v.page.resultState == 'noMatch'><p class="card">No products match your search.</p></#if>
-<#if v.page.contentResults && v.page.contentResults.length><section class="card"><h2>Pages</h2><ul><#list v.page.contentResults as r><li><a href="${r.url}">${r.label}</a></li></#list></ul></section></#if>
-<#if v.page.nextUrl><p><a rel="next" href="${v.page.nextUrl}">More results</a></p></#if>
+<#if v.page.resultState == 'invalid'><p class="card" role="alert">${ec.l10n.localize("Enter up to 100 characters to search.")}</p></#if>
+<#if v.page.resultState == 'unavailable'><p class="card" role="alert">${ec.l10n.localize("Search is not available right now. Please try again soon.")}</p></#if>
+<#if v.productList && v.productList.length><section class="card"><ul id="ShopProducts"><#list v.productList as p><li><a href="${p.url}">${p.name}</a> ${p.price ? p.price.display : ''}</li></#list></ul></section><#elseif v.page.resultState == 'noMatch'><p class="card">${ec.l10n.localize("No products match your search.")}</p></#if>
+<#if v.page.contentResults && v.page.contentResults.length><section class="card"><h2>${ec.l10n.localize("Pages")}</h2><ul><#list v.page.contentResults as r><li><a href="${r.url}">${r.label}</a></li></#list></ul></section></#if>
+<#if v.page.nextUrl><p><a rel="next" href="${v.page.nextUrl}">${ec.l10n.localize("More results")}</a></p></#if>
 <#elseif shopPage.kind == 'page'><article class="card" id="ShopPage"><h1>${v.page.title}</h1>${raw(shopPage.richBody || '')}</article>
 </#if></#if>

@@ -1,10 +1,10 @@
-<#if failure><h1>Form</h1><p role="alert" class="error">${failure.message}</p>
+<#if failure><h1>${ec.l10n.localize("Form")}</h1><p role="alert" class="error">${failure.message}</p>
 <#elseif receipt><h1>${view.form.title}</h1><section class="card" id="FormReceipt" role="status"><p>${receipt}</p></section>
 <#else><#assign form = view.form><h1>${form.title}</h1>
 <#if form.intro><p>${form.intro}</p></#if>
 <#if flash.error><p role="alert" class="error" id="FormError">${flash.error}</p></#if>
 <#if form.answered><section class="card" id="FormReceipt" role="status"><p>${view.receipt.message}</p></section>
-<#elseif form.needsAccount><p class="card" id="FormSignIn">Sign in to your account to answer this form.</p>
+<#elseif form.needsAccount><p class="card" id="FormSignIn">${ec.l10n.localize("Sign in to your account to answer this form.")}</p>
 <#else><form method="post" id="PublicForm" class="card" action="${publicPath}/submit"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${submitOperationId}"><input type="hidden" name="fieldNames" value="${fieldNames}"><#if token><input type="hidden" name="token" value="${token}"><#else><input type="hidden" name="publication" value="${publicationParam}"></#if>
 <#list formFields as f><div class="field" id="field_${f.fieldName}"<#if f.showText> data-visible-when="${f.showText}"</#if><#if f.requireText> data-require-when="${f.requireText}"</#if>>
 <#if f.kind == 'radio'><fieldset><legend>${f.title}<#if f.required> <span aria-hidden="true">*</span></#if></legend><#list f.options as o><label><input type="radio" name="f_${f.fieldName}" value="${o.key}"<#if f.required> required</#if>> ${o.text}</label></#list></fieldset>
@@ -14,6 +14,6 @@
 <#elseif f.kind == 'date'><label>${f.title}<#if f.required> <span aria-hidden="true">*</span></#if> <input type="date" name="f_${f.fieldName}"<#if f.required> required</#if>></label>
 <#else><label>${f.title}<#if f.required> <span aria-hidden="true">*</span></#if> <input name="f_${f.fieldName}" maxlength="255"<#if f.required> required</#if>></label></#if>
 <#if f.tooltip><p><small>${f.tooltip}</small></p></#if></div></#list>
-<#if form.subscription><fieldset id="FormSubscription"><legend>Email from ${form.organizationName} (optional)</legend><label><input type="checkbox" name="subscribe" value="Y"> ${form.subscription.consentText}</label><label>Your email address <input type="email" name="subscriptionEmail" maxlength="254" autocomplete="email"></label><p><small>A separate choice: we send one message to this address first, and nothing more until you confirm from it. Your answers do not subscribe you.</small></p></fieldset></#if>
+<#if form.subscription><fieldset id="FormSubscription"><legend>${ec.resource.expand("Email from ${form.organizationName} (optional)", "", {form: form})}</legend><label><input type="checkbox" name="subscribe" value="Y"> ${form.subscription.consentText}</label><label>${ec.l10n.localize("Your email address")} <input type="email" name="subscriptionEmail" maxlength="254" autocomplete="email"></label><p><small>${ec.l10n.localize("A separate choice: we send one message to this address first, and nothing more until you confirm from it. Your answers do not subscribe you.")}</small></p></fieldset></#if>
 <#if form.notice><p id="FormNotice"><small>${form.notice}</small></p></#if>
-<p><button>Send my answer</button></p><#if form.access == 'invited'><p><small>You can answer once.</small></p></#if></form><script src="/js/moqui-form-when.js"></script></#if></#if>
+<p><button>${ec.l10n.localize("Send my answer")}</button></p><#if form.access == 'invited'><p><small>${ec.l10n.localize("You can answer once.")}</small></p></#if></form><script src="/js/moqui-form-when.js"></script></#if></#if>

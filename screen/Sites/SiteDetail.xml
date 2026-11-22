@@ -25,7 +25,7 @@
     <section name="PassSiteDetailStoreMountsSection" condition="view.forms.some(form =&gt; form.op === 'storeMounts')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailStoreMounts" action="${publicPath}/save"><h2>Save registered hosts and mounts</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailStoreMounts" action="${publicPath}/save"><h2>${ec.l10n.localize('Save registered hosts and mounts')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSiteDetailStoreMounts" transition="save" map="Object.assign({},view.formValues['storeMounts'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -117,7 +117,7 @@
     <section name="PassSiteDetailSetSiteRoleSection" condition="view.forms.some(form =&gt; form.op === 'setSiteRole')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailSetSiteRole" action="${publicPath}/save"><h2>Delegate a site role</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailSetSiteRole" action="${publicPath}/save"><h2>${ec.l10n.localize('Delegate a site role')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSiteDetailSetSiteRole" transition="save" map="Object.assign({},view.formValues['setSiteRole'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -203,7 +203,7 @@
     <section name="PassSiteDetailPublishSitePageSection" condition="view.forms.some(form =&gt; form.op === 'publishSitePage')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailPublishSitePage" action="${publicPath}/save"><h2>Publish a site page</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailPublishSitePage" action="${publicPath}/save"><h2>${ec.l10n.localize('Publish a site page')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSiteDetailPublishSitePage" transition="save" map="Object.assign({},view.formValues['publishSitePage'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -288,7 +288,7 @@
     <section name="PassSiteDetailUpdateSiteSection" condition="view.forms.some(form =&gt; form.op === 'updateSite')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailUpdateSite" action="${publicPath}/save"><h2>Save site identity</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailUpdateSite" action="${publicPath}/save"><h2>${ec.l10n.localize('Save site identity')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSiteDetailUpdateSite" transition="save" map="Object.assign({},view.formValues['updateSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -388,7 +388,7 @@
     <section name="PassSiteDetailUpdateMembershipPolicySection" condition="view.forms.some(form =&gt; form.op === 'updateMembershipPolicy')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailUpdateMembershipPolicy" action="${publicPath}/save"><h2>Save registration policy</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailUpdateMembershipPolicy" action="${publicPath}/save"><h2>${ec.l10n.localize('Save registration policy')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSiteDetailUpdateMembershipPolicy" transition="save" map="Object.assign({},view.formValues['updateMembershipPolicy'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -464,7 +464,7 @@
     <section name="PassSiteDetailStoreSubscriptionBindingSection" condition="view.forms.some(form =&gt; form.op === 'storeSubscriptionBinding')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailStoreSubscriptionBinding" action="${publicPath}/save"><h2>Bind a subscription resource (operator only)</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSiteDetailStoreSubscriptionBinding" action="${publicPath}/save"><h2>${ec.l10n.localize('Bind a subscription resource (operator only)')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSiteDetailStoreSubscriptionBinding" transition="save" map="Object.assign({},view.formValues['storeSubscriptionBinding'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

@@ -32,7 +32,7 @@ module.exports = {
             const element = document.getElementById(id)
             if (element) element.style.display = 'none'
         }
-        this.status = 'Following the log as the job runs.'
+        this.status = this.t('Following the log as the job runs.')
         this.listen()
         this.schedule(0)
     },
@@ -40,6 +40,7 @@ module.exports = {
         this.stop()
     },
     methods: {
+        t(text) { return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text },
         // the notification socket, for a signed-in reader: a message of the job's sub-topic means the log grew
         listen() {
             const n = this.context.notification
@@ -80,7 +81,7 @@ module.exports = {
                     headers: { Accept: 'application/json' },
                 })
                 if (response.status === 404) {
-                    this.status = 'This log is not available now.'
+                    this.status = this.t('This log is not available now.')
                     this.stop()
                     return
                 }
@@ -122,7 +123,7 @@ module.exports = {
             const state = document.getElementById('SmithyJobState')
             if (state && out.stateText) state.textContent = out.stateText
             if (out.finished && !out.more) {
-                this.status = 'The job has ended. Reload the page for its results.'
+                this.status = this.t('The job has ended. Reload the page for its results.')
                 this.stop()
             }
         },

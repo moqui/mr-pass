@@ -28,14 +28,14 @@ function timeText(value) {
 
 // ===== the import =====
 const STAGES = {
-    queued: "Waiting to start",
-    labels: "Importing labels and milestones",
-    issues: "Importing issues",
-    pulls: "Importing pull requests",
-    comments: "Importing comments and reviews",
-    links: "Linking references",
+    queued: ec.l10n.localize("Waiting to start"),
+    labels: ec.l10n.localize("Importing labels and milestones"),
+    issues: ec.l10n.localize("Importing issues"),
+    pulls: ec.l10n.localize("Importing pull requests"),
+    comments: ec.l10n.localize("Importing comments and reviews"),
+    links: ec.l10n.localize("Linking references"),
     done: "Done",
-    failed: "Stopped by a problem",
+    failed: ec.l10n.localize("Stopped by a problem"),
     cancelled: "Stopped"
 }
 const ENDED = ["done", "failed", "cancelled"]
@@ -44,10 +44,10 @@ const TYPES = {
     label: "Labels",
     milestone: "Milestones",
     issue: "Issues",
-    pull: "Pull requests",
+    pull: ec.l10n.localize("Pull requests"),
     comment: "Comments",
     review: "Reviews",
-    reviewComment: "Line comments",
+    reviewComment: ec.l10n.localize("Line comments"),
     reaction: "Reactions",
     user: "People"
 }
@@ -265,10 +265,10 @@ function mirrors(shell, head, c, closed) {
     if (deleting && !closed)
         return page(
             confirmCard(c, "deleteMirror", {
-                title: "Delete the mirror to " + deleting.url,
-                lines: ["Pushes to " + deleting.url + " stop, and its credential is removed. What was pushed there stays."],
+                title: ec.resource.expand("Delete the mirror to ${url}", "", {url: deleting.url}),
+                lines: [ec.resource.expand("Pushes to ${url} stop, and its credential is removed. What was pushed there stays.", "", {url: deleting.url})],
                 fields: {repositoryId: id, mirrorId: deleting.mirrorId},
-                button: "Delete mirror",
+                button: ec.l10n.localize("Delete mirror"),
                 cancelHref: tabPath,
                 returnTo: tabPath + query({delete: deleting.mirrorId}),
                 successTo: tabPath
@@ -301,9 +301,9 @@ function mirrors(shell, head, c, closed) {
                           {
                               delete: m.mirrorId
                           }
-                      )}" aria-label="Delete the mirror to ${m.url}">Delete mirror</a></p>`
+                      )}" aria-label="${ec.resource.expand("Delete the mirror to ${url}", "", {url: m.url})}">${ec.l10n.localize("Delete mirror")}</a></p>`
             }</article>`
-        })}</section>${closed || h`${open(c, fresh, {title: "New mirror"})}${common}${hidden("operationId", portal.operationId())}${mirrorFields(fresh, {})}${submit("Add mirror")}`}`
+        })}</section>${closed || h`${open(c, fresh, {title: ec.l10n.localize("New mirror")})}${common}${hidden("operationId", portal.operationId())}${mirrorFields(fresh, {})}${submit("Add mirror")}`}`
     )
 }
 /* A mirror's fields: the address with no credential in it, the username and secret apart (the secret write-only), the ref

@@ -77,10 +77,10 @@
         flash=support.take()
         view=null;failure=null
         orderToken=siteInfo.authenticated ? null : support.orderLink(resolvedSiteId,orderId)
-        if(!token && !siteInfo.authenticated && !orderToken)failure={kind:'AuthenticationRequired',message:'Sign in to send us a request, or use the form link we gave you.'}
+        if(!token && !siteInfo.authenticated && !orderToken)failure={kind:'AuthenticationRequired',message:ec.l10n.localize("Sign in to send us a request, or use the form link we gave you.")}
         else{
             const found=support.portal.attempt('getCaseIntake',{siteId:resolvedSiteId,token,orderToken,orderId,wikiPageId,query})
-            if(found.error)failure=found.error.kind==='NotFound' && token?{kind:'NotFound',message:'This form is not available. The link may have expired or been replaced.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound' && token?{kind:'NotFound',message:ec.l10n.localize("This form is not available. The link may have expired or been replaced.")}:found.error
             else view=found.result
         }
         // the queue and type chosen (a GET of the page changes them), and the chosen type's template fields with their rules

@@ -3,27 +3,27 @@
     a change of option or quantity asks Purchase/quote for the selection's price, and Add to cart posts to Cart/add for
     JSON, announcing the cart's count without a reload or moving focus. The island's context is the page's selection. -->
 <template>
-    <form class="shop-purchase" aria-label="Choose your purchase" @submit.prevent="add">
+    <form class="shop-purchase" :aria-label="t('Choose your purchase')" @submit.prevent="add">
         <label v-if="variants.length"
-            >Option
+            >{{ t('Option') }}
             <select v-model="variantId" required @change="quote">
-                <option value="">Choose an option</option>
+                <option value="">{{ t('Choose an option') }}</option>
                 <option v-for="variant in variants" :key="variant.id" :value="variant.id">
-                    {{ variant.label }}{{ variant.purchasable ? '' : ' (not available)' }}
+                    {{ variantText(variant) }}
                 </option>
             </select>
         </label>
         <label
-            >Quantity
+            >{{ t('Quantity') }}
             <input v-model="quantity" type="number" min="1" max="999" step="1" inputmode="numeric" @change="quote" />
         </label>
-        <button v-if="purchasable" type="submit" class="shop-add" :disabled="busy">Add to cart</button>
+        <button v-if="purchasable" type="submit" class="shop-add" :disabled="busy">{{ t('Add to cart') }}</button>
         <p class="shop-quote" aria-live="polite">{{ quoteLabel }}</p>
         <p v-if="message" :class="error ? 'shop-notice shop-notice-error' : 'shop-notice shop-notice-ok'" :role="error ? 'alert' : 'status'" aria-live="polite">
             {{ message }}
         </p>
         <p class="shop-cart-link">
-            <a :href="context.cartUrl">View cart<span v-if="count != null"> ({{ count }})</span></a>
+            <a :href="context.cartUrl">{{ count == null ? t('View cart') : fill(t('View cart (${count})'), { count: count }) }}</a>
         </p>
     </form>
 </template>
@@ -56,6 +56,18 @@ module.exports = {
         this.token = this.$root.config.sessionToken || ''
     },
     methods: {
+        t(text) {
+            return moqui.l10n && moqui.l10n.localize ? moqui.l10n.localize(text) : text
+        },
+        fill(text, values) {
+            let out = text
+            for (const key of Object.keys(values)) out = out.split('${' + key + '}').join(String(values[key]))
+            return out
+        },
+        variantText(variant) {
+            if (variant.purchasable) return variant.label
+            return this.fill(this.t('${label} (not available)'), { label: variant.label })
+        },
         selection() {
             const fields = { productId: this.context.productId, quantity: String(this.quantity || '1') }
             if (this.variantId) fields.variantId = this.variantId
@@ -63,7 +75,7 @@ module.exports = {
         },
         async quote() {
             if (this.variants.length && !this.variantId) {
-                this.quoteLabel = 'Choose an option to see its price'
+                this.quoteLabel = this.t('Choose an option to see its price')
                 return
             }
             try {
@@ -110,7 +122,7 @@ module.exports = {
                 if (data.ok) this.count = data.summary.itemCount
             } catch (error) {
                 this.error = true
-                this.message = 'The item was not added. Try again.'
+                this.message = this.t('The item was not added. Try again.')
             } finally {
                 this.busy = false
             }

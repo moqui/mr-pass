@@ -42,10 +42,10 @@
         token=marketing.param('token')
         publicationParam=marketing.param('publication')
         view=null;failure=null
-        if(!token && !publicationParam)failure={kind:'NotFound',message:'Open this page from the link you were given.'}
+        if(!token && !publicationParam)failure={kind:'NotFound',message:ec.l10n.localize("Open this page from the link you were given.")}
         else{
             const found=marketing.portal.attempt('getMarketingForm',{siteId:resolvedSiteId,...(token ? {token} : {publicationId:publicationParam})})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This form is not available. It may have closed, or the link may have expired.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This form is not available. It may have closed, or the link may have expired.")}:found.error
             else view=found.result
         }
         // the receipt shows after a post, never on a plain visit

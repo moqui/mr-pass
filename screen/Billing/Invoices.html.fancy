@@ -1,5 +1,5 @@
 <h1>Invoices</h1>
-<#if !siteInfo.authenticated><p>Sign in to see the invoices of your organization, or open the link in an invoice email.</p><p><a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath)}">Sign in</a></p>
+<#if !siteInfo.authenticated><p>${ec.l10n.localize('Sign in to see the invoices of your organization, or open the link in an invoice email.')}</p><p><a href="${passBases.account}/Login?returnTo=${encodeURIComponent(publicPath)}">Sign in</a></p>
 <#elseif failure><p role="alert" class="error">${failure.message}</p>
-<#elseif !invoiceList.length><p>No invoices to show.</p>
-<#else><#list invoiceList as row><article class="card pay-row"><h2><a href="${passBases.billing}/InvoicePay?invoiceId=${encodeURIComponent(row.invoiceId)}">Invoice ${row.invoiceId}</a></h2><p>${row.toName} · ${row.invoiceDateText || ''}<#if row.dueDateText> · due ${row.dueDateText}</#if></p><p>Total ${row.totalText} · <strong>${row.statusText == 'Paid' ? 'Paid' : 'Due ' + row.dueText}</strong></p></article></#list></#if>
+<#elseif !invoiceList.length><p>${ec.l10n.localize('No invoices to show.')}</p>
+<#else><#list invoiceList as row><article class="card pay-row"><h2><a href="${passBases.billing}/InvoicePay?invoiceId=${encodeURIComponent(row.invoiceId)}">${ec.resource.expand('Invoice ${row.invoiceId}', '', {row: row})}</a></h2><p>${row.toName} · ${row.invoiceDateText || ''}<#if row.dueDateText> · due ${row.dueDateText}</#if></p><p>${ec.resource.expand('Total ${row.totalText} ·', '', {row: row})} <strong>${row.statusText == 'Paid' ? 'Paid' : 'Due ' + row.dueText}</strong></p></article></#list></#if>

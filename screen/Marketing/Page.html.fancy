@@ -2,11 +2,11 @@
 <#list landingParts as part><#if part.kind == 'html'>${raw(part.html)}
 <#elseif part.kind == 'subscribe'><form method="post" class="card landing-subscribe" action="${marketingBase}/Subscribe/request"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${part.operationId}"><input type="hidden" name="list" value="${part.topic.contactListId}"><input type="hidden" name="contactListId" value="${part.topic.contactListId}">
 <h2>${part.topic.name}</h2><#if part.topic.description><p>${part.topic.description}</p></#if>
-<label>Your email address <input type="email" name="emailAddress" maxlength="254" required autocomplete="email"></label>
-<label>Your name (optional) <input name="displayName" maxlength="100" autocomplete="name"></label>
+<label>${ec.l10n.localize("Your email address")} <input type="email" name="emailAddress" maxlength="254" required autocomplete="email"></label>
+<label>${ec.l10n.localize("Your name (optional)")} <input name="displayName" maxlength="100" autocomplete="name"></label>
 <label><input type="checkbox" name="consent" value="Y" required> ${part.topic.consentText}</label>
-<p><small>We send one message to this address first; nothing more until you confirm from it. You can unsubscribe from any message.</small></p>
-<p><button>Subscribe</button></p></form>
-<#elseif part.kind == 'event'><section class="card landing-event"><h2>${part.title}</h2><p>${part.whenText}<#if part.location> · ${part.location}</#if></p><p><small>${part.availability}</small></p><p><a href="${marketingBase}/Event?offer=${encodeURIComponent(part.registrationPolicyId)}">See the event</a></p></section>
-<#elseif part.kind == 'form'><section class="card landing-form"><h2>${part.title}</h2><#if part.intro><p>${part.intro}</p></#if><p><a href="${marketingBase}/SubmitForm?publication=${encodeURIComponent(part.publicationId)}">Answer</a></p></section>
+<p><small>${ec.l10n.localize("We send one message to this address first; nothing more until you confirm from it. You can unsubscribe from any message.")}</small></p>
+<p><button>${ec.l10n.localize("Subscribe")}</button></p></form>
+<#elseif part.kind == 'event'><section class="card landing-event"><h2>${part.title}</h2><p>${part.whenText}<#if part.location> · ${part.location}</#if></p><p><small>${part.availability}</small></p><p><a href="${marketingBase}/Event?offer=${encodeURIComponent(part.registrationPolicyId)}">${ec.l10n.localize("See the event")}</a></p></section>
+<#elseif part.kind == 'form'><section class="card landing-form"><h2>${part.title}</h2><#if part.intro><p>${part.intro}</p></#if><p><a href="${marketingBase}/SubmitForm?publication=${encodeURIComponent(part.publicationId)}">${ec.l10n.localize("Answer")}</a></p></section>
 </#if></#list></article>

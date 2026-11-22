@@ -1,1 +1,1 @@
-<p>Choose a product to buy from its page.</p>
+<p>${ec.l10n.localize("Choose a product to buy from its page.")}</p>

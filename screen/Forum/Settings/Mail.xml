@@ -25,7 +25,7 @@
     <section name="PassMailResolveDeliverySection" condition="view.forms.some(form =&gt; form.op === 'resolveDelivery')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMailResolveDelivery" action="${publicPath}/save"><h2>Reconcile a failed or uncertain delivery</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMailResolveDelivery" action="${publicPath}/save"><h2>${ec.l10n.localize("Reconcile a failed or uncertain delivery")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMailResolveDelivery" transition="save" map="Object.assign({},view.formValues['resolveDelivery'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -111,7 +111,7 @@
     <section name="PassMailStoreMailSettingsSection" condition="view.forms.some(form =&gt; form.op === 'storeMailSettings')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMailStoreMailSettings" action="${publicPath}/save"><h2>Save outbound mail</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMailStoreMailSettings" action="${publicPath}/save"><h2>${ec.l10n.localize("Save outbound mail")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMailStoreMailSettings" transition="save" map="Object.assign({},view.formValues['storeMailSettings'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -195,14 +195,14 @@
             &amp;&amp; !String(ec.factory.getConfValue('mantle@forum-inbound-accounts') || '').trim()">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<p class="pass-notice" id="PassMailNoInboundAccount"><strong>Mail to these routes is not read yet.</strong> The server's operator has named no forum inbound mail account (mantle@forum-inbound-accounts), so a route saved here takes no mail until one is named.</p>]]></text>
+          <text type="html"><![CDATA[<p class="pass-notice" id="PassMailNoInboundAccount"><strong>${ec.l10n.localize("Mail to these routes is not read yet.")}</strong> ${ec.l10n.localize("The server's operator has named no forum inbound mail account (mantle@forum-inbound-accounts), so a route saved here takes no mail until one is named.")}</p>]]></text>
         </render-mode>
       </widgets>
     </section>
     <section name="PassMailStoreRouteSection" condition="view.forms.some(form =&gt; form.op === 'storeRoute')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMailStoreRoute" action="${publicPath}/save"><h2>Save an inbound route</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMailStoreRoute" action="${publicPath}/save"><h2>${ec.l10n.localize("Save an inbound route")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMailStoreRoute" transition="save" map="Object.assign({},view.formValues['storeRoute'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -286,7 +286,7 @@
     <section name="PassMailTestRouteSection" condition="view.forms.some(form =&gt; form.op === 'testRoute')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMailTestRoute" action="${publicPath}/save"><h2>Send a route test to my own address</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMailTestRoute" action="${publicPath}/save"><h2>${ec.l10n.localize("Send a route test to my own address")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMailTestRoute" transition="save" map="Object.assign({},view.formValues['testRoute'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -353,7 +353,7 @@
     <section name="PassMailRetryInboundSection" condition="view.forms.some(form =&gt; form.op === 'retryInbound')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassMailRetryInbound" action="${publicPath}/save"><h2>Retry a failed inbound message</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassMailRetryInbound" action="${publicPath}/save"><h2>${ec.l10n.localize("Retry a failed inbound message")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassMailRetryInbound" transition="save" map="Object.assign({},view.formValues['retryInbound'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

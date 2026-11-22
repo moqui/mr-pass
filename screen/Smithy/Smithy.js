@@ -1163,7 +1163,7 @@ function compare(shell, base, head, headRepositoryPath) {
         // the repository is viewable (the shell read it); a ref it does not have is said on the page
         view.failure =
             found.error.kind === "NotFound"
-                ? "One of these branches, tags or commits was not found in this repository."
+                ? ec.l10n.localize("One of these branches, tags or commits was not found in this repository.")
                 : found.error.message
         return view
     }

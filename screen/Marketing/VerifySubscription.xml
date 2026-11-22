@@ -26,10 +26,10 @@
         flash=marketing.take()
         token=marketing.param('token')
         view=null;failure=null
-        if(!token)failure={kind:'NotFound',message:'Open this page from the link in the message we sent you.'}
+        if(!token)failure={kind:'NotFound',message:ec.l10n.localize("Open this page from the link in the message we sent you.")}
         else{
             const found=marketing.portal.attempt('getSubscriptionRequest',{siteId:resolvedSiteId,token})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This link is not available. It may have expired or been replaced: ask again from the subscribe page.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This link is not available. It may have expired or been replaced: ask again from the subscribe page.")}:found.error
             else view=found.result
         }
         confirmOperationId=marketing.portal.operationId()

@@ -74,7 +74,7 @@
         ticket=reg.takeTicket()
         const ref=marketing.param('ref')
         view=null;failure=null
-        const notAvailable={kind:'NotFound',message:'This registration is not available. The link may have expired: open the latest one from your email.'}
+        const notAvailable={kind:'NotFound',message:ec.l10n.localize("This registration is not available. The link may have expired: open the latest one from your email.")}
         const reach=ref?reg.reachOf(resolvedSiteId,ref,null):null
         if(!reach)failure=notAvailable
         else{

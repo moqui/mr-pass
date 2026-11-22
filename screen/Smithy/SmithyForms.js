@@ -132,9 +132,9 @@ const check = (name, label, checked, value) =>
 const submit = (label, more) => h`<p><button>${label}</button>${more || ""}</p></form>`
 
 const VISIBILITY = [
-    ["public", "Public: anyone may read it"],
-    ["members", "Members: the members of this site"],
-    ["private", "Private: only those given a role"]
+    ["public", ec.l10n.localize("Public: anyone may read it")],
+    ["members", ec.l10n.localize("Members: the members of this site")],
+    ["private", ec.l10n.localize("Private: only those given a role")]
 ]
 /* The visibilities no wider than a ceiling (a group's, for what is inside it). */
 const visibilities = ceiling => {
@@ -157,9 +157,9 @@ const policyOf = value =>
         .replace(/^Scp/, "")
         .toLowerCase()
 const POLICIES = [
-    ["operators", "Operators only"],
-    ["request", "By request, approved by an operator"],
-    ["verified", "Any account with a confirmed address"]
+    ["operators", ec.l10n.localize("Operators only")],
+    ["request", ec.l10n.localize("By request, approved by an operator")],
+    ["verified", ec.l10n.localize("Any account with a confirmed address")]
 ]
 const NAME_PATH = /^[a-z0-9][a-z0-9_-]{1,38}(?:\/[a-z0-9][a-z0-9_-]{1,38}){0,4}$/
 /* A size in bytes as the MiB a form shows, to three decimals at most; a form sends back only a size that was changed. */
@@ -192,7 +192,7 @@ function newGroup(siteId, bases, siteInfo, self) {
         if (found.kind !== "group") fail()
         parent = need("getGroup", {siteId, groupId: found.groupId})
     }
-    const title = parent ? "New subgroup of " + parent.group.groupPath : "New group"
+    const title = parent ? ec.resource.expand("New subgroup of ${path}", "", {path: parent.group.groupPath}) : ec.l10n.localize("New group")
     // the policy projection: the three policies, and what the caller may start
     const settings = maybe("getSmithySettings", {siteId}) || {}
     const confirmed = !c.signedIn ? null : parent ? parent.capabilities.confirmed : settings.capabilities?.confirmed
@@ -231,11 +231,11 @@ function newGroup(siteId, bases, siteInfo, self) {
     const policy = policyOf(settings.groupCreate)
     const owner = !!siteInfo.capabilities?.canManageSite
     const says = owner
-        ? "You manage this site, so the group is created at once and you are its Owner."
+        ? ec.l10n.localize("You manage this site, so the group is created at once and you are its Owner.")
         : policy === "operators"
-          ? "On this site only its operators create groups."
+          ? ec.l10n.localize("On this site only its operators create groups.")
           : policy === "verified"
-            ? "The group is created at once and you are its Owner."
+            ? ec.l10n.localize("The group is created at once and you are its Owner.")
             : "Groups on this site are made by request. An operator reviews yours; when it is approved the group opens and you are its Owner. You may have one request waiting."
     if (policy === "operators" && !owner) return {html: h`${head(title)}<p class="card" id="SmithyGroupPolicy">${says}</p>`.html}
     if (!owner && settings.capabilities?.groupRequestWaiting)
@@ -395,10 +395,9 @@ function site(siteId, bases, siteInfo, self, tab) {
                 was: true,
                 inputmode: "decimal",
                 maxlength: 15,
-                hint:
-                    "In effect now: " +
-                    (limits[key] == null ? "no limit" : show(limits[key])) +
-                    ". This is its own limit; empty follows the default."
+                hint: limits[key] == null
+                    ? ec.l10n.localize("In effect now: no limit. This is its own limit; empty follows the default.")
+                    : ec.resource.expand("In effect now: ${value}. This is its own limit; empty follows the default.", "", {value: show(limits[key])})
             })
         const whole = value => (value == null ? "" : String(value))
         return {
@@ -414,13 +413,13 @@ function site(siteId, bases, siteInfo, self, tab) {
                     ? h`${select(
                           f,
                           "bot",
-                          "This account is a bot",
+                          ec.l10n.localize("This account is a bot"),
                           [
                               ["false", "No"],
                               ["true", "Yes"]
                           ],
                           {value: q.bot ? "true" : "false"}
-                      )}${hidden("was_bot", q.bot ? "true" : "false")}${input(f, "botOperatorHandle", "The bot's operator (a handle)", {value: q.botOperatorHandle || "", was: true, maxlength: 39})}`
+                      )}${hidden("was_bot", q.bot ? "true" : "false")}${input(f, "botOperatorHandle", ec.l10n.localize("The bot's operator (a handle)"), {value: q.botOperatorHandle || "", was: true, maxlength: 39})}`
                     : ""
             }${input(f, "reason", "Reason", {maxlength: 2000})}${submit("Save limits")}`.html
         }
@@ -467,9 +466,9 @@ function site(siteId, bases, siteInfo, self, tab) {
             "outsideRunApproval",
             "When an outside run waits",
             [
-                ["first", "A first contribution's runs wait for a Maintainer's approval"],
-                ["always", "Every outside run waits for a Maintainer's approval"],
-                ["never", "Outside runs start without an approval"]
+                ["first", ec.l10n.localize("A first contribution's runs wait for a Maintainer's approval")],
+                ["always", ec.l10n.localize("Every outside run waits for a Maintainer's approval")],
+                ["never", ec.l10n.localize("Outside runs start without an approval")]
             ],
             {
                 value: settings.outsideRunApproval || "first",
@@ -613,7 +612,7 @@ function groupSettings(shell, bases, siteInfo, self, tab) {
                         ". None of them is seen more widely than the group, so narrowing the group narrows them too; widening it shows each as widely as its own setting allows."
                 ],
                 fields: {groupId: g.groupId, visibility: wanted, expectedRevision: g.revision},
-                button: "Change visibility",
+                button: ec.l10n.localize("Change visibility"),
                 cancelHref: root,
                 returnTo: root + query({confirm: "visibility", visibility: wanted}),
                 successTo: root
@@ -639,8 +638,8 @@ function groupSettings(shell, bases, siteInfo, self, tab) {
             "visibility",
             "Who may see this group",
             VISIBILITY,
-            {value: g.visibility, hint: "You are asked to confirm on the next page."}
-        )}<p><button>Change visibility</button></p></form>${open(c, rename, {title: "Path"})}${hidden("groupId", g.groupId)}${hidden("expectedRevision", g.revision)}${input(
+            {value: g.visibility, hint: ec.l10n.localize("You are asked to confirm on the next page.")}
+        )}<p><button>${ec.l10n.localize("Change visibility")}</button></p></form>${open(c, rename, {title: "Path"})}${hidden("groupId", g.groupId)}${hidden("expectedRevision", g.revision)}${input(
             rename,
             "pathSegment",
             "Path",
@@ -658,9 +657,9 @@ const METHODS = [
     ["fastForward", "Fast-forward"]
 ]
 const EVENTS = [
-    ["push", "A branch is pushed"],
-    ["tag", "A tag is pushed"],
-    ["merge_request", "A merge request changes"]
+    ["push", ec.l10n.localize("A branch is pushed")],
+    ["tag", ec.l10n.localize("A tag is pushed")],
+    ["merge_request", ec.l10n.localize("A merge request changes")]
 ]
 const listOf = value =>
     (Array.isArray(value) ? value.map(String) : String(value || "").split(",")).map(item => item.trim()).filter(Boolean)
@@ -710,8 +709,8 @@ function hookFields(f, hook) {
             maxlength: 255,
             autocomplete: "off",
             hint: hook.hasSecret
-                ? "It has a secret, which is not shown. Leave this empty to keep it."
-                : "Signs each delivery (X-Hub-Signature-256). It is not shown again after it is saved."
+                ? ec.l10n.localize("It has a secret, which is not shown. Leave this empty to keep it.")
+                : ec.l10n.localize("Signs each delivery (X-Hub-Signature-256). It is not shown again after it is saved.")
         }
     )}${check("active", "Active", hook.webhookId ? yes(hook.active) : true)}`
 }
@@ -738,7 +737,7 @@ function repositorySettings(shell, bases, siteInfo, self, tab) {
     const root = smithy.urls(shell.base, r.repositoryPath).section("settings")
     const at = name => (name === "general" ? root : root + "/" + name)
     const head = h`<h2>Settings</h2>${tabsOf(
-        "Repository settings",
+        ec.l10n.localize("Repository settings"),
         [
             ["general", "General", root],
             ["members", "Members", at("members")],
@@ -780,13 +779,13 @@ function repositorySettings(shell, bases, siteInfo, self, tab) {
         const forms = memberForms(c, "setRepositoryMember", {name: "repositoryId", value: id}, members, owner && !closed)
         return page(
             h`<section id="SmithyMemberList" aria-label="Members">${
-                members.length ? "" : h`<p class="card">No members to show.</p>`
+                members.length ? "" : h`<p class="card">${ec.l10n.localize("No members to show.")}</p>`
             }${members.map(
                 m =>
                     h`<article class="card smithy-row"><h3>${m.displayName || m.handle || "Member"}${m.handle ? h` <small>@${m.handle}</small>` : ""}</h3><p><strong>${m.role}</strong>${
                         m.own ? "" : " · from " + m.fromPath
                     }${m.fromDate ? " · since " + dateText(m.fromDate) : ""}${m.thruDate ? " · until " + dateText(m.thruDate) : ""}</p>${forms.row(m)}</article>`
-            )}</section>${found.nextCursor ? h`<p><a href="${at("members")}${query({cursor: found.nextCursor})}">More members</a></p>` : ""}${
+            )}</section>${found.nextCursor ? h`<p><a href="${at("members")}${query({cursor: found.nextCursor})}">${ec.l10n.localize("More members")}</a></p>` : ""}${
                 owner ? closed || forms.add : h`<p id="SmithyMembersReadOnly">An Owner changes the members.</p>`
             }`
         )
@@ -886,7 +885,7 @@ function repositorySettings(shell, bases, siteInfo, self, tab) {
                                 : "It is never seen more widely than its group."
                         ],
                         fields: {repositoryId: id, visibility: wanted, expectedRevision: r.revision},
-                        button: "Change visibility",
+                        button: ec.l10n.localize("Change visibility"),
                         cancelHref: tabPath,
                         returnTo: asked({confirm, visibility: wanted}),
                         successTo: tabPath
@@ -970,14 +969,14 @@ function repositorySettings(shell, bases, siteInfo, self, tab) {
                 select(
                     none,
                     "visibility",
-                    "Who may see this repository",
+                    ec.l10n.localize("Who may see this repository"),
                     visibilities(r.groupId ? shell.group?.visibility : null),
                     {
                         value: r.visibility,
-                        hint: "You are asked to confirm on the next page."
+                        hint: ec.l10n.localize("You are asked to confirm on the next page.")
                     }
                 ),
-                "Change visibility"
+                ec.l10n.localize("Change visibility")
             )}${open(c, rename, {title: "Path"})}${common}${revision}${input(rename, "slug", "Path", {
                 value: r.slug,
                 required: true,
@@ -1043,7 +1042,7 @@ function repositorySettings(shell, bases, siteInfo, self, tab) {
         )}${check("forumEnabled", "Forum", features.forum)}${check("docsEnabled", "Docs", features.docs)}</fieldset>${input(
             f,
             "docsPath",
-            "Docs directory",
+            ec.l10n.localize("Docs directory"),
             {
                 value: r.docsPath ?? "",
                 maxlength: 255,
@@ -1106,7 +1105,7 @@ function refForms(shell, refType, view, bases, siteInfo) {
                 "name",
                 "Name",
                 {required: true, maxlength: 250, autocomplete: "off"}
-            )}${input(f, "fromRevision", "From (a branch, a tag or a commit)", {value: view.defaultBranch, required: true, maxlength: 250})}${
+            )}${input(f, "fromRevision", ec.l10n.localize("From (a branch, a tag or a commit)"), {value: view.defaultBranch, required: true, maxlength: 250})}${
                 branch ? "" : textarea(f, "message", "Message (optional; makes an annotated tag)", {maxlength: 2000})
             }${submit(branch ? "Create branch" : "Create tag")}`.html
     }
@@ -1134,10 +1133,10 @@ function gitAccess(siteId, bases, siteInfo, self) {
     if (key)
         return {
             html: h`${head}${confirmCard(c, "removeSshKey", {
-                title: "Remove the key " + (key.name || key.fingerprint),
-                lines: ["Git over SSH stops accepting the key " + key.fingerprint + " at once."],
+                title: ec.resource.expand("Remove the key ${name}", "", {name: key.name || key.fingerprint}),
+                lines: [ec.resource.expand("Git over SSH stops accepting the key ${fingerprint} at once.", "", {fingerprint: key.fingerprint})],
                 fields: {sshKeyId: key.sshKeyId},
-                button: "Remove key",
+                button: ec.l10n.localize("Remove key"),
                 cancelHref: self
             })}`.html
         }
@@ -1145,18 +1144,18 @@ function gitAccess(siteId, bases, siteInfo, self) {
     if (token)
         return {
             html: h`${head}${confirmCard(c, "revokeAccessToken", {
-                title: "Revoke the token " + (token.name || token.tokenId),
-                lines: ["Anything that uses this token stops working at once. A token cannot be restored."],
+                title: ec.resource.expand("Revoke the token ${name}", "", {name: token.name || token.tokenId}),
+                lines: [ec.l10n.localize("Anything that uses this token stops working at once. A token cannot be restored.")],
                 fields: {tokenId: token.tokenId},
-                button: "Revoke token",
+                button: ec.l10n.localize("Revoke token"),
                 cancelHref: self
             })}`.html
         }
     const again = f =>
-        h`${input(f, "password", "Your password", {type: "password", secret: true, autocomplete: "current-password", hint: "Asked again before your git access changes, unless you sign in only through another service."})}${input(
+        h`${input(f, "password", ec.l10n.localize("Your password"), {type: "password", secret: true, autocomplete: "current-password", hint: ec.l10n.localize("Asked again before your git access changes, unless you sign in only through another service.")})}${input(
             f,
             "code",
-            "Second-factor code, if you use one",
+            ec.l10n.localize("Second-factor code, if you use one"),
             {secret: true, autocomplete: "one-time-code", inputmode: "numeric", maxlength: 12}
         )}`
     const addKey = formOf(c, "addSshKey")

@@ -35,7 +35,7 @@
     <section name="PassReviewDetailAddReviewNoteSection" condition="view.forms.some(form =&gt; form.op === 'addReviewNote')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailAddReviewNote" action="${publicPath}/save"><h2>Add a private staff note</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailAddReviewNote" action="${publicPath}/save"><h2>${ec.l10n.localize("Add a private staff note")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassReviewDetailAddReviewNote" transition="save" map="Object.assign({},view.formValues['addReviewNote'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -102,7 +102,7 @@
     <section name="PassReviewDetailClaimReviewSection" condition="view.forms.some(form =&gt; form.op === 'claimReview')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailClaimReview" action="${publicPath}/save"><h2>Claim review</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailClaimReview" action="${publicPath}/save"><h2>${ec.l10n.localize("Claim review")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassReviewDetailClaimReview" transition="save" map="Object.assign({},view.formValues['claimReview'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -169,7 +169,7 @@
     <section name="PassReviewDetailEscalateReviewSection" condition="view.forms.some(form =&gt; form.op === 'escalateReview')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailEscalateReview" action="${publicPath}/save"><h2>Private context escalation</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailEscalateReview" action="${publicPath}/save"><h2>${ec.l10n.localize("Private context escalation")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassReviewDetailEscalateReview" transition="save" map="Object.assign({},view.formValues['escalateReview'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -243,7 +243,7 @@
     <section name="PassReviewDetailDecideReviewSection" condition="view.forms.some(form =&gt; form.op === 'decideReview')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailDecideReview" action="${publicPath}/save"><h2>Record decision</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassReviewDetailDecideReview" action="${publicPath}/save"><h2>${ec.l10n.localize("Record decision")}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassReviewDetailDecideReview" transition="save" map="Object.assign({},view.formValues['decideReview'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">

@@ -1,7 +1,7 @@
-<#if failure><h1>Confirm your subscription</h1><p role="alert" class="error">${failure.message}</p>
-<#else><h1>Confirm your subscription</h1>
+<#if failure><h1>${ec.l10n.localize("Confirm your subscription")}</h1><p role="alert" class="error">${failure.message}</p>
+<#else><h1>${ec.l10n.localize("Confirm your subscription")}</h1>
 <#if flash.receipt><p role="status" class="card" id="VerifyReceipt">${flash.receipt}</p></#if><#if flash.error><p role="alert" class="error">${flash.error}</p></#if>
-<section class="card" id="VerifyIntent"><p>Email from ${view.organizationName} to ${view.maskedAddress}</p><ul><#list view.topics as t><li><strong>${t.name}</strong><#if t.description>: ${t.description}</#if><#if t.consentText><br><small>${t.consentText}</small></#if></li></#list></ul>
-<#if view.state == 'confirmed'><p id="VerifyState"><strong>Confirmed.</strong> To change what you receive, use the link at the foot of any of our messages.</p>
-<#elseif view.state == 'closed'><p id="VerifyState">Nothing is waiting for confirmation here. To subscribe, ask again from the subscribe page.</p>
-<#else><form method="post" id="VerifyForm" action="${publicPath}/confirm"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${confirmOperationId}"><input type="hidden" name="token" value="${token}"><p>Confirm that you want to receive this at ${view.maskedAddress}. The link works until ${view.expiresText}.</p><p><button>Confirm</button></p></form></#if></section></#if>
+<section class="card" id="VerifyIntent"><p>${ec.resource.expand("Email from ${view.organizationName} to ${view.maskedAddress}", "", {view: view})}</p><ul><#list view.topics as t><li><strong>${t.name}</strong><#if t.description>: ${t.description}</#if><#if t.consentText><br><small>${t.consentText}</small></#if></li></#list></ul>
+<#if view.state == 'confirmed'><p id="VerifyState"><strong>${ec.l10n.localize("Confirmed.")}</strong> ${ec.l10n.localize("To change what you receive, use the link at the foot of any of our messages.")}</p>
+<#elseif view.state == 'closed'><p id="VerifyState">${ec.l10n.localize("Nothing is waiting for confirmation here. To subscribe, ask again from the subscribe page.")}</p>
+<#else><form method="post" id="VerifyForm" action="${publicPath}/confirm"><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><input type="hidden" name="operationId" value="${confirmOperationId}"><input type="hidden" name="token" value="${token}"><p>${ec.resource.expand("Confirm that you want to receive this at ${view.maskedAddress}. The link works until ${view.expiresText}.", "", {view: view})}</p><p><button>${ec.l10n.localize("Confirm")}</button></p></form></#if></section></#if>

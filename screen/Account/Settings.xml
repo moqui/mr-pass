@@ -23,7 +23,7 @@
       <script><![CDATA[
         const invoke=(operation,input)=>ec.service.sync().throwOnError(true).name('pass.Facade.call#Operation').parameters({operation,input:Object.assign({siteId:resolvedSiteId},input)}).call().result
         const handle=invoke('getSiteInfo',{}).profile?.handle
-        if(!handle)throw new Error('Save your profile before uploading an avatar')
+        if(!handle)throw new Error(ec.l10n.localize('Save your profile before uploading an avatar'))
         const profile=invoke('getProfile',{handle}).profile
         const attachment=invoke('stageAttachment',{purpose:'avatar',file:ec.web.multiPartParameters.file}).attachment
         if(attachment.scanState !== 'clean')throw new Error('Avatar was held in quarantine; choose another image')
@@ -45,7 +45,7 @@
     </render-mode>
     <!-- Customer Service P15: the account hub's links to the Support app's cases and returns, where the site mounts it -->
     <render-mode>
-      <text type="html"><![CDATA[<#if siteInfo.authenticated && (siteInfo.mounts || []).some(m => m.app == 'support')><nav class="card" id="AccountSupport" aria-label="Support"><h2>Support</h2><a href="${passBases.support}/MyCases">My cases</a> · <a href="${passBases.support}/MyReturns">My returns</a></nav></#if><#if siteInfo.authenticated && (siteInfo.mounts || []).some(m => m.app == 'sales')><nav class="card" id="AccountSales" aria-label="Quotes and orders"><h2>Quotes and orders</h2><a href="${passBases.sales}/CustomerQuotes">My quotes</a> · <a href="${passBases.sales}/CustomerOrders">My orders</a></nav></#if>]]></text>
+      <text type="html"><![CDATA[<#if siteInfo.authenticated && (siteInfo.mounts || []).some(m => m.app == 'support')><nav class="card" id="AccountSupport" aria-label="Support"><h2>Support</h2><a href="${passBases.support}/MyCases">My cases</a> · <a href="${passBases.support}/MyReturns">${ec.l10n.localize('My returns')}</a></nav></#if><#if siteInfo.authenticated && (siteInfo.mounts || []).some(m => m.app == 'sales')><nav class="card" id="AccountSales" aria-label="Quotes and orders"><h2>Quotes and orders</h2><a href="${passBases.sales}/CustomerQuotes">My quotes</a> · <a href="${passBases.sales}/CustomerOrders">My orders</a></nav></#if>]]></text>
     </render-mode>
     <section name="PassSettingsManageAccountSection" condition="view.forms.some(form =&gt; form.op === 'manageAccount')">
       <widgets>
@@ -302,7 +302,7 @@
     <section name="PassSettingsSetPreferencesSection" condition="view.forms.some(form =&gt; form.op === 'setPreferences')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSettingsSetPreferences" action="${publicPath}/save"><h2>Save delivery preferences</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsSetPreferences" action="${publicPath}/save"><h2>${ec.l10n.localize('Save delivery preferences')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSettingsSetPreferences" transition="save" map="Object.assign({},view.formValues['setPreferences'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -405,7 +405,7 @@
     <section name="PassSettingsLeaveSiteSection" condition="view.forms.some(form =&gt; form.op === 'leaveSite')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSettingsLeaveSite" action="${publicPath}/save"><h2>Leave this site</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsLeaveSite" action="${publicPath}/save"><h2>${ec.l10n.localize('Leave this site')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSettingsLeaveSite" transition="save" map="Object.assign({},view.formValues['leaveSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -472,7 +472,7 @@
     <section name="PassSettingsJoinSiteSection" condition="view.forms.some(form =&gt; form.op === 'joinSite')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSettingsJoinSite" action="${publicPath}/save"><h2>Join this community</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsJoinSite" action="${publicPath}/save"><h2>${ec.l10n.localize('Join this community')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSettingsJoinSite" transition="save" map="Object.assign({},view.formValues['joinSite'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -534,7 +534,7 @@
     <section name="PassSettingsRequestPersonalDataActionSection" condition="view.forms.some(form =&gt; form.op === 'requestPersonalDataAction')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PassSettingsRequestPersonalDataAction" action="${publicPath}/save"><h2>Export or erase my data</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
+          <text type="html"><![CDATA[<form method="post" id="PassSettingsRequestPersonalDataAction" action="${publicPath}/save"><h2>${ec.l10n.localize('Export or erase my data')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PassSettingsRequestPersonalDataAction" transition="save" map="Object.assign({},view.formValues['requestPersonalDataAction'] || {},ec.web.parameters)" skip-start="true" skip-end="true">
           <field name="formAction">
@@ -616,7 +616,7 @@
     <section name="AvatarUpload" condition="siteInfo.profile?.handle &amp;&amp; siteInfo.membershipState === 'active'">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" enctype="multipart/form-data" action="${publicPath}/avatar"><h2>Profile image</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><label>Choose a raster image <input type="file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" required></label><button>Upload and scan avatar</button></form>]]></text>
+          <text type="html"><![CDATA[<form method="post" enctype="multipart/form-data" action="${publicPath}/avatar"><h2>${ec.l10n.localize('Profile image')}</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"><label>Choose a raster image <input type="file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" required></label><button>Upload and scan avatar</button></form>]]></text>
         </render-mode>
       </widgets>
     </section>

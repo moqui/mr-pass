@@ -1,14 +1,14 @@
 <article class="card" id="PublicEvent"><h1>${publicEvent.title}</h1>
 <p class="event-host"><small>${publicEvent.organizationName}</small></p>
-<dl class="event-facts"><dt>When</dt><dd>${publicEvent.startText} – ${publicEvent.endText} <small>(${publicEvent.timeZone})</small></dd>
-<#if publicEvent.location><dt>Where</dt><dd>${publicEvent.location}</dd></#if><#if publicEvent.online><dt>Online</dt><dd>Registered attendees receive the link to join with their confirmation.</dd></#if></dl>
+<dl class="event-facts"><dt>${ec.l10n.localize("When")}</dt><dd>${publicEvent.startText} – ${publicEvent.endText} <small>(${publicEvent.timeZone})</small></dd>
+<#if publicEvent.location><dt>${ec.l10n.localize("Where")}</dt><dd>${publicEvent.location}</dd></#if><#if publicEvent.online><dt>${ec.l10n.localize("Online")}</dt><dd>${ec.l10n.localize("Registered attendees receive the link to join with their confirmation.")}</dd></#if></dl>
 <#list descriptionParagraphs as paragraph><p>${paragraph}</p></#list>
-<section id="EventTickets"><h2>Tickets</h2><p role="status">${publicEvent.availability}</p>
-<table><thead><tr><th scope="col">Ticket</th><th scope="col">Price</th><th scope="col">Availability</th></tr></thead><tbody>
+<section id="EventTickets"><h2>${ec.l10n.localize("Tickets")}</h2><p role="status">${publicEvent.availability}</p>
+<table><thead><tr><th scope="col">${ec.l10n.localize("Ticket")}</th><th scope="col">${ec.l10n.localize("Price")}</th><th scope="col">${ec.l10n.localize("Availability")}</th></tr></thead><tbody>
 <#list publicEvent.tickets as ticket><tr><td>${ticket.name}</td><td>${ticket.priceText}</td><td>${ticket.availability}</td></tr></#list>
-</tbody></table><p><small>Availability is a guide until a place is reserved.</small></p></section>
+</tbody></table><p><small>${ec.l10n.localize("Availability is a guide until a place is reserved.")}</small></p></section>
 <p id="EventRegistration"><strong>${publicEvent.registrationText}</strong></p>
-<#if publicEvent.registrationOpen><p><a class="button" id="EventRegister" href="${registerPath}?offer=${encodeURIComponent(publicEvent.registrationPolicyId)}">Register</a></p></#if>
-<section id="EventTerms"><h2>Terms</h2><#list termsParagraphs as paragraph><p>${paragraph}</p></#list>
-<h3>Cancellation</h3><p id="EventCancelRule">${publicEvent.cancelRule}</p><#if publicEvent.cancellationTerms><p>${publicEvent.cancellationTerms}</p></#if></section>
+<#if publicEvent.registrationOpen><p><a class="button" id="EventRegister" href="${registerPath}?offer=${encodeURIComponent(publicEvent.registrationPolicyId)}">${ec.l10n.localize("Register")}</a></p></#if>
+<section id="EventTerms"><h2>${ec.l10n.localize("Terms")}</h2><#list termsParagraphs as paragraph><p>${paragraph}</p></#list>
+<h3>${ec.l10n.localize("Cancellation")}</h3><p id="EventCancelRule">${publicEvent.cancelRule}</p><#if publicEvent.cancellationTerms><p>${publicEvent.cancellationTerms}</p></#if></section>
 </article>

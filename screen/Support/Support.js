@@ -58,7 +58,7 @@ function download(siteId, operation, input, back) {
     } catch (error) {
         ec.message.clearErrors()
         ec.web.sessionAttributes.passSupportError =
-            'This file is not available.'
+            ec.l10n.localize('This file is not available.')
         ec.web.response.sendRedirect(back.path + query(back.params))
     }
 }

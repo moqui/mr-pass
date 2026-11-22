@@ -1,3 +1,3 @@
-<#if shopPage.html>${raw(shopPage.html)}<#else><h1>Your cart</h1>
-<section class="card" aria-label="Cart">${raw(shopPage.cartHtml)}</section>
+<#if shopPage.html>${raw(shopPage.html)}<#else><h1>${ec.l10n.localize("Your cart")}</h1>
+<section class="card" aria-label="${ec.l10n.localize("Cart")}">${raw(shopPage.cartHtml)}</section>
 </#if>

@@ -86,14 +86,20 @@ const page = (context, title, html) =>
         title,
     )
 const accountBase = () => ec.context.get('passBases')?.account ?? '/account'
-const signIn = (context, path) =>
-    '<p><a href="' +
-    esc(
-        accountBase() +
-            '/Login?returnTo=' +
-            encodeURIComponent(base(context) + path),
+const signIn = (context, path, lead) =>
+    '<p>' +
+    ec.resource.expand(
+        lead || '<a href="${href}">Sign in</a> to see your purchases.',
+        '',
+        {
+            href: esc(
+                accountBase() +
+                    '/Login?returnTo=' +
+                    encodeURIComponent(base(context) + path),
+            ),
+        },
     ) +
-    '">Sign in</a> to see your purchases.</p>'
+    '</p>'
 const refusal = (context, title, found, path) =>
     page(
         context,
@@ -122,32 +128,59 @@ const back = (context, path, found, okText) => {
     ec.web?.response?.sendRedirect(base(context) + path)
 }
 const accountLinks = (context, links) =>
-    '<nav class="shop-account-links" aria-label="Your account"><a href="' +
+    '<nav class="shop-account-links" aria-label="' +
+    esc(ec.l10n.localize('Your account')) +
+    '"><a href="' +
     esc(base(context) + '/Orders') +
-    '">Orders</a> · <a href="' +
+    '">' +
+    esc(ec.l10n.localize('Orders')) +
+    '</a> · <a href="' +
     esc(base(context) + '/Downloads') +
-    '">Downloads</a> · <a href="' +
+    '">' +
+    esc(ec.l10n.localize('Downloads')) +
+    '</a> · <a href="' +
     esc(base(context) + '/Addresses') +
-    '">Addresses</a> · <a href="' +
+    '">' +
+    esc(ec.l10n.localize('Addresses')) +
+    '</a> · <a href="' +
     esc(base(context) + '/PaymentMethods') +
-    '">Payment methods</a> · <a href="' +
+    '">' +
+    esc(ec.l10n.localize('Payment methods')) +
+    '</a> · <a href="' +
     esc(base(context) + '/Subscriptions') +
-    '">Subscriptions</a>' +
-    (links?.hub ? ' · <a href="' + esc(links.hub) + '">My account</a>' : '') +
+    '">' +
+    esc(ec.l10n.localize('Subscriptions')) +
+    '</a>' +
+    (links?.hub
+        ? ' · <a href="' +
+          esc(links.hub) +
+          '">' +
+          esc(ec.l10n.localize('My account')) +
+          '</a>'
+        : '') +
     '</nav>'
 
 /* ---- AccountOverview ---- */
 function accountPage(context) {
     const found = attempt(context, 'getShopAccount', {})
-    if (found.error) return refusal(context, 'Your account', found, '/Account')
+    const title = ec.l10n.localize('Your account')
+    if (found.error) return refusal(context, title, found, '/Account')
     const a = found.result.account
     if (!a.verified)
         return page(
             context,
-            'Your account',
-            '<h1>Your account</h1><p role="status">Verify your email address to see your purchases in ' +
-                esc(a.storeName) +
-                '.</p>' +
+            title,
+            '<h1>' +
+                esc(title) +
+                '</h1><p role="status">' +
+                esc(
+                    ec.resource.expand(
+                        'Verify your email address to see your purchases in ${store}.',
+                        '',
+                        { store: a.storeName },
+                    ),
+                ) +
+                '</p>' +
                 accountLinks(context, found.result.links),
         )
     const orders = a.recentOrders
@@ -157,8 +190,12 @@ function accountPage(context) {
                 esc(
                     base(context) + '/Orders/' + encodeURIComponent(o.orderId),
                 ) +
-                '">Order ' +
-                esc(o.orderId) +
+                '">' +
+                esc(
+                    ec.resource.expand('Order ${orderId}', '', {
+                        orderId: o.orderId,
+                    }),
+                ) +
                 '</a> · ' +
                 esc(o.placedText) +
                 ' · ' +
@@ -171,38 +208,80 @@ function accountPage(context) {
     const invoices = a.invoices
         .map(
             (i) =>
-                '<li>Invoice ' +
-                esc(i.invoiceId) +
+                '<li>' +
+                esc(
+                    ec.resource.expand('Invoice ${invoiceId}', '', {
+                        invoiceId: i.invoiceId,
+                    }),
+                ) +
                 ' · ' +
                 money(i.total) +
                 ' · ' +
                 esc(i.statusText) +
                 (i.billingUrl
-                    ? ' · <a href="' + esc(i.billingUrl) + '">In Billing</a>'
+                    ? ' · <a href="' +
+                      esc(i.billingUrl) +
+                      '">' +
+                      esc(ec.l10n.localize('In Billing')) +
+                      '</a>'
                     : '') +
                 '</li>',
         )
         .join('')
+    const counts = a.pending && a.downloadCount
+        ? ec.resource.expand(
+              '${count} orders, ${pending} in progress · ${downloads} downloads',
+              '',
+              {
+                  count: a.orderCount,
+                  pending: a.pending,
+                  downloads: a.downloadCount,
+              },
+          )
+        : a.pending
+          ? ec.resource.expand(
+                '${count} orders, ${pending} in progress',
+                '',
+                { count: a.orderCount, pending: a.pending },
+            )
+          : a.downloadCount
+            ? ec.resource.expand(
+                  '${count} orders · ${downloads} downloads',
+                  '',
+                  { count: a.orderCount, downloads: a.downloadCount },
+              )
+            : ec.resource.expand('${count} orders', '', {
+                  count: a.orderCount,
+              })
     return page(
         context,
-        'Your account',
-        '<h1>Your account</h1>' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1>' +
             takeNotice(context.site.siteId) +
-            '<section class="shop-account-summary" id="PurchaseSummary" aria-labelledby="PurchaseSummaryTitle"><h2 id="PurchaseSummaryTitle">Your purchases</h2>' +
+            '<section class="shop-account-summary" id="PurchaseSummary" aria-labelledby="PurchaseSummaryTitle"><h2 id="PurchaseSummaryTitle">' +
+            esc(ec.l10n.localize('Your purchases')) +
+            '</h2>' +
             '<p>' +
-            esc(a.orderCount) +
-            ' orders' +
-            (a.pending ? ', ' + esc(a.pending) + ' in progress' : '') +
-            (a.downloadCount
-                ? ' · ' + esc(a.downloadCount) + ' downloads'
-                : '') +
+            esc(counts) +
             '</p>' +
             (orders
                 ? '<ul>' + orders + '</ul>'
-                : '<p>No orders yet. <a href="' +
-                  esc(base(context) + '/') +
-                  '">Start shopping</a></p>') +
-            (invoices ? '<h3>Invoices</h3><ul>' + invoices + '</ul>' : '') +
+                : '<p>' +
+                  ec.resource.expand(
+                      'No orders yet. <a href="${href}">Start shopping</a>',
+                      '',
+                      { href: esc(base(context) + '/') },
+                  ) +
+                  '</p>') +
+            (invoices
+                ? '<h3>' +
+                  esc(ec.l10n.localize('Invoices')) +
+                  '</h3><ul>' +
+                  invoices +
+                  '</ul>'
+                : '') +
             '</section>' +
             accountLinks(context, found.result.links),
     )
@@ -213,7 +292,8 @@ function ordersPage(context) {
     const found = attempt(context, 'findShopOrders', {
         cursor: cleanId(param('cursor')) || null,
     })
-    if (found.error) return refusal(context, 'Your orders', found, '/Orders')
+    const title = ec.l10n.localize('Your orders')
+    if (found.error) return refusal(context, title, found, '/Orders')
     const rows = found.result.orders
         .map(
             (o) =>
@@ -221,8 +301,12 @@ function ordersPage(context) {
                 esc(
                     base(context) + '/Orders/' + encodeURIComponent(o.orderId),
                 ) +
-                '">Order ' +
-                esc(o.orderId) +
+                '">' +
+                esc(
+                    ec.resource.expand('Order ${orderId}', '', {
+                        orderId: o.orderId,
+                    }),
+                ) +
                 '</a> · ' +
                 esc(o.placedText) +
                 ' · ' +
@@ -234,11 +318,15 @@ function ordersPage(context) {
         .join('')
     return page(
         context,
-        'Your orders',
-        '<h1>Your orders</h1><section id="Orders">' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1><section id="Orders">' +
             (rows
                 ? '<ul class="shop-orders">' + rows + '</ul>'
-                : '<p>No orders yet.</p>') +
+                : '<p>' +
+                  esc(ec.l10n.localize('No orders yet.')) +
+                  '</p>') +
             (found.result.cursor
                 ? '<p><a href="' +
                   esc(
@@ -246,13 +334,17 @@ function ordersPage(context) {
                           '/Orders?cursor=' +
                           encodeURIComponent(found.result.cursor),
                   ) +
-                  '">More orders</a></p>'
+                  '">' +
+                  esc(ec.l10n.localize('More orders')) +
+                  '</a></p>'
                 : '') +
             '</section>',
     )
 }
-const CLAIMED_LINK =
-    'If you created an account with the email address of this order, sign in to see it.'
+const CLAIMED_LINK = () =>
+    ec.l10n.localize(
+        'If you created an account with the email address of this order, sign in to see it.',
+    )
 /* Orders/Status?token=: an emailed order link: kept in this session for its order, and the page opened without it. */
 function statusPage(context) {
     const token = String(param('token') || '')
@@ -271,9 +363,10 @@ function statusPage(context) {
     if (found.error && found.error.kind === 'NotFound')
         found.error = {
             ...found.error,
-            message: found.error.message + ' ' + CLAIMED_LINK,
+            message: found.error.message + ' ' + CLAIMED_LINK(),
         }
-    if (found.error) return refusal(context, 'Your order', found, '/Orders')
+    if (found.error)
+        return refusal(context, ec.l10n.localize('Your order'), found, '/Orders')
     checkout().keepOrderLink(
         context.site.siteId,
         found.result.order.orderId,
@@ -321,7 +414,12 @@ function orderHtml(context, view) {
                 (s.shippedText ? ' · ' + esc(s.shippedText) : '') +
                 (s.carrierText ? ' · ' + esc(s.carrierText) : '') +
                 (s.tracking.length
-                    ? ' · Tracking ' + s.tracking.map(esc).join(', ')
+                    ? ' · ' +
+                      esc(
+                          ec.resource.expand('Tracking ${codes}', '', {
+                              codes: s.tracking.join(', '),
+                          }),
+                      )
                     : '') +
                 '</li>',
         )
@@ -337,8 +435,12 @@ function orderHtml(context, view) {
                         '&invoiceId=' +
                         encodeURIComponent(d.invoiceId),
                 ) +
-                '">Invoice ' +
-                esc(d.invoiceId) +
+                '">' +
+                esc(
+                    ec.resource.expand('Invoice ${invoiceId}', '', {
+                        invoiceId: d.invoiceId,
+                    }),
+                ) +
                 '</a> · ' +
                 esc(d.dateText) +
                 ' · ' +
@@ -346,7 +448,11 @@ function orderHtml(context, view) {
                 ' · ' +
                 esc(d.statusText) +
                 (d.billingUrl
-                    ? ' · <a href="' + esc(d.billingUrl) + '">In Billing</a>'
+                    ? ' · <a href="' +
+                      esc(d.billingUrl) +
+                      '">' +
+                      esc(ec.l10n.localize('In Billing')) +
+                      '</a>'
                     : '') +
                 '</li>',
         )
@@ -360,46 +466,74 @@ function orderHtml(context, view) {
                           ? ''
                           : '?orderId=' + encodeURIComponent(o.orderId)),
               ) +
-              '">Download your files</a>'
+              '">' +
+              esc(ec.l10n.localize('Download your files')) +
+              '</a>'
             : '',
         a.requestReturnUrl
-            ? '<a href="' + esc(a.requestReturnUrl) + '">Request a return</a>'
+            ? '<a href="' +
+              esc(a.requestReturnUrl) +
+              '">' +
+              esc(ec.l10n.localize('Request a return')) +
+              '</a>'
             : '',
         a.askQuestionUrl
-            ? '<a href="' + esc(a.askQuestionUrl) + '">Ask a question</a>'
+            ? '<a href="' +
+              esc(a.askQuestionUrl) +
+              '">' +
+              esc(ec.l10n.localize('Ask a question')) +
+              '</a>'
             : '',
         a.requestCancelUrl
             ? '<a href="' +
               esc(a.requestCancelUrl) +
-              '">Request cancellation</a>'
+              '">' +
+              esc(ec.l10n.localize('Request cancellation')) +
+              '</a>'
             : '',
         a.cancellationRequested
-            ? '<strong>Cancellation requested</strong>'
+            ? '<strong>' +
+              esc(ec.l10n.localize('Cancellation requested')) +
+              '</strong>'
             : '',
     ].filter(Boolean)
     return (
-        '<h1>Order ' +
-        esc(o.orderId) +
+        '<h1>' +
+        esc(ec.resource.expand('Order ${orderId}', '', { orderId: o.orderId })) +
         '</h1>' +
         takeNotice(context.site.siteId) +
         '<p role="status">' +
         esc(o.statusText) +
         (o.placedText ? ' · ' + esc(o.placedText) : '') +
-        '</p><section id="OrderSummary" aria-labelledby="OrderSummaryTitle"><h2 id="OrderSummaryTitle">Summary</h2><ul class="shop-checkout-lines">' +
+        '</p><section id="OrderSummary" aria-labelledby="OrderSummaryTitle"><h2 id="OrderSummaryTitle">' +
+        esc(ec.l10n.localize('Summary')) +
+        '</h2><ul class="shop-checkout-lines">' +
         lines +
-        '</ul><dl class="shop-checkout-totals"><dt>Items</dt><dd>' +
+        '</ul><dl class="shop-checkout-totals"><dt>' +
+        esc(ec.l10n.localize('Items')) +
+        '</dt><dd>' +
         money(t.items) +
         '</dd>' +
         (t.shipping
-            ? '<dt>Delivery</dt><dd>' + money(t.shipping) + '</dd>'
+            ? '<dt>' +
+              esc(ec.l10n.localize('Delivery charge')) +
+              '</dt><dd>' +
+              money(t.shipping) +
+              '</dd>'
             : '') +
-        '<dt>Tax</dt><dd>' +
+        '<dt>' +
+        esc(ec.l10n.localize('Tax')) +
+        '</dt><dd>' +
         money(t.tax) +
-        '</dd><dt>Total</dt><dd>' +
+        '</dd><dt>' +
+        esc(ec.l10n.localize('Total')) +
+        '</dt><dd>' +
         money(t.total) +
         '</dd>' +
         (o.delivery
-            ? '<dt>Delivery to</dt><dd>' +
+            ? '<dt>' +
+              esc(ec.l10n.localize('Delivery to')) +
+              '</dt><dd>' +
               esc(o.delivery.address) +
               ' (' +
               esc(o.delivery.method) +
@@ -407,17 +541,23 @@ function orderHtml(context, view) {
             : '') +
         '</dl></section>' +
         (shipments
-            ? '<section id="Shipments"><h2>Delivery</h2><ul>' +
+            ? '<section id="Shipments"><h2>' +
+              esc(ec.l10n.localize('Order shipments')) +
+              '</h2><ul>' +
               shipments +
               '</ul></section>'
             : '') +
         (documents
-            ? '<section id="PurchaseDocuments"><h2>Documents</h2><ul>' +
+            ? '<section id="PurchaseDocuments"><h2>' +
+              esc(ec.l10n.localize('Documents')) +
+              '</h2><ul>' +
               documents +
               '</ul></section>'
             : '') +
         (actions.length
-            ? '<nav id="OrderActions" aria-label="Help with this order"><p>' +
+            ? '<nav id="OrderActions" aria-label="' +
+              esc(ec.l10n.localize('Help with this order')) +
+              '"><p>' +
               actions.join(' · ') +
               '</p></nav>'
             : '') +
@@ -428,7 +568,11 @@ function orderHtml(context, view) {
               formToken() +
               hidden('orderId', o.orderId) +
               hidden('operationId', portal().operationId()) +
-              '<button type="submit">Buy these again</button> <small>at today\'s prices</small></form>'
+              '<button type="submit">' +
+              esc(ec.l10n.localize('Buy these again')) +
+              '</button> <small>' +
+              esc(ec.l10n.localize("at today's prices")) +
+              '</small></form>'
             : '')
     )
 }
@@ -438,11 +582,15 @@ function orderPage(context, orderId) {
     if (found.error)
         return refusal(
             context,
-            'Your order',
+            ec.l10n.localize('Your order'),
             found,
             '/Orders/' + encodeURIComponent(id),
         )
-    return page(context, 'Order ' + id, orderHtml(context, found.result))
+    return page(
+        context,
+        ec.resource.expand('Order ${orderId}', '', { orderId: id }),
+        orderHtml(context, found.result),
+    )
 }
 function documentPage(context) {
     const orderId = cleanId(param('orderId'))
@@ -453,20 +601,27 @@ function documentPage(context) {
     if (found.error)
         return refusal(
             context,
-            'Invoice',
+            ec.l10n.localize('Invoice'),
             found,
             '/Orders/' + encodeURIComponent(orderId),
         )
     const d = found.result.document
+    const invoiceTitle = ec.resource.expand('Invoice ${invoiceId}', '', {
+        invoiceId: d.invoiceId,
+    })
     return page(
         context,
-        'Invoice ' + d.invoiceId,
-        '<h1>Invoice ' +
-            esc(d.invoiceId) +
+        invoiceTitle,
+        '<h1>' +
+            esc(invoiceTitle) +
             '</h1><p>' +
             esc(d.storeName) +
-            ' · Order ' +
-            esc(d.orderId) +
+            ' · ' +
+            esc(
+                ec.resource.expand('Order ${orderId}', '', {
+                    orderId: d.orderId,
+                }),
+            ) +
             ' · ' +
             esc(d.dateText) +
             ' · ' +
@@ -484,13 +639,15 @@ function documentPage(context) {
                         '</span></li>',
                 )
                 .join('') +
-            '</ul><p><strong>Total ' +
-            money(d.total) +
+            '</ul><p><strong>' +
+            esc(ec.resource.expand('Total ${amount}', '', { amount: d.total ? d.total.display : '' })) +
             '</strong></p>' +
             (d.billingUrl
                 ? '<p><a href="' +
                   esc(d.billingUrl) +
-                  '">Open in Billing</a></p>'
+                  '">' +
+                  esc(ec.l10n.localize('Open in Billing')) +
+                  '</a></p>'
                 : ''),
     )
 }
@@ -510,11 +667,13 @@ function reorder(context) {
     const missing = found.result.unavailableItems || []
     carts().notify(context.site.siteId, {
         kind: 'ok',
-        text:
-            "Added to your cart at today's prices." +
-            (missing.length
-                ? ' Not available now: ' + missing.join(', ') + '.'
-                : ''),
+        text: missing.length
+            ? ec.resource.expand(
+                  "Added to your cart at today's prices. Not available now: ${names}.",
+                  '',
+                  { names: missing.join(', ') },
+              )
+            : ec.l10n.localize("Added to your cart at today's prices."),
     })
     ec.web?.response?.sendRedirect(base(context) + '/Cart')
 }
@@ -531,8 +690,8 @@ function downloadsPage(context) {
         'getDownloads',
         orderToken ? { orderToken } : {},
     )
-    if (found.error)
-        return refusal(context, 'Your downloads', found, '/Downloads')
+    const title = ec.l10n.localize('Your downloads')
+    if (found.error) return refusal(context, title, found, '/Downloads')
     const rows = found.result.downloads
         .map(
             (d) =>
@@ -542,8 +701,12 @@ function downloadsPage(context) {
                 esc(d.fileName) +
                 (d.versionText ? ' · ' + esc(d.versionText) : '') +
                 (d.sizeText ? ' · ' + esc(d.sizeText) : '') +
-                ' · Order ' +
-                esc(d.orderId) +
+                ' · ' +
+                esc(
+                    ec.resource.expand('Order ${orderId}', '', {
+                        orderId: d.orderId,
+                    }),
+                ) +
                 ' · ' +
                 (d.available
                     ? '<a href="' +
@@ -555,20 +718,26 @@ function downloadsPage(context) {
                                   ? '&orderId=' + encodeURIComponent(orderId)
                                   : ''),
                       ) +
-                      '" download>Download</a>'
+                      '" download>' +
+                      esc(ec.l10n.localize('Download')) +
+                      '</a>'
                     : esc(d.stateText)) +
                 '</li>',
         )
         .join('')
     return page(
         context,
-        'Your downloads',
-        '<h1>Your downloads</h1>' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1>' +
             takeNotice(context.site.siteId) +
             '<section id="DownloadList">' +
             (rows
                 ? '<ul class="shop-downloads">' + rows + '</ul>'
-                : '<p>Nothing to download yet.</p>') +
+                : '<p>' +
+                  esc(ec.l10n.localize('Nothing to download yet.')) +
+                  '</p>') +
             '</section>',
     )
 }
@@ -604,7 +773,7 @@ function downloadFile(context) {
         back(
             context,
             '/Downloads',
-            { error: { message: 'This file is not available.' } },
+            { error: { message: ec.l10n.localize('This file is not available.') } },
             '',
         )
     }
@@ -639,50 +808,50 @@ const addressForm = (context, address) =>
         ? hidden('contactMechId', address.contactMechId) +
           hidden('expectedRevision', address.revision)
         : '') +
-    field('Name', 'toName', address?.toName, ' autocomplete="name"') +
+    field(ec.l10n.localize('Name'), 'toName', address?.toName, ' autocomplete="name"') +
     field(
-        'Street address',
+        ec.l10n.localize('Street address'),
         'address1',
         address?.address1,
         ' autocomplete="address-line1" required',
     ) +
     field(
-        'Apartment, suite',
+        ec.l10n.localize('Apartment, suite'),
         'address2',
         address?.address2,
         ' autocomplete="address-line2"',
     ) +
     field(
-        'City',
+        ec.l10n.localize('City'),
         'city',
         address?.city,
         ' autocomplete="address-level2" required',
     ) +
     field(
-        'State or province',
+        ec.l10n.localize('State or province'),
         'stateProvinceGeoId',
         address?.stateProvinceGeoId,
         ' autocomplete="address-level1"',
     ) +
     field(
-        'Postal code',
+        ec.l10n.localize('Postal code'),
         'postalCode',
         address?.postalCode,
         ' autocomplete="postal-code" required',
     ) +
     field(
-        'Country',
+        ec.l10n.localize('Country'),
         'countryGeoId',
         address?.countryGeoId || 'USA',
         ' autocomplete="country"',
     ) +
     '<button type="submit">' +
-    (address ? 'Save address' : 'Add address') +
+    esc(ec.l10n.localize(address ? 'Save address' : 'Add address')) +
     '</button></form>'
 function addressesPage(context) {
     const found = attempt(context, 'getAddresses', {})
-    if (found.error)
-        return refusal(context, 'Your addresses', found, '/Addresses')
+    const title = ec.l10n.localize('Your addresses')
+    if (found.error) return refusal(context, title, found, '/Addresses')
     const list = found.result.addresses
         .map(
             (a) =>
@@ -693,28 +862,46 @@ function addressesPage(context) {
                       a.purposes.map((p) => esc(p.text)).join(', ') +
                       '</small>'
                     : '') +
-                '</p><details><summary>Change</summary>' +
+                '</p><details><summary>' +
+                esc(ec.l10n.localize('Change address')) +
+                '</summary>' +
                 addressForm(context, a) +
                 '</details><form method="post" action="' +
                 esc(base(context) + '/Addresses/end') +
                 '">' +
                 formToken() +
                 hidden('contactMechId', a.contactMechId) +
-                '<label><input type="checkbox" name="confirmEnd" value="true" required> Stop using this address</label><button type="submit">Remove</button></form></li>',
+                '<label><input type="checkbox" name="confirmEnd" value="true" required> ' +
+                esc(ec.l10n.localize('Stop using this address')) +
+                '</label><button type="submit">' +
+                esc(ec.l10n.localize('Remove')) +
+                '</button></form></li>',
         )
         .join('')
     return page(
         context,
-        'Your addresses',
-        '<h1>Your addresses</h1>' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1>' +
             takeNotice(context.site.siteId) +
             '<section id="AddressList">' +
             (list
                 ? '<ul class="shop-addresses">' + list + '</ul>'
-                : '<p>No saved addresses.</p>') +
-            '</section><section id="AddressEdit"><h2>Add an address</h2>' +
+                : '<p>' +
+                  esc(ec.l10n.localize('No saved addresses.')) +
+                  '</p>') +
+            '</section><section id="AddressEdit"><h2>' +
+            esc(ec.l10n.localize('Add an address')) +
+            '</h2>' +
             addressForm(context, null) +
-            '<p><small>A change does not alter an order already placed.</small></p></section>',
+            '<p><small>' +
+            esc(
+                ec.l10n.localize(
+                    'A change does not alter an order already placed.',
+                ),
+            ) +
+            '</small></p></section>',
     )
 }
 function storeAddress(context) {
@@ -730,8 +917,12 @@ function storeAddress(context) {
         '/Addresses',
         found,
         found.result?.suggestion
-            ? 'Saved. The carrier suggests: ' + found.result.suggestion
-            : 'Saved the address.',
+            ? ec.resource.expand(
+                  'Saved. The carrier suggests: ${suggestion}',
+                  '',
+                  { suggestion: found.result.suggestion },
+              )
+            : ec.l10n.localize('Saved the address.'),
     )
 }
 function endAddress(context) {
@@ -741,15 +932,15 @@ function endAddress(context) {
         attempt(context, 'endAddress', {
             contactMechId: cleanId(param('contactMechId')),
         }),
-        'The address is no longer used.',
+        ec.l10n.localize('The address is no longer used.'),
     )
 }
 
 /* ---- PaymentMethods ---- */
 function paymentMethodsPage(context) {
     const found = attempt(context, 'getPaymentMethods', {})
-    if (found.error)
-        return refusal(context, 'Payment methods', found, '/PaymentMethods')
+    const title = ec.l10n.localize('Payment methods')
+    if (found.error) return refusal(context, title, found, '/PaymentMethods')
     const confirmId = cleanId(param('confirm'))
     const list = found.result.methods
         .map(
@@ -762,12 +953,22 @@ function paymentMethodsPage(context) {
                     ? ' <small>(' + esc(m.provider) + ')</small>'
                     : '') +
                 (m.ending
-                    ? ' <strong>Ending once its open payments complete</strong>'
+                    ? ' <strong>' +
+                      esc(
+                          ec.l10n.localize(
+                              'Ending once its open payments complete',
+                          ),
+                      ) +
+                      '</strong>'
                     : '') +
                 '</p>' +
                 (m.contracts.length
-                    ? '<p><small>Pays: ' +
-                      m.contracts.map((c) => esc(c.name)).join(', ') +
+                    ? '<p><small>' +
+                      esc(
+                          ec.resource.expand('Pays: ${names}', '', {
+                              names: m.contracts.map((c) => c.name).join(', '),
+                          }),
+                      ) +
                       '</small></p>'
                     : '') +
                 (m.ending
@@ -779,34 +980,58 @@ function paymentMethodsPage(context) {
                       hidden('paymentMethodId', m.paymentMethodId) +
                       (confirmId === m.paymentMethodId
                           ? hidden('confirm', 'true') +
-                            '<p role="alert">Ending this card stops it paying: ' +
-                            m.contracts.map((c) => esc(c.name)).join(', ') +
-                            '.</p>'
+                            '<p role="alert">' +
+                            esc(
+                                ec.resource.expand(
+                                    'Ending this card stops it paying: ${names}.',
+                                    '',
+                                    {
+                                        names: m.contracts
+                                            .map((c) => c.name)
+                                            .join(', '),
+                                    },
+                                ),
+                            ) +
+                            '</p>'
                           : '') +
                       '<button type="submit">' +
-                      (confirmId === m.paymentMethodId
-                          ? 'End it anyway'
-                          : 'Remove this card') +
+                      esc(
+                          ec.l10n.localize(
+                              confirmId === m.paymentMethodId
+                                  ? 'End it anyway'
+                                  : 'Remove this card',
+                          ),
+                      ) +
                       '</button></form>') +
                 '</li>',
         )
         .join('')
     return page(
         context,
-        'Payment methods',
-        '<h1>Payment methods</h1>' +
+        title,
+        '<h1>' +
+            esc(title) +
+            '</h1>' +
             takeNotice(context.site.siteId) +
             '<section id="SavedMethods">' +
             (list
                 ? '<ul class="shop-methods">' + list + '</ul>'
-                : '<p>No saved cards.</p>') +
+                : '<p>' + esc(ec.l10n.localize('No saved cards.')) + '</p>') +
             '</section>' +
             (found.result.canAdd
                 ? '<section id="AddMethod"><form method="post" action="' +
                   esc(base(context) + '/PaymentMethods/add') +
                   '">' +
                   formToken() +
-                  '<button type="submit">Add a card</button> <small>on the payment provider\'s page; this site never sees your card</small></form></section>'
+                  '<button type="submit">' +
+                  esc(ec.l10n.localize('Add a card')) +
+                  '</button> <small>' +
+                  esc(
+                      ec.l10n.localize(
+                          "on the payment provider's page; this site never sees your card",
+                      ),
+                  ) +
+                  '</small></form></section>'
                 : ''),
     )
 }
@@ -847,14 +1072,20 @@ function relayPage(context) {
     // the relay posts its form at once with the pages' same-origin script
     return page(
         context,
-        'Add a card',
+        ec.l10n.localize('Add a card'),
         '<form method="post" id="ShopPaymentRelay" action="' +
             esc(form.formUrl) +
             '">' +
             Object.entries(form.fields || {})
                 .map(([name, value]) => hidden(esc(name), value))
                 .join('') +
-            '<p>Taking you to the payment provider\'s page.</p><button type="submit">Continue</button></form><script src="' +
+            '<p>' +
+            esc(
+                ec.l10n.localize("Taking you to the payment provider's page."),
+            ) +
+            '</p><button type="submit">' +
+            esc(ec.l10n.localize('Continue')) +
+            '</button></form><script src="' +
             esc(base(context) + '/Checkout/enhance') +
             '"></script>',
     )
@@ -875,7 +1106,9 @@ function methodReturned(context) {
         context,
         '/PaymentMethods',
         found,
-        found.result?.added ? 'Your card is saved.' : 'No new card was saved.',
+        found.result?.added
+            ? ec.l10n.localize('Your card is saved.')
+            : ec.l10n.localize('No new card was saved.'),
     )
 }
 function endMethod(context) {
@@ -890,7 +1123,7 @@ function endMethod(context) {
                 '/PaymentMethods?confirm=' +
                 encodeURIComponent(paymentMethodId),
         )
-    back(context, '/PaymentMethods', found, 'The card is removed.')
+    back(context, '/PaymentMethods', found, ec.l10n.localize('The card is removed.'))
 }
 
 const actions = {

@@ -94,7 +94,7 @@
         flash=marketing.take()
         const offerParam=marketing.param('offer'),ref=marketing.param('ref'),returnKey=marketing.param('returnToken') || marketing.param('key')
         view=null;event=null;failure=null;step=null
-        const notAvailable={kind:'NotFound',message:'This registration is not available. It may have closed, or this page was opened in another browser: use the link in your email.'}
+        const notAvailable={kind:'NotFound',message:ec.l10n.localize("This registration is not available. It may have closed, or this page was opened in another browser: use the link in your email.")}
         if(ref){
             const reach=reg.reachOf(resolvedSiteId,ref,returnKey)
             if(!reach)failure=notAvailable
@@ -105,9 +105,9 @@
             }
         }else if(offerParam && /^[A-Za-z0-9_-]{1,40}$/.test(offerParam)){
             const found=marketing.portal.attempt('getMarketingEvent',{siteId:resolvedSiteId,registrationPolicyId:offerParam})
-            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:'This event is not available.'}:found.error
+            if(found.error)failure=found.error.kind==='NotFound'?{kind:'NotFound',message:ec.l10n.localize("This event is not available.")}:found.error
             else{event=found.result.event;if(!event.registrationOpen)failure={kind:'Closed',message:event.registrationText}}
-        }else failure={kind:'NotFound',message:'Open this page from the event you want to register for.'}
+        }else failure={kind:'NotFound',message:ec.l10n.localize("Open this page from the event you want to register for.")}
         if(event && !failure)step='choice'
         else if(view){
             if(view.limited)step='receipt'
