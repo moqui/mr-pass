@@ -506,3 +506,15 @@ pushing to a real server.
 | Tests | `SmithyDeploy` (an environment through Do and the token in no page or flash, one render each of Deployments and DeploymentDetail, access, the confirmations); routes and Do's count in `Smithy`. |
 
 Not built: the deploy pages at 390 px in a browser; filters on Deployments.
+
+## DG11: the Forgejo API
+
+| Area | Implementation |
+| --- | --- |
+| Filter | `script/SmithyApi.js`, the `SmithyApi` filter on `/api/v1/*` in `MoquiConf.xml`: the site by host, `getSiteInfo` for the mount (Smithy at `/` or pass the request on), token or Bearer sign-in with `loginUserKey(key, "git")`, routing, Forgejo JSON, `limit`/`page` with `X-Total-Count` and `Link`. Design §4.5. |
+| Access | `Facade.js` `checkLoginKey`: with `passSmithyApi` set, an access token calls `SMITHY_API_OPERATIONS`, the pages' own operations, so the pages' rules decide. |
+| Framework | `ec.user.loginUserKey(key, scope)`: the scope argument signs in a scoped key (mr-moqui). |
+| Web URLs | `pulls/<n>` is a compatibility form of `-/merge-requests/<n>` (mr-mantle `SmithyCore.js`). |
+| Tests | `SmithyApi`: sign-in and refusals, a private repository 404 to a stranger and to nobody, merge requests created, listed in pages, filtered, read, diffed, commented and merged (and a stranger's merge refused), and the mount rule. |
+
+Not built: `pulls/{n}/update`, merge request labels, a search by part of a name, a repository under `user/`, binary contents, remote mode (design §4.5).

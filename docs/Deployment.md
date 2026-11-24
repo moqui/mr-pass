@@ -788,6 +788,12 @@ off and an owner with no runner minutes left run nothing (Pipelines, below).
   `SSH_GIT` permission use git over SSH, and the page's SSH address does not work for the others. A password login over
   SSH still needs `SSH_GIT` and `git-password-auth`. `<dav-server sftp-drives>` is a separate setting: look at it too
   before opening the SSH port of a public site.
+- **The Forgejo API.** Where Smithy is mounted at `/`, the site answers a part of Forgejo's REST API at `/api/v1`, so
+  Forgejo clients work with it: `tea login add --url https://code.example.org --token <token>`. Use an access token
+  from Git access, sent as `Authorization: token <t>` or `Bearer <t>`. A token has its account's rights, and each route
+  keeps its page's rules. Under a path mount (`/code`) and on other hosts, `/api/v1` stays the framework's. It works in
+  local mode only: a remote frontend's authority refuses access tokens. Routes and limits:
+  [design §4.5](../plan/design-smithy.md#45-the-forgejo-api).
 - **Quotas.** A push is checked against the namespace's limits by Mantle's pre-receive rule. Git LFS uploads are checked
   by `<git-server lfs-upload-check-service>`, which mr-mantle's `MoquiConf.xml` sets; keep it when a runtime's conf
   replaces the `git-server` element.

@@ -26,7 +26,7 @@ A site mounts the apps it wants. The paths are the defaults.
 |---|---|---|---|
 | Forum | `/forum`, or a site's root | Community forums and mailing lists: categories, topics and posts, public accounts, moderation, read markers, protected attachments, notices by mail. [Design](plan/design-forum.md), [built](plan/implementation-forum.md) | Comms' mailboxes |
 | Shop | `/shop`, or a site's root | A store's storefront: the published catalog and search, a cart, guest or signed-in checkout on the store's hosted payment page, orders, downloads, saved addresses and cards, subscriptions, on the site's published theme. [Design](plan/design-shop.md), [built](plan/impl-shop.md), [UI review](plan/ui-review-shop.md) | Commerce |
-| Smithy | `/code`, or a site's root | Public git hosting: groups and repositories, code and commits, issues, merge requests with reviews and checks, pipelines and deployments, releases, docs, forks, a GitHub import. [Design](plan/design-smithy.md), [built](plan/implementation-smithy.md) | Projects' code |
+| Smithy | `/code`, or a site's root | Public git hosting: groups and repositories, code and commits, issues, merge requests with reviews and checks, pipelines and deployments, releases, docs, forks, a GitHub import, and at a site's root a Forgejo-compatible API for tea and other clients. [Design](plan/design-smithy.md), [built](plan/implementation-smithy.md) | Projects' code |
 | Billing | `/billing` | A customer's invoices, and payment from an invoice's link | Accounting |
 | Supplier | `/supplier` | A supplier's quote, purchase order acknowledgement and bill | Purchasing, Accounting |
 | Support | `/support` | Help articles, a customer's cases and returns, a cancel request for an order, feedback on a resolved case | Customer Service |
@@ -95,7 +95,7 @@ Read mr-moqui's [AGENTS.md](https://github.com/moqui/mr-moqui/blob/master/AGENTS
   and [how an app registers](plan/design-forum.md#131-shared-foundation-and-independent-app-use). The customer pages of Support, Sales and
   Marketing are designed with their BOSS apps, in mr-boss's `plan/`.
 - `screen/<App>/` and `service/pass/` are the apps, `theme/starter/` the starter shop theme, and `script/` the
-  tracking redirect and pixel.
+  tracking redirect and pixel and the Smithy API filter (`SmithyApi.js`).
 - [docs/Deployment.md](docs/Deployment.md) has each app's setup and jobs, and [adding an app](docs/Deployment.md#adding-an-app).
 - [docs/security/Attack-Surface-Apps-PASS.md](docs/security/Attack-Surface-Apps-PASS.md) is the security map, with
   [Commerce](docs/security/Attack-Surface-Apps-PASS-Commerce.md) and
