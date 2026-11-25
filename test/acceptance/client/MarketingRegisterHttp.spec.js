@@ -58,11 +58,13 @@ feature("a visitor registers two free places from the Event page and confirms th
         }).text
         // a visitor's free places wait for the buyer's address (SEC-PSS-88): the receipt mailed there links to Registration, whose
         // "Confirm my places" confirms them; opening the link alone confirms nothing
-        const token = waitUntil(() => receiptToken(admin(), "first.mr@example.test"), {timeout: 20})
+        // one signed-in reader for the polls: a sign-in each poll would count against the sign-in limits of the walks after it
+        const records = admin()
+        const token = waitUntil(() => receiptToken(records, "first.mr@example.test"), {timeout: 20})
         const opened = visitor.get(BASE + "/marketing/Registration?token=" + token, {follow: true}).text
         const confirmed = visitor.post(BASE + "/marketing/Registration/confirm", {form: {ref}, follow: true}).text
         const mine = visitor.get(BASE + "/marketing/Registration?ref=" + ref).text
-        const places = read(admin(), "mantle.work.registration.EventRegistration", {reservationId: ref})
+        const places = read(records, "mantle.work.registration.EventRegistration", {reservationId: ref})
         return {event, choice, answers, receipt, opened, confirmed, mine, places}
     },
     then(r) {
