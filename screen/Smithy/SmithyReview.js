@@ -669,6 +669,11 @@ function threadHtml(c, o, thread) {
  * a commit's and a comparison's Changes. */
 // the most diff lines a file's own page shows at once; a longer diff is in parts
 const PART_LINES = 10000
+/* The lines of a file's diff the page of its part n (from 1) asks the authority for: only those are sent. */
+const partAsk = n => ({diffLineOffset: (Math.max(1, n) - 1) * PART_LINES, diffLineLimit: PART_LINES})
+/* The part the host sent of a file's diff ({total, offset}, for SmithyDiff.hunkPart), or null when it sent every line. */
+const sentPart = fileDiff =>
+    fileDiff?.diffLineCount != null ? {total: fileDiff.diffLineCount, offset: fileDiff.diffLineOffset || 0} : null
 /* The links between the parts of a long diff: where this part is, and the parts before and after (href(n) for part n). */
 function partsHtml(piece, href) {
     const n = piece.part + 1
@@ -701,12 +706,16 @@ function changes(shell, request, bases, siteInfo, self, asked) {
     const canComment = !!caps.canComment && live && c.signedIn && shell.capabilities.confirmed !== false
     const onePath = ask("path")
     const split = ask("view") === "split"
+    // a file alone shows its diff in parts of PART_LINES lines (part= counts from 1), and the host sends only that part's
+    // lines: a whole file of 37,500 lines, made into values in each script that passed it on, could take the script's
+    // memory past its limit for a page of 10,000 (SmithyDiffScale)
+    const part = onePath ? Math.max(1, Number(ask("part")) || 1) : 1
     const found = need("getMergeRequestChanges", {
         siteId: shell.siteId,
         repositoryId,
         mergeRequestNum: number,
         withDiffs: true,
-        ...(onePath ? {path: onePath} : {})
+        ...(onePath ? {path: onePath, ...partAsk(part)} : {})
     })
     const u = smithy.urls(c.base, shell.repository.repositoryPath)
     const diffs = new Map((found.fileDiffList || []).map(d => [d.path, d]))
@@ -714,8 +723,6 @@ function changes(shell, request, bases, siteInfo, self, asked) {
     found.fileDiffList = null
     const threads = found.threadList || []
     // the page's own address keeps the file asked for and the view; a line's link adds the line
-    // a file alone shows its diff in parts of PART_LINES lines (part= counts from 1)
-    const part = onePath ? Math.max(1, Number(ask("part")) || 1) : 1
     const keep = extra => self + query({path: onePath, view: split ? "split" : null, part: part > 1 ? part : null, ...extra})
     // a line's link is the page's address with line= last
     const linePrefix = keep({line: "X"}).replace(/X$/, "")
@@ -727,22 +734,27 @@ function changes(shell, request, bases, siteInfo, self, asked) {
     const files = (found.fileList || []).map((file, i) => {
         const index = i + 1
         // the page of one file shows that file alone (the file tree still lists them all)
-        if (onePath && file.path !== onePath) return ""
+        if (onePath && file.path !== onePath) return []
         const fileDiff = diffs.get(file.path)
         diffs.delete(file.path)
         const text = fileDiff?.unifiedDiff ?? fileDiff?.diff ?? null
         // the host's hunks, as data (never its markup); a unified text where that is what there is
-        const hunks = fileDiff?.hunks?.length ? fileDiff.hunks : null
+        let hunks = fileDiff?.hunks?.length ? fileDiff.hunks : null
         if (fileDiff) fileDiff.hunks = null
-        const piece = onePath && hunks ? diff.hunkPart(hunks, part - 1, PART_LINES) : null
+        const piece = onePath && hunks ? diff.hunkPart(hunks, part - 1, PART_LINES, sentPart(fileDiff)) : null
         const lines = diff.marked(piece ? piece.lines : hunks ? hunkLines(hunks) : text ? diffLines(text) : [])
+        // the host's lines go once the page's are made (a part of a large file holds no more than it must)
+        hunks = null
         const parts = piece && piece.parts > 1 ? partsHtml(piece, n => keep({part: n > 1 ? n : null}) + "#file-" + index) : ""
         const before = diff.gaps(lines)
         const deleted = /^(deleted|delete|removed|D)$/i.test(status(file))
         const added = /^(added|add|new|A)$/i.test(status(file))
         const fileHref = found.headCommitId && !deleted ? line => u.blob(found.headCommitId, file.path) + "#L" + line : null
         const mine = threads.filter(thread => thread.path === file.path)
-        const keys = new Set(lines.filter(line => line.kind !== "h" && line.kind !== "m").map(line => lineKey(index, line)))
+        // the keys of the lines shown, for the threads to find theirs: made only for a file with threads
+        const keys = mine.length
+            ? new Set(lines.filter(line => line.kind !== "h" && line.kind !== "m").map(line => lineKey(index, line)))
+            : null
         const at = new Map()
         const above = []
         for (const thread of mine) {
@@ -815,11 +827,13 @@ function changes(shell, request, bases, siteInfo, self, asked) {
                 )
             }
         }
-        const rows = out.join("")
         islandFiles.push({index, path: file.path, oldPath: file.oldPath || file.path, status: status(file), binary: !!file.binary})
         const image = file.binary && diff.IMAGE.test(file.path)
-        const body = rows
-            ? h`<div class="${split ? "smithy-split" : "smithy-lines"}" data-file="${index}">${new Markup(rows)}</div><div data-smithy-side="${index}"></div>`
+        // a file's markup is a list of pieces, its rows as they were made, joined once for the whole page: a part of
+        // 10,000 lines is megabytes of markup, and each template it went through held another whole copy of it, which
+        // took the script past its memory limit (SmithyDiffScale)
+        const body = out.length
+            ? null
             : image
               ? new Markup(
                     diff.imageHtml(
@@ -831,11 +845,16 @@ function changes(shell, request, bases, siteInfo, self, asked) {
               : file.binary
                 ? h`<p>${ec.l10n.localize("Binary file.")}</p>`
                 : omitted(file, onePath, keep({path: file.path}) + "#file-" + index, fileHref ? u.blob(found.headCommitId, file.path) : null)
-        return h`<section class="card smithy-file" id="file-${index}"><details open><summary><h3 class="wrap">${file.oldPath && file.oldPath !== file.path ? file.oldPath + " → " : ""}${file.path} <small>${status(file)}</small> ${new Markup(
+        const head = h`<section class="card smithy-file" id="file-${index}"><details open><summary><h3 class="wrap">${file.oldPath && file.oldPath !== file.path ? file.oldPath + " → " : ""}${file.path} <small>${status(file)}</small> ${new Markup(
             diff.statHtml(file.insertions, file.deletions)
         )} <span data-smithy-tools="${index}"></span>${fileHref ? h` <a class="smithy-viewfile" href="${u.blob(found.headCommitId, file.path)}">${ec.l10n.localize("View file")}</a>` : ""}</h3></summary>${above.map(thread =>
             threadHtml(c, o, thread)
-        )}${parts}${body}${parts}</details></section>`
+        )}${parts}`.html
+        const tail = h`${parts}</details></section>`.html
+        if (body) return [head + body.html + tail]
+        out.unshift(head + h`<div class="${split ? "smithy-split" : "smithy-lines"}" data-file="${index}">`.html)
+        out.push(h`</div><div data-smithy-side="${index}"></div>`.html + tail)
+        return out
     })
     const config = {
         doUrl: c.base + "/-/do/createReviewComment",
@@ -853,15 +872,15 @@ function changes(shell, request, bases, siteInfo, self, asked) {
     const viewLink = (value, label) =>
         h`<a href="${self + query({path: onePath, view: value})}"${attributes({"aria-current": (value === "split") === split ? "true" : null})}>${label}</a>`
     const threadCount = file => threads.filter(thread => thread.path === file.path && !thread.resolved).length
-    return {
-        html: h`<section id="SmithyChanges" aria-label="${ec.l10n.localize("Changed files")}"><div class="smithy-difftools"><h3>${count === 1 ? ec.resource.expand("${count} file changed", "", {count: count}) : ec.resource.expand("${count} files changed", "", {count: count})} <small>+${Number(found.insertions) || 0} −${Number(found.deletions) || 0}</small></h3><nav aria-label="${ec.l10n.localize("Diff view")}" class="smithy-seg">${viewLink(null, "Unified")}${viewLink("split", "Split")}</nav></div>${
+    const before = h`<section id="SmithyChanges" aria-label="${ec.l10n.localize("Changed files")}"><div class="smithy-difftools"><h3>${count === 1 ? ec.resource.expand("${count} file changed", "", {count: count}) : ec.resource.expand("${count} files changed", "", {count: count})} <small>+${Number(found.insertions) || 0} −${Number(found.deletions) || 0}</small></h3><nav aria-label="${ec.l10n.localize("Diff view")}" class="smithy-seg">${viewLink(null, "Unified")}${viewLink("split", "Split")}</nav></div>${
             found.truncated && !onePath ? h`<p class="card">${ec.l10n.localize("This change is large; only part of its diff is shown.")}</p>` : ""
         }${onePath ? h`<p><a href="${self + query({view: split ? "split" : null})}">${ec.l10n.localize("Show every file")}</a></p>` : ""}<div class="smithy-review"><nav aria-label="Files" class="smithy-filetree"><ul class="card" id="SmithyFileList">${(found.fileList || []).map(
             (file, i) =>
                 h`<li class="wrap"><a href="${onePath && file.path !== onePath ? self + query({path: file.path, view: split ? "split" : null}) : ""}#file-${i + 1}" title="${file.path}"><span class="st st-${String(status(file)).toLowerCase()}" aria-hidden="true"></span>${file.path}</a> <small>${status(file)} +${Number(file.insertions) || 0} −${Number(file.deletions) || 0}${
                     threadCount(file) ? h` · ${threadCount(file)} ${threadCount(file) === 1 ? "thread" : "threads"}` : ""
                 }</small></li>`
-        )}</ul></nav><div class="smithy-filelist">${files}</div></div></section>${c.signedIn && shell.capabilities.confirmed !== false ? reviewForm(c, shell, request, o.self + "#SmithyReview") : ""}<div id="SmithyDiffReview"></div>${issuePages.islandOf(
+        )}</ul></nav><div class="smithy-filelist">`.html
+    const after = h`</div></div></section>${c.signedIn && shell.capabilities.confirmed !== false ? reviewForm(c, shell, request, o.self + "#SmithyReview") : ""}<div id="SmithyDiffReview"></div>${issuePages.islandOf(
             "SmithyDiffReview",
             "DiffReview",
             c,
@@ -869,7 +888,10 @@ function changes(shell, request, bases, siteInfo, self, asked) {
             config,
             {scripts: ["/js/WebrootCode.js"], loading: "Loading the diff tools"}
         )}`.html
-    }
+    const pieces = [before]
+    for (const file of files) for (const piece of file) pieces.push(piece)
+    pieces.push(after)
+    return {html: pieces.join("")}
 }
 
 /* Fork (design §9 Fork), at -/fork and -/forks: the form that makes a fork in the caller's namespace or in a group where it
@@ -1133,5 +1155,7 @@ function agreementSettings(target, name, head, bases, siteInfo, self, flash, con
     omitted,
     partsHtml,
     PART_LINES,
+    partAsk,
+    sentPart,
     lineKey
 })

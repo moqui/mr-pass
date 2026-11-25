@@ -59,15 +59,18 @@ function hunkLines(hunks) {
 
 /* One part of a long diff: the lines of the hunks from line part*size (0-based) up to size lines, counted without the
  * hunks' headers, and the count of parts. A part that starts inside a hunk starts with a header marked cont, which has no
- * gap before it. Only the lines of the part are made. */
-function hunkPart(hunks, part, size) {
+ * gap before it. Only the lines of the part are made. With sent ({total, offset}: a file's diffLineCount and
+ * diffLineOffset) the host sent only the part's lines, from line offset of total, a hunk it cut at its start with
+ * skippedLines (the page asks for its part, so a large file's other lines never become values). */
+function hunkPart(hunks, part, size, sent) {
     const lines = []
     let total = 0
-    for (const hunk of hunks || []) total += (hunk.lines || []).length
+    if (sent) total = Number(sent.total) || 0
+    else for (const hunk of hunks || []) total += (hunk.lines || []).length
     const parts = Math.max(1, Math.ceil(total / size))
-    const from = Math.min(Math.max(0, part), parts - 1) * size
+    const from = sent ? Math.floor((Number(sent.offset) || 0) / size) * size : Math.min(Math.max(0, part), parts - 1) * size
     const to = from + size
-    let at = 0
+    let at = sent ? Number(sent.offset) || 0 : 0
     for (const hunk of hunks || []) {
         const count = (hunk.lines || []).length
         if (at + count <= from || at >= to) {
@@ -76,7 +79,8 @@ function hunkPart(hunks, part, size) {
         }
         const start = Math.max(0, from - at)
         const header = {kind: "h", oldStart: Number(hunk.oldStart), newStart: Number(hunk.newStart)}
-        if (start === 0) header.text = "@@ -" + hunk.oldStart + "," + hunk.oldLines + " +" + hunk.newStart + "," + hunk.newLines + " @@"
+        if (start === 0 && !(sent && Number(hunk.skippedLines) > 0))
+            header.text = "@@ -" + hunk.oldStart + "," + hunk.oldLines + " +" + hunk.newStart + "," + hunk.newLines + " @@"
         else {
             const first = hunk.lines[start]
             header.cont = true
@@ -140,17 +144,28 @@ const TOKENS = /[A-Za-z0-9_]+|\s+|[^A-Za-z0-9_\s]/g
 const MAX_LINE = 1000
 const MAX_TOKENS = 400
 /* The changed units of two lines: the longest common subsequence of their units is unchanged; returns the escaped markup
- * of each side with its changed runs in <span class="x">, or null when the lines share too little to be worth marking. */
-function wordMarks(before, after) {
+ * of each side with its changed runs in <span class="x">, or null when the lines share too little to be worth marking.
+ * scratch ({table}) is a table to reuse for the comparison, grown as needed: a page marks thousands of pairs, and a table
+ * of their own for each was as many arrays for the collector (SmithyDiffScale). */
+function wordMarks(before, after, scratch = {}) {
     if (before.length > MAX_LINE || after.length > MAX_LINE) return null
     const a = before.match(TOKENS) || []
     const b = after.match(TOKENS) || []
     if (a.length > MAX_TOKENS || b.length > MAX_TOKENS) return null
     const n = a.length
     const m = b.length
-    const table = Array.from({length: n + 1}, () => new Int32Array(m + 1))
-    for (let i = n - 1; i >= 0; i--)
-        for (let j = m - 1; j >= 0; j--) table[i][j] = a[i] === b[j] ? table[i + 1][j + 1] + 1 : Math.max(table[i + 1][j], table[i][j + 1])
+    // the lengths of the common subsequences of a[i..] and b[j..] at i * width + j, the last row and column 0
+    const width = m + 1
+    if (!scratch.table || scratch.table.length < (n + 1) * width)
+        scratch.table = new Int32Array(Math.max((n + 1) * width, 1024))
+    const t = scratch.table
+    for (let j = 0; j <= m; j++) t[n * width + j] = 0
+    for (let i = n - 1; i >= 0; i--) {
+        t[i * width + m] = 0
+        for (let j = m - 1; j >= 0; j--)
+            t[i * width + j] =
+                a[i] === b[j] ? t[(i + 1) * width + j + 1] + 1 : Math.max(t[(i + 1) * width + j], t[i * width + j + 1])
+    }
     const keepA = new Array(n).fill(false)
     const keepB = new Array(m).fill(false)
     let shared = 0
@@ -159,7 +174,7 @@ function wordMarks(before, after) {
             keepA[i++] = true
             keepB[j++] = true
             shared++
-        } else if (table[i + 1][j] >= table[i][j + 1]) i++
+        } else if (t[(i + 1) * width + j] >= t[i * width + j + 1]) i++
         else j++
     }
     // white space alone in common is no likeness: such lines are a rewrite, marked as a whole
@@ -185,6 +200,7 @@ function wordMarks(before, after) {
 /* The lines with the markup of each text line (html): a run of deleted lines followed by a run of added lines is paired
  * line by line, and each pair's changed words are marked. Returns the same array. */
 function marked(lines) {
+    const scratch = {}
     const first = lines.findIndex(line => line.kind === "h")
     if (first > 0) lines.splice(0, first)
     for (const line of lines) if (line.kind === "a" || line.kind === "d" || line.kind === "c") line.html = esc(line.text)
@@ -199,7 +215,7 @@ function marked(lines) {
         while (a < lines.length && lines[a].kind === "a") a++
         const pairs = Math.min(d - i, a - d)
         for (let k = 0; k < pairs; k++) {
-            const marks = wordMarks(lines[i + k].text, lines[d + k].text)
+            const marks = wordMarks(lines[i + k].text, lines[d + k].text, scratch)
             if (marks) {
                 lines[i + k].html = marks[0]
                 lines[d + k].html = marks[1]

@@ -281,10 +281,22 @@ feature("a long diff is in parts: each part has its own lines, a part that start
             second: diff.hunkPart(hunks, 1, 4),
             past: diff.hunkPart(hunks, 9, 4),
             fromText: diff.linesPart(diff.diffLines(text), 1, 4),
-            gaps: diff.gaps(diff.hunkPart(hunks, 1, 4).lines)
+            gaps: diff.gaps(diff.hunkPart(hunks, 1, 4).lines),
+            // the same part as the host sends it (diffLineOffset 4, diffLineLimit 4 of 10 lines): only its lines, the
+            // first hunk cut at its start
+            sent: diff.hunkPart(
+                [
+                    {...hunk(1, 5), lines: hunk(1, 5).lines.slice(4), skippedLines: 4},
+                    {...hunk(20, 5), lines: hunk(20, 5).lines.slice(0, 3)}
+                ],
+                1,
+                4,
+                {total: 10, offset: 4}
+            ),
+            review: ec.resource.script("component://mr-pass/screen/Smithy/SmithyReview.js")
         }
     },
-    then({first, second, past, fromText, gaps}) {
+    then({first, second, past, fromText, gaps, sent, review}) {
         first.parts === 3
         first.lines.map(line => line.kind).join("") === "hcccc"
         first.lines[0].text === "@@ -1,5 +1,5 @@"
@@ -301,6 +313,12 @@ feature("a long diff is in parts: each part has its own lines, a part that start
         gaps.size === 1
         gaps.get(2).from === 6
         gaps.get(2).to === 19
+        // a page asks the host for its part's lines alone, and makes the same part of them
+        review.partAsk(3).diffLineOffset === 2 * review.PART_LINES
+        review.partAsk(3).diffLineLimit === review.PART_LINES
+        sent.parts === 3
+        sent.part === 1
+        JSON.stringify(sent.lines) === JSON.stringify(second.lines)
     }
 })
 feature("the Edit page has the file's text, the blob it starts from and, for the agreement's file, how to sign; its save step asks where", {

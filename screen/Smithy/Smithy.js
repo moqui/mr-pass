@@ -997,7 +997,7 @@ function changedFiles(fileList, fileDiffList, at = {}) {
         const piece =
             at.onePath && f.path === at.onePath
                 ? fileDiff?.hunks?.length
-                    ? diff.hunkPart(fileDiff.hunks, part - 1, review().PART_LINES)
+                    ? diff.hunkPart(fileDiff.hunks, part - 1, review().PART_LINES, review().sentPart(fileDiff))
                     : text
                       ? diff.linesPart(diff.diffLines(text), part - 1, review().PART_LINES)
                       : null
@@ -1042,7 +1042,13 @@ function changedFiles(fileList, fileDiffList, at = {}) {
 function commit(shell, commitId) {
     const u = urls(shell.base, shell.repository.repositoryPath)
     const onePath = param("path") || null
-    const found = need("getCommit", {siteId: shell.siteId, repositoryId: shell.repository.repositoryId, commitId, ...(onePath ? {path: onePath} : {})})
+    // a file alone: only its part's lines (SmithyReview.partAsk)
+    const found = need("getCommit", {
+        siteId: shell.siteId,
+        repositoryId: shell.repository.repositoryId,
+        commitId,
+        ...(onePath ? {path: onePath, ...review().partAsk(Number(param("part")) || 1)} : {})
+    })
     const c = found.commit
     const message = String(c.message || c.summary || "")
     const body = message.includes("\n") ? message.slice(message.indexOf("\n") + 1).replace(/^\n+/, "") : ""
@@ -1149,7 +1155,7 @@ function compare(shell, base, head, headRepositoryPath) {
     if (!head) return view
     const onePath = param("path") || null
     const found = portal.attempt("getCompare", {
-        ...(onePath ? {path: onePath} : {}),
+        ...(onePath ? {path: onePath, ...review().partAsk(Number(param("part")) || 1)} : {}),
         siteId: shell.siteId,
         repositoryId: shell.repository.repositoryId,
         head,
