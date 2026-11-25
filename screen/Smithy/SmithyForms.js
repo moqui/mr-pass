@@ -2008,7 +2008,7 @@ const under = (base, location) =>
     smithy.siteLocal(location) && (location === base || location.startsWith(base + "/") || location.startsWith(base + "?"))
         ? location
         : null
-/* The framework's lease dialog for a lease (System › Vaults › Lease, plans/Vault-Instances.md §3.7 of mr-moqui), where an
+/* The framework's lease dialog for a lease (System › Vaults › Lease, plans/archive/Vault-Instances.md §3.7 of mr-moqui), where an
  * approver of its vault opens it in their browser. In local mode on this server: a path on this host when it serves the
  * framework's screens, else (a site on a host of its own that refuses them: /qapps is Not Found there, and its session
  * is the host's) the webapp's own host, where the person signs in to the apps. Otherwise on the authority's web address

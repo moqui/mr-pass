@@ -1296,7 +1296,7 @@ commit with no passed run of the pipeline, is the framework's. **Operations** `f
 required pipeline, who waits for a Maintainer's approval (every deployment, or only one of a branch no rule protects), data types, allowed branches, clone URL and last deployment; add and
 edit (an https target and a clone URL with no user part, and the vault of the target's token, an operational vault the
 Maintainer is a member of: the token is that vault's item bound to `GitCiEnvironment:<environmentId>:targetToken`,
-made by a member in their client, and no field takes it; plans/Vault-Instances.md §4.6 of mr-moqui), Delete asked
+made by a member in their client, and no field takes it; plans/archive/Vault-Instances.md §4.6 of mr-moqui), Delete asked
 again. **Deployments** at `B/<repositoryPath>/-/pipelines/deployments` (Developer): the
 deployments, newest first, a page at a time (environment, commit, branch, state, who asked, dates), and Request deploy
 (an environment and a branch, whose head is deployed) where `canDeploy`. **DeploymentDetail** at
