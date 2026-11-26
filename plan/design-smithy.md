@@ -600,7 +600,7 @@ each read returns `capabilities`.
   `findMergeRequests`, `getMergeRequest`, `createMergeRequest`, `forkRepository`, `getAgreement`,
   `getMergeRequestChanges`, `createReviewComment`, `resolveReviewThread`, `submitReview`, `findPipelineRuns`,
   `getPipelineRun`, `getJobRun`, `getJobLog`, `rerunPipelineRun`, `retryJobRun`, `findIssues`, `getIssue` and
-  `createIssue` ([design-dev-aide §21](../../../../../plans/design-dev-aide.md#21-dev-aide-with-a-group-server)).
+  `createIssue` ([design-dev-aide §21](../../../../../plans/archive/design-dev-aide.md#21-dev-aide-with-a-group-server)).
   With such a key the account has its normal Smithy rights; merging is not on the list and stays on the page. A personal access token, a scoped key (`UserLoginKey.scope`, such as a gateway's)
   and a session key are refused for every PASS operation, reads included (`accessDenied`). Decided Nov 14, 2026.
 - **An access token** (a login key) acts as its account in git and in the framework's REST (F9), where a write to a
