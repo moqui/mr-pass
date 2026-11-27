@@ -281,6 +281,43 @@ feature('registration answers alike for a claimed address and one that cannot ma
         takenAnswer.message === fresh.message
     },
 })
+feature('an unclaimed account stored with capitals verifies by its own link (SEC-PSA-06)', {
+    when() {
+        sys(() => {
+            call('create#moqui.security.UserAccount', {
+                userId: 'PASS_ID_CAPS',
+                username: 'Pass.Caps@Example.test',
+                emailAddress: 'Pass.Caps@Example.test',
+                disabled: 'Y',
+            })
+            // never verified, its first challenge still there: unclaimed
+            call('create#moqui.security.public.RegistrationChallenge', {
+                challengeId: 'PASS_ID_CAPS_1',
+                userId: 'PASS_ID_CAPS',
+                emailAddress: 'Pass.Caps@Example.test',
+                tokenHash: 'x'.repeat(40),
+                expiresAt: Date.now() + 3600000,
+                newAccount: 'Y',
+            })
+        })
+        logout()
+        callAccount('begin#Registration', { emailAddress: 'pass.caps@example.test' })
+        ec.factory.waitWorkerPoolEmpty(50)
+        const token = capture.last().body.match(/[A-Za-z0-9_-]{64}/)[0]
+        const verified = fails(() =>
+            callAccount('verify#Registration', { token, newPassword: 'moqui1!!' }),
+        )
+        const account = sys(() =>
+            ec.entity.find('moqui.security.UserAccount').condition('userId', 'PASS_ID_CAPS').one(),
+        )
+        login('john.doe')
+        return { verified, disabled: account.disabled }
+    },
+    then({ verified, disabled }) {
+        verified === ''
+        disabled === 'N'
+    },
+})
 feature('verification throttling survives failed challenge transactions', {
     when() {
         let last = ''
