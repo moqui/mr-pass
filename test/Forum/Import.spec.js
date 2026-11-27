@@ -188,12 +188,15 @@ feature('an operator registers a checksummed archive from the import directory o
 })
 feature('staging reads the dump; preflight blocks unmapped staff, identities, restricted groups and plugins', {
     when() {
+        // an archive that unpacks past pass@import-max-bytes is refused, and stages nothing (SEC-PFS-112)
+        const tooMany = withConf('pass@import-max-bytes', '16', () => failure(I + 'stage#Import', { siteId, importId }))
         run(I + 'stage#Import', { siteId, importId })
         dispatchAll()
         const detail = run(I + 'get#Import', { siteId, importId })
-        return { detail }
+        return { tooMany, detail }
     },
-    then({ detail }) {
+    then({ tooMany, detail }) {
+        tooMany !== ''
         detail.import.stage === 'staged'
         detail.preflight.counts.posts === 8 && detail.preflight.counts.users === 5
         detail.preflight.counts.post_actions === 2

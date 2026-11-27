@@ -16,12 +16,14 @@
         to another host. notification-endpoint is the notification socket's path (empty: none, the page polls). Media and
         imports: media-root and import-dir (storage every cluster member reads), scanner-service and classifier-service
         (the services that scan an upload and classify a post; none: uploads and classification are off), test-scanner
-        for the test scanner only, mbox-max-message-bytes (10 MB when empty). Mail: route-domains (the list domains),
+        for the test scanner only, mbox-max-message-bytes (10 MB when empty), import-max-bytes and import-max-entries (what a
+        forum import unpacks of an archive, and of its dump, at most: 2 GiB and 200,000 entries). Mail: route-domains (the list domains),
         sender-addresses and mail-template-ids (what the Forum may send from and with). preview-frame-origins are the
         BOSS origins that may frame a theme preview; authority-name is how Operations names the authority. -->
     <pass backend-url="" client-id="" client-secret="" backend-transport="" backend-grpc-url="" backend-web-url=""
             backend-insecure="false" notification-endpoint="/notws" media-root="" import-dir="" scanner-service=""
-            classifier-service="" test-scanner="false" mbox-max-message-bytes="" route-domains="" sender-addresses=""
+            classifier-service="" test-scanner="false" mbox-max-message-bytes="" import-max-bytes="2147483648"
+            import-max-entries="200000" route-domains="" sender-addresses=""
             mail-template-ids="" preview-frame-origins="" authority-name="local"/>
     <webapp-list>
         <webapp name="webroot">

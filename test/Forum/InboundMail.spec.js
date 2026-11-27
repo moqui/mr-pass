@@ -449,36 +449,58 @@ feature('an attachment that fails scanning is held and the text still posts', {
         out.reason.includes('held for scanning')
     },
 })
-feature('a hard bounce for a forum notice stops email to that member', {
+// a report is no authenticated sender's word (SEC-PFS-106): one fails its delivery alone, and the member's email stops once
+// reports name three of their deliveries
+feature('hard bounces for three of a member\'s forum notices stop email to that member; one does not', {
     when() {
-        const out = receive({
-            to: 'support@lists.example.test',
-            from: 'MAILER-DAEMON@mx.sender.test',
-            subject: 'Undelivered Mail Returned to Sender',
-            extra: {
-                'content-type': 'multipart/report; report-type=delivery-status',
-            },
-            parts: [
-                { contentType: 'text/plain', contentText: 'Delivery failed.' },
-                {
-                    contentType: 'message/delivery-status',
-                    contentText:
-                        'Final-Recipient: rfc822; ann@sender.test\nStatus: 5.1.1\n\nMessage-ID: ' +
-                        annMessageId,
+        const report = () =>
+            receive({
+                to: 'support@lists.example.test',
+                from: 'MAILER-DAEMON@mx.sender.test',
+                subject: 'Undelivered Mail Returned to Sender',
+                extra: {
+                    'content-type': 'multipart/report; report-type=delivery-status',
                 },
-            ],
+                parts: [
+                    { contentType: 'text/plain', contentText: 'Delivery failed.' },
+                    {
+                        contentType: 'message/delivery-status',
+                        contentText:
+                            'Final-Recipient: rfc822; ann@sender.test\nStatus: 5.1.1\n\nMessage-ID: ' +
+                            annMessageId,
+                    },
+                ],
+            })
+        const pref = () =>
+            list('mantle.forum.ForumDeliveryPreference', {
+                siteId,
+                partyId: party.ann,
+                scopeType: 'site',
+            })[0]
+        const one = report()
+        const afterOne = pref()
+        // two more of the member's deliveries reported before
+        sys(() => {
+            for (const n of [1, 2])
+                call('create#mantle.forum.ForumDelivery', {
+                    deliveryId: 'IM_BOUNCED_' + n,
+                    siteId,
+                    partyId: party.ann,
+                    channel: 'email',
+                    state: 'failed',
+                    lastError: 'Hard bounce reported',
+                    revision: 1,
+                })
         })
-        const pref = list('mantle.forum.ForumDeliveryPreference', {
-            siteId,
-            partyId: party.ann,
-            scopeType: 'site',
-        })[0]
-        return { out, pref }
+        const third = report()
+        return { one, afterOne, third, afterThird: pref() }
     },
-    then({ out, pref }) {
-        out.result === 'bounce'
-        out.reason.includes('Hard bounce')
-        pref.suppressed === 'Y'
+    then({ one, afterOne, third, afterThird }) {
+        one.result === 'bounce'
+        one.reason.includes('Hard bounce')
+        afterOne?.suppressed !== 'Y'
+        third.result === 'bounce'
+        afterThird.suppressed === 'Y'
     },
 })
 feature('the mail screen shows routes and masked inbound outcomes', {
