@@ -428,8 +428,8 @@ repository's docs directory.
 `<repositoryPath>:<ref>` names a fork's ref and gives `headRepositoryPath`. With no `...`, the spec is the head and the
 base is the default branch. Both sides are ref names or commit ids; neither is split into a path.
 
-**Compatibility forms** (lookup 5). `issues/<n>` and `pull/<n>` redirect to `-/issues/<n>` and
-`-/merge-requests/<n>`; `pulls` to `-/merge-requests`; `tree/…`, `blob/…`, `commit/<id>`, `commits/…`, `releases`,
+**Compatibility forms** (lookup 5). `issues/<n>`, `pull/<n>` and `pulls/<n>` redirect to `-/issues/<n>`
+and `-/merge-requests/<n>` (`pulls/<n>` is the Forgejo form, §4.5); `pulls` to `-/merge-requests`; `tree/…`, `blob/…`, `commit/<id>`, `commits/…`, `releases`,
 `releases/tag/<tag>`, `issues` to the same form after `/-/`. They serve a GitHub URL whose host a person has changed
 to moqui.org, and the links the importer rewrites.
 
@@ -447,6 +447,50 @@ credentials it answers 404 (F1).
 ids in the query, so a file path that ends in `.qjs` or `.qvue` is never mistaken for a render mode. Forms post to
 `B/-/do/<name>`; each transition of `Smithy/Do` calls one operation and redirects to the form's `returnTo`, which must
 be a path under the same mount.
+
+### 4.5 The Forgejo API
+
+Where Smithy is mounted at `/`, the site answers a part of Forgejo's REST API at `/api/v1`, so a Forgejo client (tea,
+an editor's Forgejo provider) works with it: `tea login add --url https://code.example.org --token <token>`. The
+filter `SmithyApi` (`script/SmithyApi.js`, in `MoquiConf.xml`) takes `/api/v1/*`.
+
+**The mount rule.** The filter finds the site by the request's host (`public-site[<host>]@site-id`) and reads its
+mounts (`getSiteInfo`). Only when Smithy is mounted at `/` does it answer. On any other host, and under a path mount
+(`/code`), it passes the request on, and `/api/v1` is the framework's. No setting turns it on or off: the mount decides.
+
+**Sign-in.** A request is anonymous, or carries `Authorization: token <t>` or `Authorization: Bearer <t>` with a Smithy
+access token (Git access: a login key of scope `git`, hashed at rest, shown once). The filter signs out any session
+first and signs the token in with `ec.user.loginUserKey(token, "git")`; a key of another kind, a bad token and Basic
+are 401. The API reads no session and no cookie.
+
+**Access.** Each route calls the Facade operations the pages call, so the pages' view and edit rules decide. The
+Facade refuses a login key on a PASS operation (`checkLoginKey`); while the filter runs it lets an access token call
+the operations of `SMITHY_API_OPERATIONS`, and only those. A repository the caller may not view is 404; a refused write
+is 403, or 401 when anonymous; a refused input is 422, a conflict 409, the forum's post pace 429.
+
+**Routes.**
+
+| Area | Routes |
+| --- | --- |
+| Server | `version`, `settings/api`, `user`, `user/repos`, `users/search?q=` (one exact handle), `orgs/{o}/repos` (GET, POST) |
+| Repository | `repos/{path}`, `labels`, `assignees`, `issue_config`, `issue_templates`, `branches/{b}`, `statuses/{sha}`, `git/commits/{sha}`, `contents/{path}?ref=` |
+| Pull requests | `pulls` (GET with `state`, `head`, `poster`, `sort`; POST), `pulls/{n}` (GET, PATCH), `pulls/{n}.diff`, `pulls/{n}/files`, `pulls/{n}/commits`, `pulls/{n}/merge`, `pulls/{n}/reviews` (GET, POST), `pulls/{n}/reviews/{id}`, `pulls/{n}/reviews/{id}/comments`, `pulls/{n}/requested_reviewers` |
+| Issues | `issues` (GET, POST), `issues/{n}` (GET, PATCH), `issues/{n}/labels`, `issues/{n}/comments` (GET, POST), `issues/comments/{id}` (PATCH), `issues/{n}/reactions`, `issues/comments/{id}/reactions`, `issues/{n}/timeline`, `issues/{n}/assignees` |
+
+`{path}` is the repository's path (`maria/project`, or deeper in a subgroup); the path ends before the first route
+word. JSON uses Forgejo's field names. A list takes `limit` (50, at most 100) and `page`, and answers `X-Total-Count`
+and a `Link` header with `rel="next"` while there is a next page. An error is `{message, url}`.
+
+**Ids.** A comment's id is `(number × 2 + 1 for a merge request) × 1,000,000 + the post's ordinal`, so it names its
+topic. A review's id is its reviewer's place in the merge request's list, from 1. `issues/{n}` reads issue `n` first,
+then merge request `n`: where both exist, the issue wins.
+
+**Not built.** `pulls/{n}/update` (Smithy has no "update the branch" operation: 422); labels on a merge request (a Smithy
+merge request has none); a user search by part of a name; a repository made under `user/`; binary `contents` (refused).
+A comment's `body` is the post's cleaned HTML, not its Markdown source. A review has no body or time of its own (its
+time is the merge request's). A reaction names only the caller as a user; the others are counts. Through a remote
+PASS frontend the authority refuses access tokens (`PassAuthority.js` `APP_KEY_OPERATIONS`), so the API works in
+local mode only. GitHub's `/api/v3`, GraphQL, webhooks and Actions are not part of it.
 
 ## 5. Access
 

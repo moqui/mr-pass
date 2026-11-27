@@ -35,6 +35,11 @@
             <servlet name="PassTrackingPixel" location="component://mr-pass/script/TrackingPixel.js">
                 <url-pattern>/trk-o/*</url-pattern>
             </servlet>
+            <!-- Smithy's Forgejo API (plan/design-smithy.md §4.5): on a site whose Smithy is at the root of its host, else the framework's
+                 /api/v1 (the filter passes the request on); a filter reserves no path segment -->
+            <filter name="SmithyApi" location="component://mr-pass/script/SmithyApi.js">
+                <url-pattern>/api/v1/*</url-pattern>
+            </filter>
             <!-- per client (on when the per-client web protection is); the authority keeps its own limit per client and code and per
                 site, over which a visitor is still redirected and nothing is recorded -->
             <web-protection>

@@ -39,7 +39,17 @@ const authorityClient = (siteId, path, method) =>
 /* In local mode no authority's run() checks the caller, so the authority's login-key rule (Mantle's PassAuthority.js) is
    applied here: a user who came by a login key (the api_key or login_key header, ec.user.loginKeyKind, or a session that
    such a header started) calls only an installed app's operations (APP_KEY_OPERATIONS), and only with a device's key; an
-   access token or a session's key calls none (SEC-PSF-01). */
+   access token or a session's key calls none (SEC-PSF-01). One exception: Smithy's Forgejo API (script/SmithyApi.js, plan/design-smithy.md
+   §4.5) signs in by an access token and calls its Smithy operations (SMITHY_API_OPERATIONS) with the account's own rights; the API sets
+   the context's passSmithyApi flag around its calls, and a request it does not answer never has it. With the flag, any login reads
+   getSiteInfo, the site's public facts, which the API asks before it signs in to know whether the site mounts Smithy at its root. */
+const SMITHY_API_OPERATIONS = [
+    'getSiteInfo', 'getProfile', 'resolveSmithyPath', 'getRepository', 'findRepositories', 'createRepository', 'findRefs', 'getBranchRules',
+    'getCommit', 'getBlob', 'findMergeRequests', 'getMergeRequest', 'getMergeRequestChanges', 'createMergeRequest', 'updateMergeRequest',
+    'setMergeRequestState', 'mergeMergeRequest', 'submitReview', 'setMergeRequestReviewers', 'findIssues', 'getIssue', 'createIssue',
+    'updateIssue', 'setIssueState', 'setIssueLabels', 'setIssueAssignees', 'findLabels', 'findAssignees', 'getPosts', 'publishPost',
+    'updatePost', 'setReaction',
+]
 function checkLoginKey(operation) {
     const request = ec.web?.request
     const headerKey = request
@@ -48,6 +58,8 @@ function checkLoginKey(operation) {
     const headerLogin = !!ec.web?.sessionAttributes?.moquiHeaderLogin
     const kind = ec.user.userId ? ec.user.loginKeyKind || null : null
     if (!headerKey && !headerLogin && !kind) return
+    const api = ec.context.sharedMap.passSmithyApi === true
+    if (api && (operation === 'getSiteInfo' || (kind === 'token' && SMITHY_API_OPERATIONS.includes(operation)))) return
     const appOperations = ec.resource.script(
         'component://mr-mantle/script/PassAuthority.js',
     ).APP_KEY_OPERATIONS
