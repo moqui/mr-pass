@@ -48,8 +48,9 @@ roots only; an authority certificate from a private CA is not accepted yet.
 On the authority, register `pass-authority/client[<id>]@secret` and comma-separated
 `pass-authority/client[<id>]@sites`. Register the exact frontend SSO callback URI in
 `pass-authority/client[<id>]@callback`, such as `https://forum.example.test/account/Sso`. For direct gRPC, also set
-`moqui_conf__pass_authority__grpc_enabled=true`: the host's gRPC listener (port `pass-authority@grpc-port`, 4317, on
-`pass-authority@grpc-host`; the OTLP receiver's port when that is on too) then takes PASS calls, TLS with the HTTPS
+`moqui_conf__pass_authority__grpc_enabled=true`: the host's gRPC listener (`webapp-list/webapp[webroot]@grpc-listen-port`,
+4317, on `grpc-listen-bind`, while `grpc-listen-enabled` is true; shared with the OTLP receiver when that is on too) then
+takes PASS calls, TLS with the HTTPS
 listener's certificate. With no certificate it serves plain h2c, and then takes PASS calls only on a loopback address,
 unless `moqui_conf__pass_authority__grpc_insecure=true`. For an edge node, the local node's client ID for it is
 `edge/node@pass-client` (default `edge`):
@@ -1104,14 +1105,14 @@ and `--serve 127.0.0.1:18092`; it asserts the Mantle entity catalog is absent. T
 That run is REST; build the frontend with `--lite` to check REST on Lite. The same test runs over each gRPC transport
 with the Maximal package (`--release`) on both runtimes.
 
-gRPC direct (the authority on loopback serves h2c, which loopback allows). When the authority's conf turns on the
-OTLP/gRPC receiver (`MoquiDevConf.xml` has `<receiver grpc-enabled="true"/>`), the PASS authority shares the receiver's
-port (4317) and `pass-authority@grpc-port` is ignored: run the authority with a conf that leaves the receiver off, or
-point `pass@backend-grpc-url` at 4317.
+gRPC direct (the authority on loopback serves h2c, which loopback allows). The PASS authority and the OTLP/gRPC
+receiver share the host's one gRPC listener, which the dev conf keeps closed (`grpc-listen-enabled="false"`): turn it on
+and give it a port of its own for the run.
 
 ```sh
 ./moq test mr-pass --release --spec ClientFixtures,PortalFixtures --db snapshot --serve 127.0.0.1:18091 \
-    -D moqui_conf__pass_authority__grpc_enabled=true -D moqui_conf__pass_authority__grpc_port=18093
+    -D moqui_conf__pass_authority__grpc_enabled=true -D moqui_conf__webapp_list__webapp__WEBROOT__grpc_listen_enabled=true \
+    -D moqui_conf__webapp_list__webapp__WEBROOT__grpc_listen_port=18093
 # the frontend's conf: the remote properties above, and
 #   moqui_conf__pass__backend_grpc_url=grpc://127.0.0.1:18093   moqui_conf__pass__backend_transport=grpc
 MOQUI_RUNTIME=<frontend runtime> ./moq test mr-pass --release --nobuild --acceptance --spec RemoteFixtures --serve 127.0.0.1:18092
