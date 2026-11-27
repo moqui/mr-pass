@@ -99,31 +99,53 @@ feature(
             const source = ec.resource.getLocationText(
                 'component://mr-pass/screen/Shop/ShopPreview.js',
             )
-            const failing = runInContext(source, {
-                ec: {
-                    factory: { getConfValue: () => null },
-                    service: {
-                        sync: () => {
-                            throw new Error('the database is down')
+            // a call that throws, and one that answers null with its errors set (a service's failure without throwOnError)
+            const withService = (call, hasError) =>
+                runInContext(source, {
+                    ec: {
+                        factory: { getConfValue: () => null },
+                        service: {
+                            sync: () => {
+                                const builder = {
+                                    name: () => builder,
+                                    parameters: () => builder,
+                                    throwOnError: () => builder,
+                                    call,
+                                }
+                                return builder
+                            },
                         },
+                        message: {
+                            pushErrors() {},
+                            clearErrors() {},
+                            popErrors() {},
+                            hasError: () => hasError,
+                            getErrorsString: () => 'the database is down',
+                        },
+                        logger: { error() {} },
                     },
-                    message: {
-                        pushErrors() {},
-                        clearErrors() {},
-                        popErrors() {},
-                    },
-                    logger: { error() {} },
-                },
-            })
-            try {
-                return { answer: failing.isPreviewHost(SITE, PREVIEW_HOST) }
-            } catch (error) {
-                return { kind: error.moquiErrorKind || 'Error' }
+                })
+            const kindOf = (module) => {
+                try {
+                    return 'answered ' + module.isPreviewHost(SITE, PREVIEW_HOST)
+                } catch (error) {
+                    return error.moquiErrorKind || 'Error'
+                }
+            }
+            return {
+                thrown: kindOf(
+                    withService(() => {
+                        throw new Error('the database is down')
+                    }, false),
+                ),
+                silent: kindOf(withService(() => null, true)),
+                live: kindOf(withService(() => ({ preview: false }), false)),
             }
         },
-        then({ answer, kind }) {
-            answer === undefined
-            kind === 'Unavailable'
+        then({ thrown, silent, live }) {
+            thrown === 'Unavailable'
+            silent === 'Unavailable'
+            live === 'answered false'
         },
     },
 )

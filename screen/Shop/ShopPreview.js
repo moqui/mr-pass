@@ -36,16 +36,19 @@ function isPreviewHost(siteId, hostname) {
     if (!local() || !siteId || !hostname) return false
     ec.message.pushErrors()
     try {
-        return (
-            ec.service
-                .sync()
-                .name(HOST_SERVICE)
-                .parameters({
-                    siteId,
-                    hostname: String(hostname).toLowerCase(),
-                })
-                .call()?.preview === true
-        )
+        const answer = ec.service
+            .sync()
+            .name(HOST_SERVICE)
+            .parameters({
+                siteId,
+                hostname: String(hostname).toLowerCase(),
+            })
+            .throwOnError(true)
+            .call()
+        // a failed call that answers with its errors set and no exception fails closed too
+        if (ec.message.hasError())
+            throw new Error(ec.message.getErrorsString())
+        return answer?.preview === true
     } catch (error) {
         // fails closed (SEC-PSF-06): a host that may be the preview host is never served as a live host of the site
         ec.logger.error(

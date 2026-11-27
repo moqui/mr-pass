@@ -225,14 +225,21 @@ feature('backend account disable revokes an otherwise unexpired credential', {
 })
 feature('registration answers alike for a claimed address and one that cannot make an account (SEC-PSA-06)', {
     when() {
-        sys(() =>
+        sys(() => {
             call('create#moqui.security.UserAccount', {
                 userId: 'PASS_ID_TAKEN',
                 username: 'pass.taken@example.test',
                 emailAddress: 'pass.taken.other@example.test',
                 disabled: 'N',
-            }),
-        )
+            })
+            // stored with capitals: the lookups ignore case, as create#UserAccount's own checks do
+            call('create#moqui.security.UserAccount', {
+                userId: 'PASS_ID_MIXED',
+                username: 'Pass.MixedName@Example.test',
+                emailAddress: 'Pass.Mixed@Example.test',
+                disabled: 'N',
+            })
+        })
         logout()
         const fresh = callAccount('begin#Registration', {
             emailAddress: 'pass.fresh@example.test',
@@ -250,12 +257,26 @@ feature('registration answers alike for a claimed address and one that cannot ma
             : callAccount('begin#Registration', {
                   emailAddress: 'pass.taken@example.test',
               })
+        const mixed = fails(() =>
+            callAccount('begin#Registration', { emailAddress: 'pass.mixed@example.test' }),
+        )
+        const mixedName = fails(() =>
+            callAccount('begin#Registration', { emailAddress: 'pass.mixedname@example.test' }),
+        )
+        const accounts = sys(() =>
+            ec.entity
+                .find('moqui.security.UserAccount')
+                .condition('username', 'in', ['pass.mixed@example.test', 'pass.mixedname@example.test'])
+                .count(),
+        )
         ec.factory.waitWorkerPoolEmpty(50)
         login('john.doe')
-        return { fresh, claimed, taken, takenAnswer }
+        return { fresh, claimed, taken, takenAnswer, mixed, mixedName, accounts }
     },
-    then({ fresh, claimed, taken, takenAnswer }) {
+    then({ fresh, claimed, taken, takenAnswer, mixed, mixedName, accounts }) {
         taken === ''
+        mixed === '' && mixedName === ''
+        accounts === 0
         claimed.message === fresh.message
         takenAnswer.message === fresh.message
     },
