@@ -104,7 +104,7 @@
         condition="view?.capabilities.canPay &amp;&amp; (!attempt || attempt.state == 'declined' || attempt.state == 'failed')">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" id="PayInvoice" class="card" action="${publicPath}/pay">
+          <text type="html"><![CDATA[<form method="post" id="PayInvoice" class="card" action="${html(publicPath)}/pay">
 <h2>Pay this invoice</h2><input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">]]></text>
         </render-mode>
         <form-single name="PayInvoice" transition="pay" skip-start="true" skip-end="true"
@@ -146,9 +146,9 @@ card.</small></p></form>]]></text>
     <section name="ShareInvoiceSection" condition="view?.capabilities.canShare">
       <widgets>
         <render-mode>
-          <text type="html"><![CDATA[<form method="post" class="card" action="${publicPath}/share"><h2>Share a pay link</h2>
+          <text type="html"><![CDATA[<form method="post" class="card" action="${html(publicPath)}/share"><h2>Share a pay link</h2>
 <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
-<input type="hidden" name="invoiceId" value="${view.invoice.invoiceId}">
+<input type="hidden" name="invoiceId" value="${html(view.invoice.invoiceId)}">
 <p>A link for a colleague who pays this invoice, without signing in.</p><button>Create a pay link</button></form>]]></text>
         </render-mode>
       </widgets>

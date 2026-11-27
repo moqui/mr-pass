@@ -369,3 +369,20 @@ feature(
         },
     },
 )
+feature(
+    "a product's text with a replacement pattern goes into the head as it is (SEC-PSF-87)",
+    {
+        expect() {
+            const page =
+                '<html><head><title>T</title></head><body><script src="/a.js"></script></body></html>'
+            const extras =
+                '<script type="application/ld+json">{"name":"A $\' B $` C $& D $$"}</script>'
+            ec.resource
+                .script('component://mr-pass/screen/Shop/Catalog.js')
+                .withHead(page, extras) ===
+                '<html><head><title>T</title>' +
+                    extras +
+                    '</head><body><script src="/a.js"></script></body></html>'
+        },
+    },
+)

@@ -18,7 +18,7 @@ const CSP = {
     'img-src': ["'self'", 'data:'],
     'media-src': ["'self'"],
     'object-src': ["'none'"],
-    'base-uri': ["'self'"],
+    'base-uri': ["'none'"],
     'form-action': ["'self'"],
     'frame-ancestors': ["'none'"],
 }

@@ -92,6 +92,42 @@ feature(
     },
 )
 feature(
+    'a preview host check that fails answers Unavailable, never a live host of the site (SEC-PSF-06)',
+    {
+        when() {
+            // the module with an authority whose host check throws (a database that is down)
+            const source = ec.resource.getLocationText(
+                'component://mr-pass/screen/Shop/ShopPreview.js',
+            )
+            const failing = runInContext(source, {
+                ec: {
+                    factory: { getConfValue: () => null },
+                    service: {
+                        sync: () => {
+                            throw new Error('the database is down')
+                        },
+                    },
+                    message: {
+                        pushErrors() {},
+                        clearErrors() {},
+                        popErrors() {},
+                    },
+                    logger: { error() {} },
+                },
+            })
+            try {
+                return { answer: failing.isPreviewHost(SITE, PREVIEW_HOST) }
+            } catch (error) {
+                return { kind: error.moquiErrorKind || 'Error' }
+            }
+        },
+        then({ answer, kind }) {
+            answer === undefined
+            kind === 'Unavailable'
+        },
+    },
+)
+feature(
     'the preview page is the draft through the adapter, marked for selection, framed only by the BOSS origins',
     {
         when() {

@@ -586,9 +586,10 @@ function orderPage(context, orderId) {
             found,
             '/Orders/' + encodeURIComponent(id),
         )
+    // the theme's title is the page kind's, never the record's id (SEC-PSF-88): the order's id is in the component
     return page(
         context,
-        ec.resource.expand('Order ${orderId}', '', { orderId: id }),
+        ec.l10n.localize('Your order'),
         orderHtml(context, found.result),
     )
 }
@@ -611,7 +612,7 @@ function documentPage(context) {
     })
     return page(
         context,
-        invoiceTitle,
+        ec.l10n.localize('Invoice'),
         '<h1>' +
             esc(invoiceTitle) +
             '</h1><p>' +
@@ -1064,10 +1065,7 @@ function relayPage(context) {
         form = null
     }
     if (attributes && attributes[key]) attributes.remove(key)
-    if (
-        !form?.formUrl ||
-        !/^https:\/\/(accept|test)\.authorize\.net\//.test(form.formUrl)
-    )
+    if (!form?.formUrl || !checkout().relayFormUrl(form.formUrl))
         return { redirect: base(context) + '/PaymentMethods' }
     // the relay posts its form at once with the pages' same-origin script
     return page(

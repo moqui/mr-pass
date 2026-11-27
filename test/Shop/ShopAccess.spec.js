@@ -228,7 +228,7 @@ feature(
             policy.cacheControl === 'no-store'
             // SEC-PSF-04: a default-src, so frames, fonts and connections are the site's own
             csp ===
-                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
             logo === 'https://cdn.example.test'
             forged === undefined
         },

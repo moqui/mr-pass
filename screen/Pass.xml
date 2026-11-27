@@ -7,6 +7,10 @@
         // the forum's pages inside a group's or a repository's shell (Dogfood §6.1) have a scope and a link base, which
         // that shell sets; everywhere else there is none
         forumScope=null
+        // what the shell reads that a request parameter would set (SEC-PSF-85): Shop.xml and the preview host decide whether
+        // the page is a themed whole document, a Forum topic its canonical link
+        shopThemed=false
+        canonicalUrl=null
         // the headers are per route (Shared/Headers.js): no-store and the shell's CSP until the route is known, and by default
         const headers=ec.resource.script('component://mr-pass/screen/Shared/Headers.js')
         headers.apply(null,'')

@@ -685,9 +685,17 @@ feature("Blob shows rendered Markdown with its relative links and images made th
         const links = (page.html.match(/<(?:a|img)\b[^>]*>(?=Up<|Out<|Site<)|<img\b[^>]*alt="Logo"[^>]*>/g) || [])
             .map(tag => /(?:href|src)="([^"]*)"/.exec(tag)?.[1])
             .join(" ")
-        return {page, links, html: page.html, code: smithy.codeHtml("const a = 1\nif (a < 2) b('<i>')\n")}
+        // the authority's HTML is cleaned again on the page after its links are made (SEC-PSF-09), its headings' anchors kept
+        const cleaned = smithy.rewriteLinks(
+            '<h2 id="install">Install</h2><p onclick="x()">a<script>alert(1)</script></p><h3 id="next-step">Next</h3>' +
+                '<a href="javascript:alert(1)">j</a><img src="img/x.png" onerror="y()"><iframe src="https://example.test/"></iframe>',
+            smithy.urls("/code", "pass-smg/web"),
+            "main",
+            "docs"
+        )
+        return {page, links, html: page.html, code: smithy.codeHtml("const a = 1\nif (a < 2) b('<i>')\n"), cleaned}
     },
-    then({page, links, html, code}) {
+    then({page, links, html, code, cleaned}) {
         page.errors.length === 0
         html.includes('id="SmithyRendered"')
         // a relative link is the file's page at the shown ref, resolved against the file's directory; one that would leave
@@ -705,6 +713,9 @@ feature("Blob shows rendered Markdown with its relative links and images made th
         // a file's text is escaped, with a number and an anchor for each line
         code ===
             '<span id="L1"><a class="n" href="#L1">1</a>const a = 1</span>\n<span id="L2"><a class="n" href="#L2">2</a>if (a &lt; 2) b(&#39;&lt;i&gt;&#39;)</span>'
+        cleaned.includes('<h2 id="install">Install</h2>') && cleaned.includes('<h3 id="next-step">Next</h3>')
+        cleaned.includes('src="/code/pass-smg/web/-/raw/main/docs/img/x.png"')
+        !/onclick|onerror|<script|alert|javascript:|<iframe/.test(cleaned)
     }
 })
 feature("raw serves a file as plain text or a download, never as a page: its type, nosniff, a sandbox and a safe name", {

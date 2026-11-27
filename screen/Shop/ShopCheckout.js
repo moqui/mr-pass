@@ -1045,9 +1045,24 @@ function resume(context) {
 /* ---- the payment relay (F37) ---- */
 /* PaymentRelay: a fresh form token for the pending hosted payment, posted at once to the provider's page (only this
  * route's CSP allows that form-action); the token is in this page alone, which nothing keeps (no-store). */
+/* Whether a relay form's address is the hosted payment page the relay routes' CSP form-action names (Authorize.Net's
+ * Accept Hosted, production or sandbox): the relays post a payment token to it and to nothing else (SEC-PSS-64). */
+const relayFormUrl = (url) =>
+    /^https:\/\/(accept|test)\.authorize\.net\//.test(String(url || ''))
 function relayPage(context) {
     const reference = cleanRef(param('ref'))
-    const found = call(context, 'getCheckoutPaymentForm', { reference })
+    const answered = call(context, 'getCheckoutPaymentForm', { reference })
+    const found =
+        answered.error || relayFormUrl(answered.result?.formUrl)
+            ? answered
+            : {
+                  error: {
+                      kind: 'Unavailable',
+                      message: ec.l10n.localize(
+                          'The payment page cannot be opened now.',
+                      ),
+                  },
+              }
     if (found.error)
         return themed(
             context,
@@ -1280,6 +1295,7 @@ function act(context, name) {
     page,
     resultPage,
     relayPage,
+    relayFormUrl,
     confirmationPage,
     act,
     checkoutHtml,

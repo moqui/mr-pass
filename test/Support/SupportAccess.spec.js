@@ -193,7 +193,11 @@ feature(
                 }
             }
             login(people.contact, 'moqui')
-            const list = render('Support/MyCases', {})
+            // a request's shopThemed and canonicalUrl set nothing the shell reads (SEC-PSF-85)
+            const list = render('Support/MyCases', {
+                shopThemed: '1',
+                canonicalUrl: 'https://elsewhere.example.test/x',
+            })
             const detail = render('Support/CustomerCase', {
                 requestId: people.own,
             })
@@ -231,6 +235,8 @@ feature(
             byLink,
         }) {
             list.errors.length === 0
+            list.html.includes('<!doctype html>')
+            !list.html.includes('elsewhere.example.test')
             list.html.includes('Case OWN')
             !list.html.includes('Case COLLEAGUE')
             !list.html.includes('Case FOREIGN')

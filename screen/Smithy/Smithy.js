@@ -581,8 +581,22 @@ function refChoices(shell) {
  * directory, the file's directory at the shown ref. A link with a scheme, a protocol-relative one and an anchor are left
  * alone; one that would leave the repository's tree (.. above its root) loses its address. html is the authority's cleaned
  * markup. docs (DG7, a docs page): {root, href(path)}, the docs directory and the address of its page of a path in it; a
- * link to a Markdown file inside the directory is that Docs page, with its anchor. */
+ * link to a Markdown file inside the directory is that Docs page, with its anchor. The result is cleaned here too, after
+ * the rewrite (SEC-PSF-09): the page writes it as markup, so it does not rest on the authority's cleaning alone. */
 function rewriteLinks(html, u, ref, directory, docs) {
+    return cleanRendered(rewrittenLinks(html, u, ref, directory, docs))
+}
+/* Rendered HTML cleaned to the safe set (StringUtilities.cleanHtml), with the heading anchors the authority gives a docs or
+ * landing page's headings after its own clean (`<h2 id="install">`) put back in order: the safe set has no id. */
+function cleanRendered(html) {
+    const anchors = []
+    String(html || "").replace(/<h[1-6]\b[^>]*?\sid="([A-Za-z0-9_-]{1,100})"[^>]*>/gi, (whole, anchor) => anchors.push(anchor))
+    let next = 0
+    return String(StringUtilities.cleanHtml(String(html || ""))).replace(/<h([1-6])>/g, (whole, level) =>
+        next < anchors.length ? "<h" + level + ' id="' + anchors[next++] + '">' : whole
+    )
+}
+function rewrittenLinks(html, u, ref, directory, docs) {
     const unescape = text =>
         text
             .replace(/&quot;/g, '"')

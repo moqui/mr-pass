@@ -307,9 +307,10 @@ function detailPage(context, contractId) {
           form(context, 'purchase', id, ec.l10n.localize('Buy another term')) +
           '</section>'
         : ''
+    // the theme's title is the page kind's, not the subscription's name (SEC-PSF-88)
     return h().page(
         context,
-        s.name,
+        ec.l10n.localize('Your subscription'),
         '<p><a href="' +
             esc(base(context) + '/Subscriptions') +
             '">' +

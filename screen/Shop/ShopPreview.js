@@ -47,10 +47,11 @@ function isPreviewHost(siteId, hostname) {
                 .call()?.preview === true
         )
     } catch (error) {
+        // fails closed (SEC-PSF-06): a host that may be the preview host is never served as a live host of the site
         ec.logger.error(
             'Preview host check of ' + hostname + ' failed: ' + error.message,
         )
-        return false
+        fail('Unavailable', 'This site is not available now')
     } finally {
         ec.message.clearErrors()
         ec.message.popErrors()
@@ -232,7 +233,7 @@ function page(siteId, hostname, token) {
     let html = rendered.html || theme.unavailablePage(context)
     const script = selectionScript(scriptNonce, frameOrigins())
     html = html.includes('</body>')
-        ? html.replace(/<\/body>(?![\s\S]*<\/body>)/, script + '</body>')
+        ? html.replace(/<\/body>(?![\s\S]*<\/body>)/, () => script + '</body>')
         : html + script
     if (!response)
         return { html, omitted: rendered.omitted || [], ok: !!rendered.ok }

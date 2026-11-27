@@ -81,9 +81,11 @@ function headExtras(kind, view) {
         )
     return parts.join('')
 }
+/* The head's extras put before </head> by a function, so a `$'`, `$&` or `` $` `` in a product's text is written as
+ * it is, never read as a replacement pattern (SEC-PSF-87). */
 const withHead = (html, extras) =>
     extras && html.includes('</head>')
-        ? html.replace('</head>', extras + '</head>')
+        ? html.replace('</head>', () => extras + '</head>')
         : html
 /* The response's caching for a status: only a 200 keeps the route's public policy, with an ETag of its content. */
 function cacheHeaders(status, html, policy) {
@@ -314,4 +316,14 @@ function send(contentType, text) {
         )
     response.write(text)
 }
-;({ show, notFound, robots, sitemap, headExtras, productData, originOf, param })
+;({
+    show,
+    notFound,
+    robots,
+    sitemap,
+    headExtras,
+    withHead,
+    productData,
+    originOf,
+    param,
+})

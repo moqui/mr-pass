@@ -660,3 +660,14 @@ feature("the Shop's cart and checkout writes answer only a POST, so a same-site 
         afterPost == before + 1
     },
 })
+feature("a relay posts its form only to the hosted payment page the relay's CSP names (SEC-PSS-64)", {
+    expect() {
+        const relay = shopCheckout().relayFormUrl
+        relay('https://test.authorize.net/payment/payment') === true
+        relay('https://accept.authorize.net/payment/payment') === true
+        relay('https://accept.authorize.net.example.test/payment') === false
+        relay('https://pay.example.test/accept.authorize.net/') === false
+        relay('http://test.authorize.net/payment/payment') === false
+        relay(null) === false
+    },
+})

@@ -38,7 +38,11 @@ const confirmParam = () =>
         .replace(/[^A-Za-z0-9_.-]/g, '')
         .slice(0, 180)
 const hidden = (name, value) =>
-    '<input type="hidden" name="' + name + '" value="' + esc(value ?? '') + '">'
+    '<input type="hidden" name="' +
+    esc(name) +
+    '" value="' +
+    esc(value ?? '') +
+    '">'
 const formToken = () =>
     ec.web ? hidden('moquiSessionToken', ec.web.sessionToken) : ''
 const loginLink = (path) =>
@@ -144,12 +148,12 @@ function preferences(siteId, publicPath) {
     const decline = (name, pending) =>
         pending
             ? '<label class="decline"><input type="checkbox" name="decline_' +
-              name +
+              esc(name) +
               '" value="true"> Decline this; never send it</label>'
             : ''
     const box = (name, checked, label, description) =>
         '<label><input type="checkbox" name="' +
-        name +
+        esc(name) +
         '" value="true"' +
         (checked ? ' checked' : '') +
         '> ' +

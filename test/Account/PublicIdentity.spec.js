@@ -51,10 +51,13 @@ feature('registration stores a disabled account and only a token digest', {
         callAccount('begin#Registration', {
             emailAddress: 'pass.identity@example.test',
         })
+        // the mail goes on a worker (SEC-PSA-06)
+        ec.factory.waitWorkerPoolEmpty(50)
         staleToken = capture.last().body.match(/[A-Za-z0-9_-]{64}/)[0]
         callAccount('begin#Registration', {
             emailAddress: 'pass.identity@example.test',
         })
+        ec.factory.waitWorkerPoolEmpty(50)
         const message = capture.last()
         verificationToken = message.body.match(/[A-Za-z0-9_-]{64}/)[0]
         const account = ec.entity
@@ -218,6 +221,43 @@ feature('backend account disable revokes an otherwise unexpired credential', {
     },
     then({ error }) {
         error.includes('expired')
+    },
+})
+feature('registration answers alike for a claimed address and one that cannot make an account (SEC-PSA-06)', {
+    when() {
+        sys(() =>
+            call('create#moqui.security.UserAccount', {
+                userId: 'PASS_ID_TAKEN',
+                username: 'pass.taken@example.test',
+                emailAddress: 'pass.taken.other@example.test',
+                disabled: 'N',
+            }),
+        )
+        logout()
+        const fresh = callAccount('begin#Registration', {
+            emailAddress: 'pass.fresh@example.test',
+        })
+        const claimed = callAccount('begin#Registration', {
+            emailAddress: 'pass.identity@example.test',
+        })
+        const taken = fails(() =>
+            callAccount('begin#Registration', {
+                emailAddress: 'pass.taken@example.test',
+            }),
+        )
+        const takenAnswer = taken
+            ? null
+            : callAccount('begin#Registration', {
+                  emailAddress: 'pass.taken@example.test',
+              })
+        ec.factory.waitWorkerPoolEmpty(50)
+        login('john.doe')
+        return { fresh, claimed, taken, takenAnswer }
+    },
+    then({ fresh, claimed, taken, takenAnswer }) {
+        taken === ''
+        claimed.message === fresh.message
+        takenAnswer.message === fresh.message
     },
 })
 feature('verification throttling survives failed challenge transactions', {
