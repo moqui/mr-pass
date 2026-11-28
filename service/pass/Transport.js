@@ -145,12 +145,14 @@ const property = (name) => String(ec.factory.getConfValue(name) || '').trim()
 const routes = () =>
     ec.resource.script('component://mr-pass/service/pass/Routes.js')
 
-/* The gRPC endpoint of an authority's REST URL, for pass@backend-transport grpc with no pass@backend-grpc-url: its host
-   on the gRPC listener's default port. */
+/* The gRPC endpoint of an authority's REST URL, for pass@backend-transport grpc with no pass@backend-grpc-url: an
+   https:// URL's own host and port (443 when it names none), since the authority's HTTPS listener answers gRPC over
+   HTTP/2 and its dedicated gRPC port is off by default (mr-moqui plans/Runtime-Config.md §3.9); an http:// URL's host
+   on the dedicated port, 4317, the only one that takes plain HTTP/2 (the plain HTTP listener is HTTP/1.1). */
 function grpcEndpointOf(backend) {
-    const match = /^(https?):\/\/(\[[^\]]+\]|[^/:]+)/.exec(String(backend))
+    const match = /^(https?):\/\/(\[[^\]]+\]|[^/:?#]+)(?::(\d+))?/.exec(String(backend))
     if (!match) return ''
-    return (match[1] === 'https' ? 'grpcs://' : 'grpc://') + match[2] + ':4317'
+    return match[1] === 'https' ? 'grpcs://' + match[2] + ':' + (match[3] || '443') : 'grpc://' + match[2] + ':4317'
 }
 /* Whether a URL (http://, https://, grpc://, grpcs://) is in clear text to a host other than this one's loopback: such
    a URL would carry the client's secret and the visitors' delegations unencrypted (SEC-PSF-05). */

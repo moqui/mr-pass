@@ -19,7 +19,7 @@ frontend through deployment configuration or environment variables:
 | `pass@client-id` | Registered deployment ID |
 | `pass@client-secret` | Server-side deployment secret |
 | `pass@backend-transport` | `rest`, `grpc`, or empty for automatic (below) |
-| `pass@backend-grpc-url` | The authority's gRPC listener for direct gRPC, such as `grpcs://boss.example.test:4317` |
+| `pass@backend-grpc-url` | The authority's gRPC endpoint for direct gRPC: its HTTPS port, which answers gRPC over HTTP/2, such as `grpcs://boss.example.test:443`, or its dedicated gRPC listener when that is on, `grpcs://boss.example.test:4317` |
 | `pass@backend-insecure` | `true` lets the transport send the client secret and the visitors' delegations in clear text (`http://`, `grpc://`) to another host, on a private link only |
 | `pass@backend-web-url` | The authority's web address for the browser's SSO front channel; defaults to an http(s) `pass@backend-url`, and is needed with `edge:` (the local node's host name, through the edge node's web access) |
 
@@ -36,8 +36,10 @@ and error kinds; `service/pass/Transport.js`):
 The transport rule: `pass@backend-transport` `rest` or `grpc` forces one. Empty is gRPC when the package has the
 host's gRPC binding and a gRPC endpoint is set (`moqui_conf__pass__backend_url=edge:`, or `pass@backend-grpc-url`), else REST, so
 a frontend never moves to an authority port nobody opened. Lite and Dev have no gRPC: REST is their default and a
-supported mode for the long term. `grpc` with no `pass@backend-grpc-url` dials the `pass@backend-url` host on port
-4317, and `edge:` takes gRPC only. Settings that cannot work fail each call as unavailable, naming the setting in the
+supported mode for the long term. `grpc` with no `pass@backend-grpc-url` dials the `pass@backend-url` host on its own
+port when the URL is `https://` (443 when it names none: the authority's HTTPS listener answers gRPC over HTTP/2, and its
+dedicated port, 4317, is off by default), or on 4317 when it is `http://` (the plain HTTP listener is HTTP/1.1 only),
+and `edge:` takes gRPC only. Settings that cannot work fail each call as unavailable, naming the setting in the
 log.
 
 `grpc://` is plain HTTP/2: to an authority on another host it would send the client's secret, and the visitors'
@@ -49,11 +51,12 @@ On the authority, register `pass-authority/client[<id>]@secret` and comma-separa
 `pass-authority/client[<id>]@sites`. Register the exact frontend SSO callback URI in
 `pass-authority/client[<id>]@callback`, such as `https://forum.example.test/account/Sso`. For direct gRPC, also set
 `moqui_conf__pass_authority__grpc_enabled=true`: the host's gRPC listener (`webapp-list/webapp[webroot]@grpc-listen-port`,
-4317, on `grpc-listen-bind`, while `grpc-listen-enabled` is true; shared with the OTLP receiver when that is on too) then
-takes PASS calls, TLS with the HTTPS
+4317, on `grpc-listen-bind`, while `grpc-listen-enabled` is true, which it is not by default; shared with the OTLP
+receiver when that is on too) then takes PASS calls, TLS with the HTTPS
 listener's certificate. With no certificate it serves plain h2c, and then takes PASS calls only on a loopback address,
-unless `moqui_conf__pass_authority__grpc_insecure=true`. For an edge node, the local node's client ID for it is
-`edge/node@pass-client` (default `edge`):
+unless `moqui_conf__pass_authority__grpc_insecure=true`. The authority's HTTPS listener takes the same calls over HTTP/2,
+so with the dedicated port left off a frontend names the HTTPS port (`grpcs://boss.example.test:443`). For an edge
+node, the local node's client ID for it is `edge/node@pass-client` (default `edge`):
 set `pass-authority/client[edge]@sites` and `pass-authority/client[edge]@callback` (no secret; the link authenticates it).
 Delegations are hashed, revocable, site/client scoped, and expire after 15 minutes without use;
 use in the last five minutes extends them, up to twelve hours from sign-in, after which sign-in is
@@ -1106,7 +1109,7 @@ That run is REST; build the frontend with `--lite` to check REST on Lite. The sa
 with the Maximal package (`--release`) on both runtimes.
 
 gRPC direct (the authority on loopback serves h2c, which loopback allows). The PASS authority and the OTLP/gRPC
-receiver share the host's one gRPC listener, which the dev conf keeps closed (`grpc-listen-enabled="false"`): turn it on
+receiver share the host's one gRPC listener, which is closed by default (`grpc-listen-enabled="false"`): turn it on
 and give it a port of its own for the run.
 
 ```sh

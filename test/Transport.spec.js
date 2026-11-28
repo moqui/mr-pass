@@ -84,6 +84,7 @@ feature(
                     available: true,
                 }),
                 plainHttp: transport().grpcEndpointOf('http://10.0.0.5:8080/'),
+                httpsPort: transport().grpcEndpointOf('https://[::1]:8443/rest'),
             }
         },
         then(c) {
@@ -95,7 +96,8 @@ feature(
             c.autoGrpc.endpoint == 'grpcs://authority.example.test:5000'
             c.forcedRest.kind == 'rest'
             c.forcedGrpc.kind == 'grpc'
-            c.forcedGrpc.endpoint == 'grpcs://authority.example.test:4317'
+            // the authority's own HTTPS port, which answers gRPC over HTTP/2: its dedicated port is off by default
+            c.forcedGrpc.endpoint == 'grpcs://authority.example.test:443'
             c.forcedGrpcLite.kind == 'Unavailable'
             c.forcedGrpcLite.refused.includes('needs gRPC')
             c.edge.kind == 'grpc'
@@ -105,6 +107,7 @@ feature(
             c.edgeLite.refused.includes('needs gRPC')
             c.unknown.refused.includes('grpc, rest or empty')
             c.plainHttp == 'grpc://10.0.0.5:4317'
+            c.httpsPort == 'grpcs://[::1]:8443'
         },
     },
 )
